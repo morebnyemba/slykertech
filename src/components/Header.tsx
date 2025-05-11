@@ -3,17 +3,18 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle } from 'react-icons/fa';
+import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme toggle
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -37,13 +38,13 @@ export default function Header() {
             </p>
           </div>
         </div>
-        
+
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
           <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
             ⚡ Our client portal is almost complete! For now, please choose a contact method below.
           </p>
         </div>
-        
+
         <div className="space-y-3">
           <button
             onClick={handleWhatsAppClick}
@@ -53,7 +54,7 @@ export default function Header() {
               <FaWhatsapp className="text-white w-5 h-5" />
             </div>
             <div>
-              <p className="font-medium">WhatsApp Chat</p>
+              <p className="font-medium text-gray-800 dark:text-gray-100">WhatsApp Chat</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">Instant response</p>
             </div>
           </button>
@@ -66,7 +67,7 @@ export default function Header() {
               <FaPhone className="text-white w-5 h-5" />
             </div>
             <div>
-              <p className="font-medium">Call Us</p>
+              <p className="font-medium text-gray-800 dark:text-gray-100">Call Us</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">+263 78 721 1325</p>
             </div>
           </a>
@@ -79,7 +80,7 @@ export default function Header() {
               <FaEnvelope className="text-white w-5 h-5" />
             </div>
             <div>
-              <p className="font-medium">Email Us</p>
+              <p className="font-medium text-gray-800 dark:text-gray-100">Email Us</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">support@slykertech.co.zw</p>
             </div>
           </a>
@@ -96,7 +97,7 @@ export default function Header() {
   );
 
   return (
-    <header className="fixed w-full z-50">
+    <header className="fixed w-full z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-md dark:shadow-none transition-all duration-300">
       {/* Top Announcement Bar - Always Visible */}
       <div className="w-full bg-blue-800 text-white text-sm py-2 px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -116,88 +117,89 @@ export default function Header() {
             </a>
             <a href="#" className="hover:text-blue-200 transition">
               <FaTwitter className="w-4 h-4" />
-            </a>
-          </div>
+            </a></div>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <div className={`w-full transition-all duration-300 ${
-        scrolled ? 'bg-white/95 shadow-lg backdrop-blur-sm py-2' : 'bg-white py-4'
-      }`}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-6">
-          {/* Logo Only */}
-          <Link href="/" className="flex items-center">
-            <div className="relative w-16 h-16">
-              <Image 
-                src="/images/stws.png" 
-                alt="Slyker Tech Web Services Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </Link>
-          
-          {/* Mobile Navigation Controls */}
-          <div className="sm:hidden flex items-center gap-4">
-            {/* Mobile Get Started Button - Next to Hamburger */}
-            <button 
-              onClick={() => setShowContactModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 animate-pulse text-sm"
-            >
-              Get Started
-            </button>
-            
-            {/* Mobile Hamburger Icon */}
-            <button 
-              className="text-blue-700 hover:text-blue-800 focus:outline-none transition-all duration-300 ease-in-out"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Toggle menu"
-            >
-              <div className="relative w-6 h-6">
-                <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
-                  menuOpen ? 'rotate-45 top-3' : 'top-1'
-                }`}></span>
-                <span className={`absolute h-0.5 w-6 bg-blue-700 top-3 transition-all duration-200 ${
-                  menuOpen ? 'opacity-0' : 'opacity-100'
-                }`}></span>
-                <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
-                  menuOpen ? '-rotate-45 top-3' : 'top-5'
-                }`}></span>
-              </div>
-            </button>
+      <div className="max-w-7xl mx-auto px-6 py-3 sm:py-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link href="/" className="flex items-center">
+          <div className="relative w-16 h-16">
+            <Image
+              src="/images/stws.png"
+              alt="Slyker Tech Web Services Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
-          
-          {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center space-x-8">
-            <NavLink href="/" label="Home" />
-            <NavLink href="/about" label="About" />
-            <NavLink href="/services" label="Services" />
-            <NavLink href="/portfolio" label="Portfolio" />
-            <NavLink href="/contact" label="Contact" />
-            
-            <button 
-              onClick={() => setShowContactModal(true)}
-              className="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 transform hover:-translate-y-0.5 animate-pulse"
-            >
-              Get Started
-            </button>
-          </nav>
+        </Link>
+
+        {/* Mobile Navigation Controls */}
+        <div className="sm:hidden flex items-center gap-4">
+          {/* Theme Toggle for Mobile */}
+          <ThemeToggle />
+
+          {/* Mobile Get Started Button - Next to Hamburger */}
+          <button
+            onClick={() => setShowContactModal(true)}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 animate-pulse text-sm"
+          >
+            Get Started
+          </button>
+
+          {/* Mobile Hamburger Icon */}
+          <button
+            className="text-blue-700 hover:text-blue-800 focus:outline-none transition-all duration-300 ease-in-out"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            <div className="relative w-6 h-6">
+              <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
+                menuOpen ? 'rotate-45 top-3' : 'top-1'
+              }`}></span>
+              <span className={`absolute h-0.5 w-6 bg-blue-700 top-3 transition-all duration-200 ${
+                menuOpen ? 'opacity-0' : 'opacity-100'
+              }`}></span>
+              <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
+                menuOpen ? '-rotate-45 top-3' : 'top-5'
+              }`}></span>
+            </div>
+          </button>
         </div>
-        
-        {/* Mobile Menu */}
-        <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        }`}>
-          <nav className="flex flex-col items-center space-y-4 bg-white/95 backdrop-blur-sm shadow-inner py-4">
-            <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
-            <MobileNavLink href="/about" label="About" onClick={() => setMenuOpen(false)} />
-            <MobileNavLink href="/services" label="Services" onClick={() => setMenuOpen(false)} />
-            <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
-            <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
-          </nav>
-        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden sm:flex items-center space-x-8">
+          <NavLink href="/" label="Home" />
+          <NavLink href="/about" label="About" />
+          <NavLink href="/services" label="Services" />
+          <NavLink href="/portfolio" label="Portfolio" />
+          <NavLink href="/contact" label="Contact" />
+
+          {/* Theme Toggle for Desktop */}
+          <ThemeToggle />
+
+          <button
+            onClick={() => setShowContactModal(true)}
+            className="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 transform hover:-translate-y-0.5 animate-pulse"
+          >
+            Get Started
+          </button>
+        </nav>
+      </div>
+
+      {/* Mobile Menu */}
+      <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+        menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <nav className="flex flex-col items-center space-y-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-4">
+          <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/about" label="About" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/services" label="Services" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
+        </nav>
       </div>
 
       {/* Contact Modal */}
@@ -209,9 +211,9 @@ export default function Header() {
 // Desktop Navigation Link Component
 function NavLink({ href, label }) {
   return (
-    <Link 
-      href={href} 
-      className="relative text-gray-800 font-medium hover:text-blue-700 transition-colors duration-300 group"
+    <Link
+      href={href}
+      className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group"
     >
       {label}
       <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
@@ -222,9 +224,9 @@ function NavLink({ href, label }) {
 // Mobile Navigation Link Component
 function MobileNavLink({ href, label, onClick }) {
   return (
-    <Link 
-      href={href} 
-      className="w-full text-center text-lg font-medium text-gray-800 hover:text-blue-700 py-3 transition-colors duration-300 border-b border-gray-100 last:border-0"
+    <Link
+      href={href}
+      className="w-full text-center text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 py-3 transition-colors duration-300 border-b border-gray-100 dark:border-gray-800 last:border-0"
       onClick={onClick}
     >
       {label}
