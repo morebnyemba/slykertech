@@ -37,9 +37,9 @@ export default function HomePage() {
   // Stats data
   const stats = [
     { value: "99.99%", label: "Uptime SLA", icon: <FaServer className="w-8 h-8" /> },
-    { value: "5K+", label: "Active Clients", icon: <FaUserShield className="w-8 h-8" /> },
-    { value: "150+", label: "Expert Engineers", icon: <FaCode className="w-8 h-8" /> },
-    { value: "12+", label: "Years Experience", icon: <FaRegStar className="w-8 h-8" /> }
+    { value: "5+", label: "Active Clients", icon: <FaUserShield className="w-8 h-8" /> },
+    { value: "1", label: "Expert Engineers", icon: <FaCode className="w-8 h-8" /> },
+    { value: "4+", label: "Years Experience", icon: <FaRegStar className="w-8 h-8" /> }
   ];
 
   // Feature carousel slides
@@ -230,109 +230,295 @@ export default function HomePage() {
       </Head>
 
       <div className="relative z-10">
-        {/* Hero Section with Grid Pattern */}
-        <section className="relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-white dark:from-blue-950/80 dark:to-gray-900 overflow-hidden">
-          <div className="absolute inset-0 opacity-10 dark:opacity-[0.03]">
-            <div className="absolute inset-0 bg-[url('https://bgvault.tech/grid.svg')] bg-[length:100px_100px]"></div>
-          </div>
-          <div className="relative max-w-5xl mx-auto">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-white leading-tight">
-              Next-Gen <span className="text-blue-600 dark:text-blue-400">Tech Solutions</span>
-            </h1>
-            <p className="mt-8 text-lg sm:text-xl text-gray-800 dark:text-gray-300 max-w-3xl mx-auto">
-              Empowering enterprises with full-stack digital transformation services across cloud, AI, and modern application development.
-            </p>
-            <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
-              <button
-                onClick={handleWhatsAppClick}
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-              >
-                <FaWhatsapp className="w-5 h-5" />
-                Get Started Now
-              </button>
-              <Link
-                href="/services"
-                className="px-8 py-4 rounded-lg border-2 border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 font-semibold transition-colors"
-              >
-                Explore Our Services
-              </Link>
+        {/* Hero Section with Custom Circuit Board Background */}
+<section className="relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center overflow-hidden">
+  {/* Custom Circuit Board Background */}
+  <div className="absolute inset-0 bg-white dark:bg-gray-950">
+    <div className="absolute inset-0">
+      <svg className="absolute inset-0 w-full h-full opacity-30 dark:opacity-20" xmlns="http://www.w3.org/2000/svg">
+        <pattern id="circuit-advanced" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+          {/* Nodes */}
+          <circle cx="10" cy="10" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="50" cy="10" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="90" cy="10" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="10" cy="50" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="50" cy="50" r="3" className="fill-purple-500 dark:fill-purple-400" />
+          <circle cx="90" cy="50" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="10" cy="90" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="50" cy="90" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          <circle cx="90" cy="90" r="2" className="fill-blue-500 dark:fill-blue-400" />
+          
+          {/* Connections */}
+          <path
+            d="M10 10 H 30 V 50 H 10 M50 10 V 30 H 90 M50 50 H 70 V 90 M10 50 H 30 M50 50 H 70 M90 50 V 70 H 70"
+            stroke="currentColor"
+            strokeWidth="1"
+            className="text-blue-500 dark:text-blue-400"
+            fill="none"
+          />
+        </pattern>
+        <rect width="100%" height="100%" fill="url(#circuit-advanced)" />
+      </svg>
+    </div>
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-950/20 dark:via-transparent dark:to-purple-950/20" />
+  </div>
+
+  {/* Content Container */}
+  <div className="relative max-w-5xl mx-auto">
+    {/* Animated headline with gradient text */}
+    <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6">
+      <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-400 dark:to-blue-200 animate-text-shimmer">
+        Next-Gen Tech Solutions
+      </span>
+    </h1>
+    
+    {/* Subheading with subtle animation */}
+    <p className="mt-8 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto animate-fade-in-up">
+      Empowering enterprises with full-stack digital transformation services across cloud, AI, and modern application development.
+    </p>
+
+    {/* CTA Buttons with hover effects */}
+    <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+      <button
+        onClick={handleWhatsAppClick}
+        className="flex items-center justify-center gap-3 px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl animate-pulse-slow"
+      >
+        <FaWhatsapp className="w-5 h-5" />
+        Get Started Now
+      </button>
+      <Link
+        href="/services"
+        className="px-8 py-4 rounded-lg border-2 border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 font-semibold transition-colors backdrop-blur-sm"
+      >
+        Explore Our Services
+      </Link>
+    </div>
+
+    {/* Decorative elements that match circuit theme */}
+    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5 animate-float"></div>
+    <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5 animate-float-delay"></div>
+  </div>
+
+  {/* Scrolling animation indicator */}
+  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+    <div className="w-6 h-10 border-2 border-blue-600 dark:border-blue-400 rounded-full flex justify-center">
+      <div className="w-1 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 animate-scroll-indicator"></div>
+    </div>
+  </div>
+</section>
+
+        {/* Stats Section with Animated Circuit Nodes */}
+<section className="relative py-20 bg-white dark:bg-gray-950 overflow-hidden">
+  {/* Circuit node background animation */}
+  <div className="absolute inset-0 opacity-10 dark:opacity-[0.05]">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative w-full h-full">
+        {/* Animated circuit nodes */}
+        {[...Array(12)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute rounded-full bg-blue-400 dark:bg-blue-500 opacity-20"
+            style={{
+              width: `${Math.random() * 10 + 5}px`,
+              height: `${Math.random() * 10 + 5}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `pulse ${Math.random() * 6 + 4}s infinite alternate`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* Subtle circuit connections */}
+  <div className="absolute inset-0 opacity-5 dark:opacity-[0.03] pointer-events-none">
+    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M10,10 Q50,20 90,10 T170,50 Q190,90 250,90"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeDasharray="5,5"
+        className="text-blue-400 dark:text-blue-500"
+        fill="none"
+      />
+      <path 
+        d="M50,150 Q100,100 150,150 T250,100"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeDasharray="5,5"
+        className="text-purple-400 dark:text-purple-500"
+        fill="none"
+      />
+    </svg>
+  </div>
+
+  <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
+    <h2 className="text-3xl font-bold text-center text-blue-900 dark:text-blue-300 mb-16">
+      <span className="relative inline-block">
+        <span className="relative z-10 px-4">Our Impact in Numbers</span>
+        <span className="absolute bottom-0 left-0 w-full h-2 bg-blue-200 dark:bg-blue-800/50 z-0"></span>
+      </span>
+    </h2>
+
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      {stats.map((stat, index) => (
+        <div 
+          key={index} 
+          className="relative p-6 text-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-800 overflow-hidden group"
+        >
+          {/* Animated highlight on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
+          {/* Circuit node decoration */}
+          <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-blue-500 dark:bg-blue-400 opacity-70"></div>
+          
+          <div className="relative z-10">
+            <div className="text-4xl text-blue-600 dark:text-blue-400 mb-4 transition-transform duration-300 group-hover:scale-110">
+              {stat.icon}
+            </div>
+            <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-300">
+                {stat.value}
+              </span>
+            </div>
+            <div className="text-gray-600 dark:text-gray-300 uppercase text-sm tracking-wide font-medium">
+              {stat.label}
             </div>
           </div>
-        </section>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
 
-        {/* Stats Section with Connected Dots Pattern */}
-        <section className="relative py-20 bg-white dark:bg-gray-950 overflow-hidden">
-          <div className="absolute inset-0 opacity-5 dark:opacity-[0.02]">
-            <div className="absolute inset-0 bg-[url('https://bgvault.tech/connected-dots.svg')] bg-[length:120px_120px]"></div>
-          </div>
-          <div className="relative max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 sm:px-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="p-6 text-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-800">
-                <div className="text-3xl text-blue-600 dark:text-blue-400 mb-4">
-                  {stat.icon}
+       {/* Features Carousel with Circuit Connections */}
+<section className="relative py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+  {/* Animated circuit background */}
+  <div className="absolute inset-0 opacity-10 dark:opacity-[0.03]">
+    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <pattern id="circuit-pattern" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
+        {/* Circuit nodes */}
+        <circle cx="20" cy="20" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        <circle cx="75" cy="20" r="3" className="fill-purple-500 dark:fill-purple-400" />
+        <circle cx="130" cy="20" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        <circle cx="20" cy="75" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        <circle cx="130" cy="75" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        <circle cx="20" cy="130" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        <circle cx="75" cy="130" r="3" className="fill-purple-500 dark:fill-purple-400" />
+        <circle cx="130" cy="130" r="2" className="fill-blue-500 dark:fill-blue-400" />
+        
+        {/* Circuit connections */}
+        <path 
+          d="M20 20 H75 V75 H130 M75 20 V75 M20 75 H75 V130"
+          stroke="currentColor"
+          strokeWidth="1"
+          className="text-blue-500 dark:text-blue-400"
+          fill="none"
+        />
+      </pattern>
+      <rect width="100%" height="100%" fill="url(#circuit-pattern)" />
+    </svg>
+  </div>
+
+  <div className="relative max-w-6xl mx-auto">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-4">
+        <span className="relative inline-block">
+          <span className="relative z-10 px-4">Core Capabilities</span>
+          <span className="absolute bottom-0 left-0 w-full h-2 bg-blue-200 dark:bg-blue-800/50 z-0"></span>
+        </span>
+      </h2>
+      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        Advanced solutions powering your digital transformation journey
+      </p>
+    </div>
+
+    <div 
+      className="relative overflow-hidden mb-12"
+      onMouseEnter={() => setAutoFeatureSlide(false)}
+      onMouseLeave={() => setAutoFeatureSlide(true)}
+    >
+      <div 
+        className="flex transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{ transform: `translateX(-${activeFeatureSlide * 100}%)` }}
+      >
+        {featureSlides.map((slide, index) => (
+          <div 
+            key={index}
+            className="min-w-full grid grid-cols-1 md:grid-cols-3 gap-8 px-4"
+          >
+            {slide.map((feature, i) => (
+              <div 
+                key={i} 
+                className="group relative p-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-500 hover:-translate-y-2 hover:shadow-lg overflow-hidden"
+              >
+                {/* Animated circuit connection on hover */}
+                <div className="absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <svg className="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <path 
+                      d="M-20,50 Q50,0 120,50"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-blue-400 dark:text-blue-300"
+                      fill="none"
+                      strokeDasharray="10,5"
+                    />
+                  </svg>
                 </div>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                  {stat.value}
+                
+                {/* Feature icon with gradient background */}
+                <div className="relative z-10 mb-6">
+                  <div className="absolute -top-2 -left-2 w-16 h-16 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 opacity-80"></div>
+                  <div className="relative text-4xl text-blue-600 dark:text-blue-400">
+                    {feature.icon}
+                  </div>
                 </div>
-                <div className="text-gray-600 dark:text-gray-300 uppercase text-sm tracking-wide font-medium">
-                  {stat.label}
+                
+                <h3 className="relative z-10 text-2xl font-semibold mb-4 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="relative z-10 text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
+                
+                {/* Animated read more indicator */}
+                <div className="relative z-10 mt-6 flex items-center text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+                  <span className="text-sm font-medium">Learn more</span>
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        ))}
+      </div>
+    </div>
 
-        {/* Features Carousel with Circuit Pattern */}
-        <section className="relative py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-950 overflow-hidden">
-          <div className="absolute inset-0 opacity-10 dark:opacity-[0.03]">
-            <div className="absolute inset-0 bg-[url('https://bgvault.tech/circuit.svg')] bg-[length:150px_150px]"></div>
-          </div>
-          <div className="relative max-w-6xl mx-auto">
-            <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-white mb-12">
-              Core Features
-            </h2>
-            <div 
-              className="relative overflow-hidden"
-              onMouseEnter={() => setAutoFeatureSlide(false)}
-              onMouseLeave={() => setAutoFeatureSlide(true)}
-            >
-              <div className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${activeFeatureSlide * 100}%)` }}
-              >
-                {featureSlides.map((slide, index) => (
-                  <div 
-                    key={index}
-                    className="min-w-full grid grid-cols-1 md:grid-cols-3 gap-8 px-4"
-                  >
-                    {slide.map((feature, i) => (
-                      <div key={i} className="group p-8 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm hover:border-blue-600 dark:hover:border-blue-400 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg">
-                        <div className="text-blue-600 dark:text-blue-400 mb-6">
-                          {feature.icon}
-                        </div>
-                        <h3 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">{feature.title}</h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{feature.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-center mt-8 gap-2">
-              {featureSlides.map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-3 h-3 rounded-full ${index === activeFeatureSlide ? 'bg-blue-600' : 'bg-gray-300'}`}
-                  onClick={() => {
-                    setActiveFeatureSlide(index);
-                    setAutoFeatureSlide(false);
-                    setTimeout(() => setAutoFeatureSlide(true), 5000);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
+    {/* Custom pagination with circuit nodes */}
+    <div className="flex justify-center items-center gap-4">
+      {featureSlides.map((_, index) => (
+        <button
+          key={index}
+          className="relative w-12 h-12 flex items-center justify-center group"
+          onClick={() => {
+            setActiveFeatureSlide(index);
+            setAutoFeatureSlide(false);
+            setTimeout(() => setAutoFeatureSlide(true), 5000);
+          }}
+        >
+          <div className={`absolute w-3 h-3 rounded-full transition-all ${index === activeFeatureSlide ? 'bg-blue-600 dark:bg-blue-400 scale-150' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+          <div className={`absolute w-8 h-8 rounded-full border-2 transition-all ${index === activeFeatureSlide ? 'border-blue-400 dark:border-blue-300' : 'border-transparent'}`}></div>
+          {index === activeFeatureSlide && (
+            <div className="absolute w-12 h-12 rounded-full border-2 border-blue-200 dark:border-blue-800 animate-ping-slow opacity-0"></div>
+          )}
+        </button>
+      ))}
+    </div>
+  </div>
+</section>
         {/* Solutions Carousel with Wave Pattern */}
         <section className="relative py-24 px-4 sm:px-8 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="absolute inset-0 opacity-10 dark:opacity-[0.03]">
