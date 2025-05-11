@@ -7,7 +7,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme togg
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
