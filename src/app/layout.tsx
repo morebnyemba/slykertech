@@ -42,8 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/images/stws.jpeg" sizes="any" />
       </head>
       <body className="min-h-screen antialiased bg-background text-foreground">
         <ThemeProvider
