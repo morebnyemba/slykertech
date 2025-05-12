@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = "Slyker Tech Web Services";
 export const BASE_URL = "https://slykertech.co.zw";
-export const DEFAULT_OG_IMAGE = "/images/logo-og.jpg";
+export const DEFAULT_OG_IMAGE = "/images/stws.jpeg";
 
 export const SOCIAL_HANDLES = {
   twitter: "@SlykerTech",
