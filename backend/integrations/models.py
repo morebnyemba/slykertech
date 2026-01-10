@@ -45,8 +45,16 @@ class IntegrationCredential(models.Model):
         """Encrypt a field value"""
         if not value:
             return None
-        # In production, use a proper key management system
-        key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
+        # Use a dedicated encryption key from environment or settings
+        from decouple import config
+        encryption_key = config('ENCRYPTION_KEY', default=None)
+        
+        if not encryption_key:
+            # Fallback for development - derive from SECRET_KEY
+            key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
+        else:
+            key = encryption_key[:32].ljust(32, '0').encode()
+        
         cipher = Fernet(base64.urlsafe_b64encode(key))
         return cipher.encrypt(value.encode()).decode()
     
@@ -54,9 +62,19 @@ class IntegrationCredential(models.Model):
         """Decrypt a field value"""
         if not encrypted_value:
             return None
-        key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
+        # Use a dedicated encryption key from environment or settings
+        from decouple import config
+        encryption_key = config('ENCRYPTION_KEY', default=None)
+        
+        if not encryption_key:
+            # Fallback for development - derive from SECRET_KEY
+            key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
+        else:
+            key = encryption_key[:32].ljust(32, '0').encode()
+        
         cipher = Fernet(base64.urlsafe_b64encode(key))
         return cipher.decrypt(encrypted_value.encode()).decode()
+
     
     def set_password(self, password):
         """Set encrypted password"""
