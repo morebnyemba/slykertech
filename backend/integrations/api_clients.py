@@ -1,0 +1,240 @@
+"""
+API client wrappers for external service integrations
+"""
+import requests
+from typing import Dict, Optional, Any
+from requests.auth import HTTPBasicAuth
+
+
+class cPanelAPIClient:
+    """Client for interacting with cPanel UAPI/API2"""
+    
+    def __init__(self, host: str, username: str, api_token: str, port: int = 2083):
+        """
+        Initialize cPanel API client
+        
+        Args:
+            host: cPanel server hostname
+            username: cPanel username
+            api_token: cPanel API token
+            port: cPanel port (default 2083 for SSL)
+        """
+        self.host = host
+        self.username = username
+        self.api_token = api_token
+        self.port = port
+        self.base_url = f"https://{host}:{port}/execute"
+    
+    def _make_request(self, module: str, function: str, params: Dict = None) -> Dict:
+        """Make a request to cPanel UAPI"""
+        url = f"{self.base_url}/{module}/{function}"
+        
+        headers = {
+            'Authorization': f'cpanel {self.username}:{self.api_token}'
+        }
+        
+        try:
+            response = requests.get(url, headers=headers, params=params or {}, verify=True)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {"error": str(e), "status": "failed"}
+    
+    def get_account_summary(self) -> Dict:
+        """Get account summary information"""
+        return self._make_request('StatsBar', 'get_stats')
+    
+    def list_domains(self) -> Dict:
+        """List all domains"""
+        return self._make_request('DomainInfo', 'list_domains')
+    
+    def list_email_accounts(self, domain: str = None) -> Dict:
+        """List email accounts for a domain"""
+        params = {'domain': domain} if domain else {}
+        return self._make_request('Email', 'list_pops', params)
+    
+    def create_email_account(self, email: str, password: str, quota: int = 250) -> Dict:
+        """Create a new email account"""
+        params = {
+            'email': email,
+            'password': password,
+            'quota': quota
+        }
+        return self._make_request('Email', 'add_pop', params)
+    
+    def list_databases(self) -> Dict:
+        """List all databases"""
+        return self._make_request('Mysql', 'list_databases')
+    
+    def create_database(self, name: str) -> Dict:
+        """Create a new database"""
+        return self._make_request('Mysql', 'create_database', {'name': name})
+    
+    def get_disk_usage(self) -> Dict:
+        """Get disk usage information"""
+        return self._make_request('Quota', 'get_quota_info')
+    
+    def list_subdomains(self) -> Dict:
+        """List all subdomains"""
+        return self._make_request('SubDomain', 'list_subdomains')
+
+
+class DirectAdminAPIClient:
+    """Client for interacting with DirectAdmin API"""
+    
+    def __init__(self, host: str, username: str, password: str, port: int = 2222):
+        """
+        Initialize DirectAdmin API client
+        
+        Args:
+            host: DirectAdmin server hostname
+            username: DirectAdmin username
+            password: DirectAdmin password
+            port: DirectAdmin port (default 2222)
+        """
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+        self.base_url = f"https://{host}:{port}"
+        self.auth = HTTPBasicAuth(username, password)
+    
+    def _make_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
+        """Make a request to DirectAdmin API"""
+        url = f"{self.base_url}/{endpoint}"
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, auth=self.auth, params=data or {}, verify=True)
+            else:
+                response = requests.post(url, auth=self.auth, data=data or {}, verify=True)
+            
+            response.raise_for_status()
+            
+            # DirectAdmin returns text responses, parse accordingly
+            return {"status": "success", "data": response.text}
+        except requests.exceptions.RequestException as e:
+            return {"error": str(e), "status": "failed"}
+    
+    def get_user_info(self) -> Dict:
+        """Get user information"""
+        return self._make_request('CMD_API_SHOW_USER_CONFIG')
+    
+    def get_user_usage(self) -> Dict:
+        """Get user usage statistics"""
+        return self._make_request('CMD_API_SHOW_USER_USAGE')
+    
+    def list_domains(self) -> Dict:
+        """List all domains"""
+        return self._make_request('CMD_API_SHOW_DOMAINS')
+    
+    def list_databases(self) -> Dict:
+        """List all databases"""
+        return self._make_request('CMD_API_DATABASES')
+    
+    def create_database(self, name: str, user: str, password: str) -> Dict:
+        """Create a new database"""
+        data = {
+            'action': 'create',
+            'name': name,
+            'user': user,
+            'passwd': password,
+            'passwd2': password
+        }
+        return self._make_request('CMD_API_DATABASES', 'POST', data)
+    
+    def list_email_accounts(self) -> Dict:
+        """List email accounts"""
+        return self._make_request('CMD_API_POP')
+    
+    def create_email_account(self, email: str, password: str, quota: int = 250) -> Dict:
+        """Create a new email account"""
+        data = {
+            'action': 'create',
+            'user': email.split('@')[0],
+            'passwd': password,
+            'passwd2': password,
+            'quota': quota
+        }
+        return self._make_request('CMD_API_POP', 'POST', data)
+
+
+class CloudflareAPIClient:
+    """Client for interacting with Cloudflare API"""
+    
+    def __init__(self, api_token: str, email: str = None):
+        """
+        Initialize Cloudflare API client
+        
+        Args:
+            api_token: Cloudflare API token
+            email: Cloudflare account email (optional for API tokens)
+        """
+        self.api_token = api_token
+        self.email = email
+        self.base_url = "https://api.cloudflare.com/client/v4"
+        
+        self.headers = {
+            'Authorization': f'Bearer {api_token}',
+            'Content-Type': 'application/json'
+        }
+    
+    def _make_request(self, endpoint: str, method: str = 'GET', data: Dict = None) -> Dict:
+        """Make a request to Cloudflare API"""
+        url = f"{self.base_url}/{endpoint}"
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=self.headers)
+            elif method == 'POST':
+                response = requests.post(url, headers=self.headers, json=data)
+            elif method == 'PUT':
+                response = requests.put(url, headers=self.headers, json=data)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=self.headers)
+            
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {"error": str(e), "success": False}
+    
+    def list_zones(self) -> Dict:
+        """List all zones"""
+        return self._make_request('zones')
+    
+    def get_zone(self, zone_id: str) -> Dict:
+        """Get zone details"""
+        return self._make_request(f'zones/{zone_id}')
+    
+    def list_dns_records(self, zone_id: str) -> Dict:
+        """List DNS records for a zone"""
+        return self._make_request(f'zones/{zone_id}/dns_records')
+    
+    def create_dns_record(self, zone_id: str, record_type: str, name: str, 
+                         content: str, ttl: int = 3600, priority: int = None) -> Dict:
+        """Create a DNS record"""
+        data = {
+            'type': record_type,
+            'name': name,
+            'content': content,
+            'ttl': ttl
+        }
+        if priority:
+            data['priority'] = priority
+        
+        return self._make_request(f'zones/{zone_id}/dns_records', 'POST', data)
+    
+    def update_dns_record(self, zone_id: str, record_id: str, record_type: str, 
+                         name: str, content: str, ttl: int = 3600) -> Dict:
+        """Update a DNS record"""
+        data = {
+            'type': record_type,
+            'name': name,
+            'content': content,
+            'ttl': ttl
+        }
+        return self._make_request(f'zones/{zone_id}/dns_records/{record_id}', 'PUT', data)
+    
+    def delete_dns_record(self, zone_id: str, record_id: str) -> Dict:
+        """Delete a DNS record"""
+        return self._make_request(f'zones/{zone_id}/dns_records/{record_id}', 'DELETE')
