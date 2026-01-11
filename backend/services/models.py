@@ -315,5 +315,26 @@ class ProjectComment(models.Model):
 
 
 # Import WHMCS models to make them available in the services app
-from .whmcs_models import *  # noqa
+from .whmcs_models import (
+    HostingProduct,
+    DomainProduct,
+    ServiceAddon,
+    DomainRegistration,
+)
+
+__all__ = [
+    'Service',
+    'ServiceSubscription',
+    'Pricing',
+    'Provisioning',
+    'ProjectTracker',
+    'ProjectTask',
+    'ProjectMilestone',
+    'ProjectComment',
+    'HostingProduct',
+    'DomainProduct',
+    'ServiceAddon',
+    'DomainRegistration',
+]
+
 
