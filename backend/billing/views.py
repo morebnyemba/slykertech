@@ -140,6 +140,159 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    @action(detail=True, methods=['post'])
+    def express_checkout(self, request, pk=None):
+        """
+        Initiate Paynow Express Checkout for invoice (payment processed in-app, no redirect)
+        
+        Request body:
+        {
+            "method": "vmc",  // vmc, ecocash, onemoney, innbucks, zimswitch
+            "email": "customer@example.com",
+            "token": "CARD_TOKEN",  // Required for vmc (Visa/Mastercard)
+            "phone": "263771234567",  // Required for ecocash/onemoney
+            "account_number": "12345"  // Required for innbucks
+        }
+        """
+        invoice = self.get_object()
+        
+        method = request.data.get('method', '').lower()
+        email = request.data.get('email')
+        token = request.data.get('token')
+        phone = request.data.get('phone')
+        account_number = request.data.get('account_number')
+        
+        if not method:
+            return Response(
+                {"error": "Payment method is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not email:
+            return Response(
+                {"error": "Email is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from .paynow_service import PaynowService
+            paynow = PaynowService()
+            
+            reference = f"INV-{invoice.invoice_number}"
+            description = f"Payment for Invoice {invoice.invoice_number}"
+            
+            result = paynow.create_express_checkout(
+                method=method,
+                amount=invoice.total,
+                reference=reference,
+                email=email,
+                description=description,
+                token=token,
+                phone=phone,
+                account_number=account_number
+            )
+            
+            if result['success']:
+                # Create a payment record
+                payment = Payment.objects.create(
+                    invoice=invoice,
+                    payment_method=method if method in ['ecocash', 'onemoney'] else 'paynow',
+                    amount=invoice.total,
+                    status='pending',
+                    transaction_id=result.get('reference'),
+                    metadata={
+                        'poll_url': result.get('poll_url'),
+                        'payment_method': result.get('payment_method'),
+                        'paynow_data': result.get('data', {})
+                    }
+                )
+                
+                return Response({
+                    "message": "Express checkout initiated successfully",
+                    "payment_id": payment.id,
+                    "poll_url": result.get('poll_url'),
+                    "instructions": result.get('instructions'),
+                    "payment_method": result.get('payment_method')
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {"error": result.get('error', 'Express checkout failed')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except ImportError:
+            return Response(
+                {"error": "Paynow SDK not installed. Install with: pip install paynow"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def tokenize_card(self, request):
+        """
+        Tokenize a credit/debit card for express checkout
+        
+        Request body:
+        {
+            "card_number": "4111111111111111",
+            "cardholder_name": "John Doe",
+            "expiry_month": "12",
+            "expiry_year": "2025",
+            "cvv": "123"
+        }
+        """
+        card_number = request.data.get('card_number')
+        cardholder_name = request.data.get('cardholder_name')
+        expiry_month = request.data.get('expiry_month')
+        expiry_year = request.data.get('expiry_year')
+        cvv = request.data.get('cvv')
+        
+        if not all([card_number, cardholder_name, expiry_month, expiry_year, cvv]):
+            return Response(
+                {"error": "All card details are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from .paynow_service import PaynowService
+            paynow = PaynowService()
+            
+            result = paynow.tokenize_card(
+                card_number=card_number,
+                cardholder_name=cardholder_name,
+                expiry_month=expiry_month,
+                expiry_year=expiry_year,
+                cvv=cvv
+            )
+            
+            if result['success']:
+                return Response({
+                    "message": "Card tokenized successfully",
+                    "token": result.get('token'),
+                    "card_last4": result.get('card_last4'),
+                    "expiry": result.get('expiry')
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {"error": result.get('error', 'Card tokenization failed')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except ImportError:
+            return Response(
+                {"error": "Paynow SDK not installed. Install with: pip install paynow"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PaymentViewSet(viewsets.ModelViewSet):

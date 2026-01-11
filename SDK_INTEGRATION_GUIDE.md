@@ -294,8 +294,189 @@ The `PaynowService` class provides:
 
 - `create_payment(email, amount, reference, description, additional_info)` - Create web payment
 - `create_mobile_payment(phone, amount, reference, description, method)` - Create mobile payment
+- `create_express_checkout(method, amount, reference, email, description, token, phone, account_number)` - **Express checkout (no redirect)**
+- `tokenize_card(card_number, cardholder_name, expiry_month, expiry_year, cvv)` - **Tokenize card for express checkout**
 - `check_payment_status(poll_url)` - Check payment status
 - `process_invoice_payment(invoice, email, mobile_payment, phone, method)` - Process invoice payment
+
+---
+
+## Express Checkout (NEW)
+
+### Overview
+Express Checkout allows customers to complete payments directly within your app without being redirected to Paynow's website. This provides a smoother user experience, especially for card payments.
+
+### Supported Methods
+- **Visa/Mastercard (vmc)**: Requires tokenized card
+- **EcoCash**: Requires phone number
+- **OneMoney**: Requires phone number
+- **InnBucks**: Requires account number
+- **Zimswitch**: Direct bank transfer
+
+### Card Tokenization
+
+Before using express checkout with cards, you need to tokenize the card:
+
+```python
+from billing.paynow_service import PaynowService
+
+paynow = PaynowService()
+
+# Tokenize card
+token_result = paynow.tokenize_card(
+    card_number="4111111111111111",
+    cardholder_name="John Doe",
+    expiry_month="12",
+    expiry_year="2025",
+    cvv="123"
+)
+
+if token_result['success']:
+    token = token_result['token']
+    card_last4 = token_result['card_last4']
+    print(f"Card ending in {card_last4} tokenized successfully")
+else:
+    print(f"Tokenization failed: {token_result['error']}")
+```
+
+### Express Checkout - Visa/Mastercard
+
+```python
+# Process express checkout with tokenized card
+result = paynow.create_express_checkout(
+    method='vmc',
+    amount=Decimal("150.00"),
+    reference="INV-000123",
+    email="customer@example.com",
+    description="Payment for Invoice INV-000123",
+    token=token  # From tokenization step
+)
+
+if result['success']:
+    poll_url = result['poll_url']
+    # Check status immediately or via polling
+    status = paynow.check_payment_status(poll_url)
+    if status['paid']:
+        print("Payment successful!")
+else:
+    print(f"Error: {result['error']}")
+```
+
+### Express Checkout - Mobile Money
+
+```python
+# EcoCash express checkout
+result = paynow.create_express_checkout(
+    method='ecocash',
+    amount=Decimal("150.00"),
+    reference="INV-000123",
+    email="customer@example.com",
+    description="Payment for Invoice INV-000123",
+    phone="263771234567"
+)
+
+# OneMoney express checkout
+result = paynow.create_express_checkout(
+    method='onemoney',
+    amount=Decimal("150.00"),
+    reference="INV-000123",
+    email="customer@example.com",
+    description="Payment for Invoice INV-000123",
+    phone="263771234567"
+)
+```
+
+### Express Checkout - InnBucks
+
+```python
+result = paynow.create_express_checkout(
+    method='innbucks',
+    amount=Decimal("150.00"),
+    reference="INV-000123",
+    email="customer@example.com",
+    description="Payment for Invoice INV-000123",
+    account_number="12345"
+)
+```
+
+### API Endpoints
+
+#### Tokenize Card
+```http
+POST /api/billing/invoices/tokenize_card/
+Content-Type: application/json
+
+{
+  "card_number": "4111111111111111",
+  "cardholder_name": "John Doe",
+  "expiry_month": "12",
+  "expiry_year": "2025",
+  "cvv": "123"
+}
+```
+
+Response:
+```json
+{
+  "message": "Card tokenized successfully",
+  "token": "TOKEN_STRING",
+  "card_last4": "1111",
+  "expiry": "12/2025"
+}
+```
+
+#### Express Checkout (Card)
+```http
+POST /api/billing/invoices/{id}/express_checkout/
+Content-Type: application/json
+
+{
+  "method": "vmc",
+  "email": "customer@example.com",
+  "token": "TOKEN_STRING"
+}
+```
+
+#### Express Checkout (Mobile)
+```http
+POST /api/billing/invoices/{id}/express_checkout/
+Content-Type: application/json
+
+{
+  "method": "ecocash",
+  "email": "customer@example.com",
+  "phone": "263771234567"
+}
+```
+
+Response:
+```json
+{
+  "message": "Express checkout initiated successfully",
+  "payment_id": 123,
+  "poll_url": "https://www.paynow.co.zw/Interface/CheckPayment/...",
+  "instructions": "Complete payment on your phone",
+  "payment_method": "ecocash"
+}
+```
+
+### Benefits of Express Checkout
+
+✅ **No Redirect**: Customer stays on your website/app  
+✅ **Faster Payment**: Fewer steps to complete payment  
+✅ **Better UX**: Seamless checkout experience  
+✅ **Mobile Friendly**: Perfect for mobile app integration  
+✅ **Secure**: Uses Paynow tokenization for card security  
+
+### Security Notes
+
+- Card tokens are single-use for security
+- Never store raw card details
+- All card data is encrypted in transit
+- Paynow handles PCI compliance
+- Tokens expire after use or timeout
+
+---
 
 ### Response Format
 
