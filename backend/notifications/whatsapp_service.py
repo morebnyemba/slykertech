@@ -4,18 +4,45 @@ WhatsApp Business API integration service
 import requests
 from typing import Dict, Optional
 from django.conf import settings
-from decouple import config
 
 
 class WhatsAppService:
     """Service for sending WhatsApp messages via Business API"""
     
-    def __init__(self):
-        """Initialize WhatsApp service with API credentials"""
-        self.api_url = config('WHATSAPP_API_URL', default='https://graph.facebook.com/v18.0')
-        self.phone_number_id = config('WHATSAPP_PHONE_NUMBER_ID', default='')
-        self.access_token = config('WHATSAPP_ACCESS_TOKEN', default='')
-        self.business_account_id = config('WHATSAPP_BUSINESS_ACCOUNT_ID', default='')
+    def __init__(self, config=None):
+        """
+        Initialize WhatsApp service with API credentials from database
+        
+        Args:
+            config: Optional APIConfiguration object. If not provided, fetches from database.
+        """
+        if config is None:
+            # Fetch from database
+            from integrations.models import APIConfiguration
+            try:
+                config = APIConfiguration.objects.get(provider='whatsapp', is_active=True)
+                self.api_url = config.api_url or 'https://graph.facebook.com/v18.0'
+                self.access_token = config.get_access_token() or ''
+                
+                # Get additional config from config_data
+                config_data = config.config_data or {}
+                self.phone_number_id = config_data.get('phone_number_id', '')
+                self.business_account_id = config_data.get('business_account_id', '')
+            except APIConfiguration.DoesNotExist:
+                # Fallback to environment variables if no DB config exists
+                from decouple import config as env_config
+                self.api_url = env_config('WHATSAPP_API_URL', default='https://graph.facebook.com/v18.0')
+                self.phone_number_id = env_config('WHATSAPP_PHONE_NUMBER_ID', default='')
+                self.access_token = env_config('WHATSAPP_ACCESS_TOKEN', default='')
+                self.business_account_id = env_config('WHATSAPP_BUSINESS_ACCOUNT_ID', default='')
+        else:
+            # Use provided config
+            self.api_url = config.api_url or 'https://graph.facebook.com/v18.0'
+            self.access_token = config.get_access_token() or ''
+            config_data = config.config_data or {}
+            self.phone_number_id = config_data.get('phone_number_id', '')
+            self.business_account_id = config_data.get('business_account_id', '')
+
     
     def send_message(self, to: str, message: str, template_name: str = None, 
                     template_params: list = None) -> Dict:

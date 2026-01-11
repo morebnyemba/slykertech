@@ -1,10 +1,27 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import IntegrationCredential, cPanelAccount, DirectAdminAccount
+from .models import APIConfiguration, IntegrationCredential, cPanelAccount, DirectAdminAccount
 from .serializers import (
-    IntegrationCredentialSerializer, cPanelAccountSerializer, DirectAdminAccountSerializer
+    APIConfigurationSerializer, IntegrationCredentialSerializer, 
+    cPanelAccountSerializer, DirectAdminAccountSerializer
 )
+
+
+class APIConfigurationViewSet(viewsets.ModelViewSet):
+    """ViewSet for APIConfiguration model"""
+    
+    queryset = APIConfiguration.objects.all()
+    serializer_class = APIConfigurationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Only admins can manage API configurations"""
+        user = self.request.user
+        if user.is_superuser or user.user_type == 'admin':
+            return APIConfiguration.objects.all()
+        # Regular users can only view active configs
+        return APIConfiguration.objects.filter(is_active=True)
 
 
 class IntegrationCredentialViewSet(viewsets.ModelViewSet):

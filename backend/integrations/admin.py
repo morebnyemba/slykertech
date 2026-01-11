@@ -1,5 +1,35 @@
 from django.contrib import admin
-from .models import IntegrationCredential, cPanelAccount, DirectAdminAccount
+from .models import APIConfiguration, IntegrationCredential, cPanelAccount, DirectAdminAccount
+
+
+@admin.register(APIConfiguration)
+class APIConfigurationAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'name', 'is_active', 'is_sandbox', 'created_at')
+    list_filter = ('provider', 'is_active', 'is_sandbox')
+    search_fields = ('name', 'provider')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('provider', 'name', 'is_active', 'is_sandbox')
+        }),
+        ('API Configuration', {
+            'fields': ('api_url',)
+        }),
+        ('Encrypted Credentials', {
+            'fields': ('encrypted_api_key', 'encrypted_api_secret', 'encrypted_access_token'),
+            'classes': ('collapse',),
+            'description': 'These fields are encrypted. Use set_api_key(), set_api_secret(), and set_access_token() methods.'
+        }),
+        ('Additional Configuration', {
+            'fields': ('config_data',),
+            'description': 'JSON field for additional provider-specific configuration'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(IntegrationCredential)
