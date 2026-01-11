@@ -96,7 +96,12 @@ export default function ResellerDashboard() {
   );
 }
 
-function StatCard({ title, value, icon, color }: any) {
+function StatCard({ title, value, icon, color }: { 
+  title: string; 
+  value: string | number; 
+  icon: React.ReactNode; 
+  color: 'blue' | 'green' | 'yellow' | 'purple';
+}) {
   const colors = {
     blue: 'bg-blue-100 dark:bg-blue-900',
     green: 'bg-green-100 dark:bg-green-900',

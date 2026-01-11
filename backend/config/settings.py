@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'integrations',
     'billing',
     'notifications',
+    'reseller',
+    'wallet',
 ]
 
 MIDDLEWARE = [

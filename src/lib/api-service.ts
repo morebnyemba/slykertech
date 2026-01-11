@@ -5,7 +5,7 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   status: number;
@@ -117,7 +117,7 @@ class ApiService {
     return this.request('/services/subscriptions/');
   }
 
-  async createSubscription(data: any) {
+  async createSubscription(data: Record<string, unknown>) {
     return this.request('/services/subscriptions/', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -133,14 +133,14 @@ class ApiService {
     return this.request(`/billing/invoices/${id}/`);
   }
 
-  async payInvoiceWithPaynow(invoiceId: number, paymentData: any) {
+  async payInvoiceWithPaynow(invoiceId: number, paymentData: Record<string, unknown>) {
     return this.request(`/billing/invoices/${invoiceId}/paynow_payment/`, {
       method: 'POST',
       body: JSON.stringify(paymentData),
     });
   }
 
-  async expressCheckout(invoiceId: number, checkoutData: any) {
+  async expressCheckout(invoiceId: number, checkoutData: Record<string, unknown>) {
     return this.request(`/billing/invoices/${invoiceId}/express_checkout/`, {
       method: 'POST',
       body: JSON.stringify(checkoutData),
@@ -189,14 +189,14 @@ class ApiService {
     return this.request('/services/dns-records/');
   }
 
-  async createDNSRecord(data: any) {
+  async createDNSRecord(data: Record<string, unknown>) {
     return this.request('/services/dns-records/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateDNSRecord(id: number, data: any) {
+  async updateDNSRecord(id: number, data: Record<string, unknown>) {
     return this.request(`/services/dns-records/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(data),
