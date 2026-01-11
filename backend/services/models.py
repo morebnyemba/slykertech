@@ -58,6 +58,7 @@ class ServiceSubscription(models.Model):
         ('suspended', 'Suspended'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
+        ('terminated', 'Terminated'),
     ]
     
     BILLING_CYCLE_CHOICES = [
@@ -65,17 +66,41 @@ class ServiceSubscription(models.Model):
         ('quarterly', 'Quarterly'),
         ('semi_annual', 'Semi-Annual'),
         ('annual', 'Annual'),
+        ('biennial', 'Biennial (2 years)'),
+        ('triennial', 'Triennial (3 years)'),
         ('one_time', 'One Time'),
     ]
     
     client = models.ForeignKey('clients.Client', on_delete=models.CASCADE, related_name='subscriptions')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='subscriptions')
+    
+    # WHMCS-style: Link to specific hosting product if applicable
+    hosting_product = models.ForeignKey('services.HostingProduct', on_delete=models.SET_NULL, 
+                                       null=True, blank=True, related_name='subscriptions',
+                                       help_text="Hosting package if service is web hosting")
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLE_CHOICES, default='monthly')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
+    
+    # WHMCS-style renewal management
     auto_renew = models.BooleanField(default=True)
+    next_due_date = models.DateField(null=True, blank=True, help_text="Next invoice due date")
+    next_invoice_date = models.DateField(null=True, blank=True, help_text="When to generate next invoice")
+    
+    # WHMCS-style renewal reminders
+    renewal_reminder_30d = models.BooleanField(default=False)
+    renewal_reminder_14d = models.BooleanField(default=False)
+    renewal_reminder_7d = models.BooleanField(default=False)
+    renewal_reminder_1d = models.BooleanField(default=False)
+    
+    # WHMCS-style suspension management
+    grace_period_days = models.IntegerField(default=14, help_text="Days after due date before suspension")
+    suspension_date = models.DateField(null=True, blank=True, help_text="Date service was suspended")
+    termination_date = models.DateField(null=True, blank=True, help_text="Date service was terminated")
+    
     notes = models.TextField(blank=True, null=True)
     metadata = models.JSONField(default=dict, blank=True, help_text="Additional service-specific data")
     provisioning_completed = models.BooleanField(default=False, help_text="Has automated provisioning completed?")
