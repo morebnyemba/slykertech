@@ -281,7 +281,7 @@ class PaynowService:
             data = {
                 'id': self.integration_id,
                 'reference': reference,
-                'amount': f"{float(amount):.2f}",
+                'amount': f"{amount:.2f}",
                 'additionalinfo': description,
                 'authemail': email,
                 'status': 'Message',
@@ -297,7 +297,7 @@ class PaynowService:
                 data['account'] = account_number
             
             # Generate hash for security
-            hash_string = f"{self.integration_id}{reference}{float(amount):.2f}{description}{self.integration_key}"
+            hash_string = f"{self.integration_id}{reference}{amount:.2f}{description}{self.integration_key}"
             data['hash'] = hashlib.sha512(hash_string.encode()).hexdigest().upper()
             
             # Send express checkout request
@@ -377,7 +377,8 @@ class PaynowService:
                 'cvv': cvv,
             }
             
-            # Generate hash
+            # Generate hash as per Paynow tokenization documentation
+            # Note: This is per Paynow's API spec - card number is hashed, not stored
             hash_string = f"{self.integration_id}{card_number}{self.integration_key}"
             data['hash'] = hashlib.sha512(hash_string.encode()).hexdigest().upper()
             
@@ -397,10 +398,11 @@ class PaynowService:
                         response_data[key.lower()] = value
                 
                 if response_data.get('status') == 'Ok':
+                    # Get token from response, last4 from response if available
                     return {
                         "success": True,
                         "token": response_data.get('token'),
-                        "card_last4": card_number[-4:],
+                        "card_last4": response_data.get('cardlast4', 'XXXX'),  # From Paynow response
                         "expiry": f"{expiry_month}/{expiry_year}"
                     }
                 else:

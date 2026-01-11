@@ -246,15 +246,60 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "cvv": "123"
         }
         """
-        card_number = request.data.get('card_number')
-        cardholder_name = request.data.get('cardholder_name')
-        expiry_month = request.data.get('expiry_month')
-        expiry_year = request.data.get('expiry_year')
-        cvv = request.data.get('cvv')
+        card_number = request.data.get('card_number', '').replace(' ', '')
+        cardholder_name = request.data.get('cardholder_name', '')
+        expiry_month = request.data.get('expiry_month', '')
+        expiry_year = request.data.get('expiry_year', '')
+        cvv = request.data.get('cvv', '')
         
+        # Validate required fields
         if not all([card_number, cardholder_name, expiry_month, expiry_year, cvv]):
             return Response(
                 {"error": "All card details are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate card number (basic format check)
+        if not card_number.isdigit() or len(card_number) < 13 or len(card_number) > 19:
+            return Response(
+                {"error": "Invalid card number format"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate expiry month
+        try:
+            month = int(expiry_month)
+            if month < 1 or month > 12:
+                return Response(
+                    {"error": "Invalid expiry month (must be 1-12)"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValueError:
+            return Response(
+                {"error": "Expiry month must be a number"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate expiry year
+        try:
+            year = int(expiry_year)
+            from datetime import datetime
+            current_year = datetime.now().year
+            if year < current_year or year > current_year + 20:
+                return Response(
+                    {"error": f"Invalid expiry year (must be {current_year}-{current_year+20})"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValueError:
+            return Response(
+                {"error": "Expiry year must be a number"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate CVV
+        if not cvv.isdigit() or len(cvv) < 3 or len(cvv) > 4:
+            return Response(
+                {"error": "Invalid CVV (must be 3 or 4 digits)"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
