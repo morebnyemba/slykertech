@@ -1,0 +1,17 @@
+{application, ticketing,
+ [{description, "Erlang OTP Ticketing System"},
+  {vsn, "1.0.0"},
+  {registered, []},
+  {mod, {ticketing_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    cowboy,
+    jsx,
+    gun
+   ]},
+  {env,[]},
+  {modules, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.

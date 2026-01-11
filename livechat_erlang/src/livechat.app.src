@@ -1,0 +1,17 @@
+{application, livechat,
+ [{description, "Erlang OTP Live Chat System"},
+  {vsn, "1.0.0"},
+  {registered, []},
+  {mod, {livechat_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    cowboy,
+    jsx,
+    gun
+   ]},
+  {env,[]},
+  {modules, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.

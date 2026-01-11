@@ -1,0 +1,71 @@
+from rest_framework import serializers
+from .models import Invoice, InvoiceItem, Payment, BillingProfile
+from clients.serializers import ClientSerializer
+
+
+class InvoiceItemSerializer(serializers.ModelSerializer):
+    """Serializer for InvoiceItem model"""
+    
+    class Meta:
+        model = InvoiceItem
+        fields = ['id', 'subscription', 'description', 'quantity', 'unit_price', 'amount', 'created_at']
+        read_only_fields = ['id', 'amount', 'created_at']
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    """Serializer for Invoice model"""
+    
+    client = ClientSerializer(read_only=True)
+    items = InvoiceItemSerializer(many=True, read_only=True)
+    payments = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Invoice
+        fields = ['id', 'client', 'invoice_number', 'status', 'issue_date', 'due_date', 
+                  'paid_date', 'subtotal', 'tax_rate', 'tax_amount', 'discount_amount', 
+                  'total', 'notes', 'terms', 'items', 'payments', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'invoice_number', 'tax_amount', 'total', 'created_at', 'updated_at']
+    
+    def get_payments(self, obj):
+        return PaymentSerializer(obj.payments.all(), many=True).data
+
+
+class InvoiceCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating invoices"""
+    
+    items = InvoiceItemSerializer(many=True, required=False)
+    
+    class Meta:
+        model = Invoice
+        fields = ['client', 'issue_date', 'due_date', 'tax_rate', 'discount_amount', 
+                  'notes', 'terms', 'items']
+    
+    def create(self, validated_data):
+        items_data = validated_data.pop('items', [])
+        invoice = Invoice.objects.create(**validated_data)
+        
+        for item_data in items_data:
+            InvoiceItem.objects.create(invoice=invoice, **item_data)
+        
+        return invoice
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    """Serializer for Payment model"""
+    
+    class Meta:
+        model = Payment
+        fields = ['id', 'invoice', 'payment_method', 'amount', 'status', 'transaction_id', 
+                  'payment_date', 'notes', 'metadata', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'payment_date', 'created_at', 'updated_at']
+
+
+class BillingProfileSerializer(serializers.ModelSerializer):
+    """Serializer for BillingProfile model"""
+    
+    class Meta:
+        model = BillingProfile
+        fields = ['id', 'client', 'auto_pay', 'payment_method', 'billing_email', 
+                  'billing_phone', 'billing_address', 'stripe_customer_id', 'paypal_email', 
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
