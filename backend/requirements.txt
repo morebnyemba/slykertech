@@ -9,3 +9,5 @@ drf-yasg==1.21.8
 celery==5.4.0
 redis==5.2.1
 cryptography==45.0.0
+heyoo==0.1.2
+paynow==1.0.8

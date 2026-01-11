@@ -15,6 +15,7 @@ class APIConfiguration(models.Model):
         ('cloudflare', 'Cloudflare'),
         ('stripe', 'Stripe'),
         ('paypal', 'PayPal'),
+        ('paynow', 'Paynow'),
         ('other', 'Other'),
     ]
     

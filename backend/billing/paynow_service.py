@@ -1,0 +1,250 @@
+"""
+Paynow Zimbabwe payment gateway integration using official SDK
+"""
+from typing import Dict, Optional
+from decimal import Decimal
+
+try:
+    from paynow import Paynow
+    PAYNOW_AVAILABLE = True
+except ImportError:
+    PAYNOW_AVAILABLE = False
+    Paynow = None
+
+
+class PaynowService:
+    """Service for processing payments via Paynow (Zimbabwe payment gateway)"""
+    
+    def __init__(self, config=None):
+        """
+        Initialize Paynow service with credentials from database
+        
+        Args:
+            config: Optional APIConfiguration object. If not provided, fetches from database.
+        """
+        if not PAYNOW_AVAILABLE:
+            raise ImportError("Paynow SDK is not installed. Install with: pip install paynow")
+            
+        if config is None:
+            # Fetch from database
+            from integrations.models import APIConfiguration
+            try:
+                config = APIConfiguration.objects.get(provider='paynow', is_active=True)
+                config_data = config.config_data or {}
+                self.integration_id = config_data.get('integration_id', '')
+                self.integration_key = config.get_api_key() or ''
+                self.return_url = config_data.get('return_url', '')
+                self.result_url = config_data.get('result_url', '')
+            except APIConfiguration.DoesNotExist:
+                # Fallback to environment variables if no DB config exists
+                from decouple import config as env_config
+                self.integration_id = env_config('PAYNOW_INTEGRATION_ID', default='')
+                self.integration_key = env_config('PAYNOW_INTEGRATION_KEY', default='')
+                self.return_url = env_config('PAYNOW_RETURN_URL', default='')
+                self.result_url = env_config('PAYNOW_RESULT_URL', default='')
+        else:
+            # Use provided config
+            config_data = config.config_data or {}
+            self.integration_id = config_data.get('integration_id', '')
+            self.integration_key = config.get_api_key() or ''
+            self.return_url = config_data.get('return_url', '')
+            self.result_url = config_data.get('result_url', '')
+        
+        # Initialize Paynow client
+        if self.integration_id and self.integration_key:
+            self.client = Paynow(
+                integration_id=self.integration_id,
+                integration_key=self.integration_key,
+                return_url=self.return_url,
+                result_url=self.result_url
+            )
+        else:
+            self.client = None
+    
+    def create_payment(self, email: str, amount: Decimal, reference: str, 
+                      description: str, additional_info: Dict = None) -> Dict:
+        """
+        Create a payment request
+        
+        Args:
+            email: Customer email
+            amount: Payment amount
+            reference: Unique payment reference (e.g., invoice number)
+            description: Payment description
+            additional_info: Additional items/info for the payment
+            
+        Returns:
+            Dict with success status, redirect_url, and poll_url
+        """
+        if not self.client:
+            return {
+                "success": False,
+                "error": "Paynow not configured. Please set PAYNOW_INTEGRATION_ID and PAYNOW_INTEGRATION_KEY"
+            }
+        
+        try:
+            # Create a new payment
+            payment = self.client.create_payment(reference, email)
+            
+            # Add the main payment item
+            payment.add(description, float(amount))
+            
+            # Add any additional items
+            if additional_info:
+                for key, value in additional_info.items():
+                    if isinstance(value, dict) and 'description' in value and 'amount' in value:
+                        payment.add(value['description'], float(value['amount']))
+            
+            # Send payment to Paynow
+            response = self.client.send(payment)
+            
+            if response.success:
+                return {
+                    "success": True,
+                    "redirect_url": response.redirect_url,
+                    "poll_url": response.poll_url,
+                    "reference": reference,
+                    "data": {
+                        "status": response.status,
+                        "hash": response.hash
+                    }
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": response.errors if hasattr(response, 'errors') else "Payment creation failed",
+                    "reference": reference
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "reference": reference
+            }
+    
+    def create_mobile_payment(self, phone: str, amount: Decimal, reference: str, 
+                             description: str, method: str = "ecocash") -> Dict:
+        """
+        Create a mobile money payment (EcoCash, OneMoney, Telecash)
+        
+        Args:
+            phone: Customer phone number
+            amount: Payment amount
+            reference: Unique payment reference
+            description: Payment description
+            method: Payment method (ecocash, onemoney, telecash)
+            
+        Returns:
+            Dict with success status and poll_url
+        """
+        if not self.client:
+            return {
+                "success": False,
+                "error": "Paynow not configured"
+            }
+        
+        try:
+            # Create a new payment
+            payment = self.client.create_payment(reference, phone)
+            payment.add(description, float(amount))
+            
+            # Send mobile payment
+            if method.lower() == "ecocash":
+                response = self.client.send_mobile(payment, phone, "ecocash")
+            elif method.lower() == "onemoney":
+                response = self.client.send_mobile(payment, phone, "onemoney")
+            else:
+                return {
+                    "success": False,
+                    "error": f"Unsupported mobile payment method: {method}"
+                }
+            
+            if response.success:
+                return {
+                    "success": True,
+                    "poll_url": response.poll_url,
+                    "reference": reference,
+                    "instructions": response.instructions if hasattr(response, 'instructions') else None,
+                    "data": {
+                        "status": response.status
+                    }
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": response.errors if hasattr(response, 'errors') else "Mobile payment failed",
+                    "reference": reference
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "reference": reference
+            }
+    
+    def check_payment_status(self, poll_url: str) -> Dict:
+        """
+        Check the status of a payment
+        
+        Args:
+            poll_url: Poll URL returned when payment was created
+            
+        Returns:
+            Dict with payment status
+        """
+        if not self.client:
+            return {
+                "success": False,
+                "error": "Paynow not configured"
+            }
+        
+        try:
+            status = self.client.check_transaction_status(poll_url)
+            
+            return {
+                "success": True,
+                "paid": status.paid,
+                "status": status.status,
+                "amount": status.amount if hasattr(status, 'amount') else None,
+                "reference": status.reference if hasattr(status, 'reference') else None,
+                "data": {
+                    "hash": status.hash if hasattr(status, 'hash') else None
+                }
+            }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def process_invoice_payment(self, invoice, email: str, mobile_payment: bool = False, 
+                               phone: str = None, method: str = "ecocash") -> Dict:
+        """
+        Process payment for an invoice
+        
+        Args:
+            invoice: Invoice object
+            email: Customer email
+            mobile_payment: Whether to use mobile money
+            phone: Phone number (required if mobile_payment=True)
+            method: Mobile payment method (ecocash, onemoney)
+            
+        Returns:
+            Dict with payment result
+        """
+        reference = f"INV-{invoice.invoice_number}"
+        description = f"Payment for Invoice {invoice.invoice_number}"
+        amount = invoice.total
+        
+        if mobile_payment:
+            if not phone:
+                return {
+                    "success": False,
+                    "error": "Phone number required for mobile payment"
+                }
+            return self.create_mobile_payment(phone, amount, reference, description, method)
+        else:
+            return self.create_payment(email, amount, reference, description)

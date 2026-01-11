@@ -107,6 +107,9 @@ class Payment(models.Model):
         ('credit_card', 'Credit Card'),
         ('paypal', 'PayPal'),
         ('stripe', 'Stripe'),
+        ('paynow', 'Paynow'),
+        ('ecocash', 'EcoCash'),
+        ('onemoney', 'OneMoney'),
         ('mobile_money', 'Mobile Money'),
         ('other', 'Other'),
     ]
