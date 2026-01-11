@@ -24,7 +24,7 @@ class APIIntegrationTestCase(TestCase):
         # This is a smoke test - actual credentials required for real test
         try:
             client = cPanelAPIClient(
-                hostname='cpanel.example.com',
+                host='cpanel.example.com',
                 username='testuser',
                 api_token='test_token'
             )
@@ -38,7 +38,7 @@ class APIIntegrationTestCase(TestCase):
         """Test DirectAdmin API connectivity"""
         try:
             client = DirectAdminAPIClient(
-                hostname='directadmin.example.com',
+                host='directadmin.example.com',
                 username='testuser',
                 password='testpass'
             )

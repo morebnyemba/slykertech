@@ -174,9 +174,11 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(self.style.SUCCESS(f'Created service: {service.name}'))
             else:
-                # Update existing service with new data
-                for key, value in service_data.items():
-                    setattr(service, key, value)
+                # Update existing service with new data - only valid fields
+                service.category = service_data['category']
+                service.description = service_data['description']
+                service.features = service_data['features']
+                service.base_price = service_data['base_price']
                 service.save()
                 self.stdout.write(self.style.WARNING(f'Updated service: {service.name}'))
 

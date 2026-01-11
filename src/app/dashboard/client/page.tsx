@@ -68,15 +68,22 @@ export default function ClientDashboard() {
         unreadNotifications: 7,
       });
 
+      // Use relative dates for better UX
+      const today = new Date();
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const twoWeeks = new Date(today);
+      twoWeeks.setDate(twoWeeks.getDate() + 14);
+      
       setServices([
-        { id: 1, name: 'Web Hosting', status: 'active', nextBillingDate: '2024-02-15' },
-        { id: 2, name: 'Domain Registration', status: 'active', nextBillingDate: '2024-03-01' },
-        { id: 3, name: 'SEO Services', status: 'active', nextBillingDate: '2024-02-20' },
+        { id: 1, name: 'Web Hosting', status: 'active', nextBillingDate: nextMonth.toISOString().split('T')[0] },
+        { id: 2, name: 'Domain Registration', status: 'active', nextBillingDate: nextMonth.toISOString().split('T')[0] },
+        { id: 3, name: 'SEO Services', status: 'active', nextBillingDate: twoWeeks.toISOString().split('T')[0] },
       ]);
 
       setInvoices([
-        { id: 1, invoiceNumber: 'INV-000123', amount: 150.00, dueDate: '2024-02-10', status: 'pending' },
-        { id: 2, invoiceNumber: 'INV-000124', amount: 299.99, dueDate: '2024-02-15', status: 'pending' },
+        { id: 1, invoiceNumber: 'INV-000123', amount: 150.00, dueDate: twoWeeks.toISOString().split('T')[0], status: 'pending' },
+        { id: 2, invoiceNumber: 'INV-000124', amount: 299.99, dueDate: nextMonth.toISOString().split('T')[0], status: 'pending' },
       ]);
 
       setProjects([
