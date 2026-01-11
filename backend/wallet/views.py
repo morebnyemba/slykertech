@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Wallet, WalletTransaction
 from .serializers import WalletSerializer, WalletTransactionSerializer, WalletTopUpSerializer
-from decimal import Decimal
 
 class WalletViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Wallet.objects.all()

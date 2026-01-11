@@ -3,7 +3,6 @@ WHMCS-style models for hosting and domain management
 Following industry-standard patterns from WHMCS
 """
 from django.db import models
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
 

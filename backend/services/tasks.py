@@ -18,7 +18,6 @@ def send_renewal_reminders(days_before):
     whatsapp = WhatsAppService()
     
     for sub in subscriptions:
-        message = f"Your {sub.service.name} subscription expires in {days_before} days. Renew now to avoid service interruption."
         try:
             whatsapp.send_renewal_reminder(
                 to_number=sub.client.mobile_number,

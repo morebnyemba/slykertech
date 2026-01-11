@@ -1,7 +1,6 @@
 """
 Automatic provisioning service for creating hosting accounts, domains, etc.
 """
-from django.conf import settings
 from django.utils import timezone
 from integrations.models import IntegrationCredential, cPanelAccount, DirectAdminAccount
 from integrations.api_clients import cPanelAPIClient, DirectAdminAPIClient, NamecheapAPIClient
@@ -240,8 +239,6 @@ class ProvisioningService:
         """
         Register a domain for the client via Namecheap
         """
-        client = subscription.client
-        
         try:
             from integrations.models import APIConfiguration
             

@@ -2,7 +2,7 @@
 API client wrappers for external service integrations
 """
 import requests
-from typing import Dict, Optional, Any
+from typing import Dict
 from requests.auth import HTTPBasicAuth
 
 

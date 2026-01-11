@@ -17,7 +17,6 @@ class ResellerProfileViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def provision_service(self, request, pk=None):
-        reseller = self.get_object()
         # Service provisioning logic here
         return Response({'status': 'Service provisioning initiated'})
 
@@ -32,7 +31,7 @@ class ResellerClientViewSet(viewsets.ModelViewSet):
         try:
             reseller = self.request.user.reseller_profile
             return ResellerClient.objects.filter(reseller=reseller)
-        except:
+        except Exception:
             return ResellerClient.objects.none()
 
 class ResellerCommissionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,5 +45,5 @@ class ResellerCommissionViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             reseller = self.request.user.reseller_profile
             return ResellerCommission.objects.filter(reseller=reseller)
-        except:
+        except Exception:
             return ResellerCommission.objects.none()

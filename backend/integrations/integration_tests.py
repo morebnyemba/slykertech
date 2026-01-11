@@ -3,7 +3,6 @@ Integration tests for external API services
 Run with: python manage.py test integrations.integration_tests
 """
 from django.test import TestCase
-from django.conf import settings
 from integrations.api_clients import (
     cPanelAPIClient,
     DirectAdminAPIClient,
@@ -13,7 +12,6 @@ from integrations.api_clients import (
 from integrations.models import APIConfiguration
 from notifications.whatsapp_service import WhatsAppService
 from billing.paynow_service import PaynowService
-from decimal import Decimal
 
 
 class APIIntegrationTestCase(TestCase):

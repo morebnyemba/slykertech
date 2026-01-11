@@ -1,8 +1,7 @@
 """
 WhatsApp Business API integration service using official Heyoo SDK
 """
-from typing import Dict, Optional
-from django.conf import settings
+from typing import Dict
 
 try:
     from heyoo import WhatsApp

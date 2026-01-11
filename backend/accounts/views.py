@@ -2,7 +2,6 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import UserSerializer, UserRegistrationSerializer, ChangePasswordSerializer
 
 User = get_user_model()

@@ -1,7 +1,7 @@
 """
 Paynow Zimbabwe payment gateway integration using official SDK with Express Checkout support
 """
-from typing import Dict, Optional
+from typing import Dict
 from decimal import Decimal
 import requests
 import hashlib

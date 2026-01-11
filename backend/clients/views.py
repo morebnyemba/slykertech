@@ -1,5 +1,4 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions
 from .models import Client, ClientContact
 from .serializers import ClientSerializer, ClientContactSerializer, ClientCreateSerializer
 

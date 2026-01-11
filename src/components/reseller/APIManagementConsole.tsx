@@ -9,7 +9,7 @@ import { Copy, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 export default function APIManagementConsole() {
   const [apiKey] = useState('rsk_live_1234567890abcdef');
-  const [apiSecret, setApiSecret] = useState('rss_secretkey1234567890');
+  const [apiSecret] = useState('rss_secretkey1234567890');
   const [showSecret, setShowSecret] = useState(false);
   const [copied, setCopied] = useState(false);
 

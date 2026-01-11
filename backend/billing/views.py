@@ -1,9 +1,9 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Invoice, InvoiceItem, Payment, BillingProfile
+from .models import Invoice, Payment, BillingProfile
 from .serializers import (
-    InvoiceSerializer, InvoiceCreateSerializer, InvoiceItemSerializer,
+    InvoiceSerializer, InvoiceCreateSerializer,
     PaymentSerializer, BillingProfileSerializer
 )
 
