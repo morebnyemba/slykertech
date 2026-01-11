@@ -79,7 +79,7 @@ class WhatsAppService:
             }
         
         try:
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url, json=payload, headers=headers, timeout=(10, 30))
             response.raise_for_status()
             data = response.json()
             
@@ -129,7 +129,7 @@ class WhatsAppService:
         }
         
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=(10, 30))
             response.raise_for_status()
             return {
                 "success": True,

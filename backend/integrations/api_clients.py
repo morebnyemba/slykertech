@@ -273,7 +273,7 @@ class NamecheapAPIClient:
             request_params.update(params)
         
         try:
-            response = requests.get(self.base_url, params=request_params)
+            response = requests.get(self.base_url, params=request_params, timeout=(10, 30))
             response.raise_for_status()
             
             # Parse XML response
