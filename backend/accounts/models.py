@@ -41,7 +41,14 @@ class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='client')
     phone = models.CharField(max_length=20, blank=True, null=True)
+    mobile_number = models.CharField(max_length=20, blank=True, null=True, help_text="Mobile number for WhatsApp notifications")
     company_name = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Notification preferences
+    email_notifications = models.BooleanField(default=True, help_text="Receive email notifications")
+    whatsapp_notifications = models.BooleanField(default=False, help_text="Receive WhatsApp notifications")
+    sms_notifications = models.BooleanField(default=False, help_text="Receive SMS notifications")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

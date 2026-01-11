@@ -13,6 +13,7 @@ class IntegrationCredential(models.Model):
         ('cpanel', 'cPanel'),
         ('directadmin', 'DirectAdmin'),
         ('cloudflare', 'Cloudflare'),
+        ('namecheap', 'Namecheap'),
         ('aws', 'AWS'),
         ('digitalocean', 'DigitalOcean'),
         ('other', 'Other'),

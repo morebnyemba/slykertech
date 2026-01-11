@@ -238,3 +238,167 @@ class CloudflareAPIClient:
     def delete_dns_record(self, zone_id: str, record_id: str) -> Dict:
         """Delete a DNS record"""
         return self._make_request(f'zones/{zone_id}/dns_records/{record_id}', 'DELETE')
+
+
+class NamecheapAPIClient:
+    """Client for interacting with Namecheap API"""
+    
+    def __init__(self, api_user: str, api_key: str, username: str, client_ip: str):
+        """
+        Initialize Namecheap API client
+        
+        Args:
+            api_user: Namecheap API username
+            api_key: Namecheap API key
+            username: Namecheap account username
+            client_ip: Whitelisted IP address for API access
+        """
+        self.api_user = api_user
+        self.api_key = api_key
+        self.username = username
+        self.client_ip = client_ip
+        self.base_url = "https://api.namecheap.com/xml.response"
+    
+    def _make_request(self, command: str, params: Dict = None) -> Dict:
+        """Make a request to Namecheap API"""
+        request_params = {
+            'ApiUser': self.api_user,
+            'ApiKey': self.api_key,
+            'UserName': self.username,
+            'ClientIp': self.client_ip,
+            'Command': command,
+        }
+        
+        if params:
+            request_params.update(params)
+        
+        try:
+            response = requests.get(self.base_url, params=request_params)
+            response.raise_for_status()
+            
+            # Parse XML response
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(response.text)
+            
+            # Check for errors
+            if root.get('Status') == 'ERROR':
+                errors = root.findall('.//{http://api.namecheap.com/xml.response}Error')
+                error_messages = [error.text for error in errors]
+                return {"success": False, "errors": error_messages}
+            
+            return {"success": True, "data": root}
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "error": str(e)}
+    
+    def check_domain(self, domain: str) -> Dict:
+        """Check domain availability"""
+        return self._make_request('namecheap.domains.check', {'DomainList': domain})
+    
+    def get_domain_info(self, domain: str) -> Dict:
+        """Get domain information"""
+        return self._make_request('namecheap.domains.getInfo', {'DomainName': domain})
+    
+    def list_domains(self, page: int = 1, page_size: int = 20) -> Dict:
+        """List all domains"""
+        params = {
+            'Page': page,
+            'PageSize': page_size,
+        }
+        return self._make_request('namecheap.domains.getList', params)
+    
+    def register_domain(self, domain: str, years: int = 1, **kwargs) -> Dict:
+        """
+        Register a new domain
+        
+        Args:
+            domain: Domain name to register
+            years: Number of years to register
+            **kwargs: Additional registration parameters (contact info, nameservers, etc.)
+        """
+        params = {
+            'DomainName': domain,
+            'Years': years,
+        }
+        params.update(kwargs)
+        return self._make_request('namecheap.domains.create', params)
+    
+    def renew_domain(self, domain: str, years: int = 1) -> Dict:
+        """Renew a domain"""
+        params = {
+            'DomainName': domain,
+            'Years': years,
+        }
+        return self._make_request('namecheap.domains.renew', params)
+    
+    def get_dns_hosts(self, domain: str) -> Dict:
+        """Get DNS host records for a domain"""
+        sld, tld = domain.rsplit('.', 1)
+        params = {
+            'SLD': sld,
+            'TLD': tld,
+        }
+        return self._make_request('namecheap.domains.dns.getHosts', params)
+    
+    def set_dns_hosts(self, domain: str, hosts: list) -> Dict:
+        """
+        Set DNS host records for a domain
+        
+        Args:
+            domain: Domain name
+            hosts: List of host records [{'HostName': '@', 'RecordType': 'A', 'Address': '1.2.3.4', 'TTL': 1800}]
+        """
+        sld, tld = domain.rsplit('.', 1)
+        params = {
+            'SLD': sld,
+            'TLD': tld,
+        }
+        
+        # Add host records to params
+        for i, host in enumerate(hosts, start=1):
+            params[f'HostName{i}'] = host.get('HostName', '@')
+            params[f'RecordType{i}'] = host.get('RecordType', 'A')
+            params[f'Address{i}'] = host.get('Address', '')
+            params[f'TTL{i}'] = host.get('TTL', 1800)
+            if 'MXPref' in host:
+                params[f'MXPref{i}'] = host['MXPref']
+        
+        return self._make_request('namecheap.domains.dns.setHosts', params)
+    
+    def set_nameservers(self, domain: str, nameservers: list) -> Dict:
+        """
+        Set nameservers for a domain
+        
+        Args:
+            domain: Domain name
+            nameservers: List of nameserver hostnames
+        """
+        params = {
+            'DomainName': domain,
+            'Nameservers': ','.join(nameservers),
+        }
+        return self._make_request('namecheap.domains.dns.setCustom', params)
+    
+    def get_domain_lock(self, domain: str) -> Dict:
+        """Get domain lock status"""
+        return self._make_request('namecheap.domains.getRegistrarLock', {'DomainName': domain})
+    
+    def set_domain_lock(self, domain: str, lock: bool = True) -> Dict:
+        """Set domain registrar lock"""
+        params = {
+            'DomainName': domain,
+            'LockAction': 'LOCK' if lock else 'UNLOCK',
+        }
+        return self._make_request('namecheap.domains.setRegistrarLock', params)
+    
+    def get_whois_guard(self, domain: str) -> Dict:
+        """Get WhoisGuard information"""
+        return self._make_request('namecheap.whoisguard.getList', {'DomainName': domain})
+    
+    def enable_whois_guard(self, domain: str) -> Dict:
+        """Enable WhoisGuard for a domain"""
+        return self._make_request('namecheap.whoisguard.enable', {'DomainName': domain})
+    
+    def disable_whois_guard(self, domain: str) -> Dict:
+        """Disable WhoisGuard for a domain"""
+        return self._make_request('namecheap.whoisguard.disable', {'DomainName': domain})
+
