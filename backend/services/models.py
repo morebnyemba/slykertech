@@ -16,11 +16,25 @@ class Service(models.Model):
         ('other', 'Other'),
     ]
     
+    PAYMENT_TYPE_CHOICES = [
+        ('one_time', 'One Time'),
+        ('recurring', 'Recurring'),
+        ('both', 'Both Options Available'),
+    ]
+    
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=50, choices=SERVICE_CATEGORY_CHOICES)
     description = models.TextField()
     features = models.JSONField(default=list, blank=True)
     base_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='one_time',
+                                    help_text="Payment structure for this service")
+    pricing_options = models.JSONField(default=dict, blank=True,
+                                      help_text="Different pricing tiers/options for this service")
+    requires_provisioning = models.BooleanField(default=False,
+                                               help_text="Requires automatic provisioning (e.g., cPanel account)")
+    provisioning_type = models.CharField(max_length=50, blank=True, null=True,
+                                        help_text="Type of provisioning needed: cpanel, directadmin, domain, etc.")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -40,6 +54,7 @@ class ServiceSubscription(models.Model):
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('pending', 'Pending'),
+        ('provisioning', 'Provisioning'),
         ('suspended', 'Suspended'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
@@ -63,6 +78,8 @@ class ServiceSubscription(models.Model):
     auto_renew = models.BooleanField(default=True)
     notes = models.TextField(blank=True, null=True)
     metadata = models.JSONField(default=dict, blank=True, help_text="Additional service-specific data")
+    provisioning_completed = models.BooleanField(default=False, help_text="Has automated provisioning completed?")
+    provisioning_error = models.TextField(blank=True, null=True, help_text="Error message if provisioning failed")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

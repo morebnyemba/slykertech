@@ -77,6 +77,54 @@ class cPanelAPIClient:
     def list_subdomains(self) -> Dict:
         """List all subdomains"""
         return self._make_request('SubDomain', 'list_subdomains')
+    
+    def create_account(self, username: str, domain: str, password: str, 
+                      plan: str = 'default', quota: int = 1024, bwlimit: int = 10240) -> Dict:
+        """
+        Create a new cPanel account (requires WHM API access)
+        
+        Args:
+            username: Account username
+            domain: Primary domain for the account
+            password: Account password
+            plan: Hosting plan name
+            quota: Disk quota in MB
+            bwlimit: Bandwidth limit in MB
+        
+        Returns:
+            Dict with success status and account details or error message
+        """
+        # This uses WHM API which is different from cPanel UAPI
+        whm_url = f"https://{self.host}:2087/json-api/createacct"
+        
+        headers = {
+            'Authorization': f'WHM {self.username}:{self.api_token}'
+        }
+        
+        params = {
+            'username': username,
+            'domain': domain,
+            'password': password,
+            'plan': plan,
+            'quota': quota,
+            'bwlimit': bwlimit,
+            'ip': 'n',  # Assign shared IP
+            'cgi': 1,
+            'hasshell': 0,
+            'cpmod': 'paper_lantern'  # cPanel theme
+        }
+        
+        try:
+            response = requests.get(whm_url, headers=headers, params=params, verify=True, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get('metadata', {}).get('result') == 1:
+                return {'success': True, 'data': data}
+            else:
+                return {'success': False, 'error': data.get('metadata', {}).get('reason', 'Unknown error')}
+        except requests.exceptions.RequestException as e:
+            return {'success': False, 'error': str(e)}
 
 
 class DirectAdminAPIClient:
@@ -157,6 +205,45 @@ class DirectAdminAPIClient:
             'quota': quota
         }
         return self._make_request('CMD_API_POP', 'POST', data)
+    
+    def create_account(self, username: str, email: str, password: str, 
+                      domain: str, quota: int = 1024, bandwidth: int = 10240) -> Dict:
+        """
+        Create a new DirectAdmin user account (requires admin access)
+        
+        Args:
+            username: Account username
+            email: User email address
+            password: Account password
+            domain: Primary domain for the account
+            quota: Disk quota in MB
+            bandwidth: Bandwidth limit in MB
+        
+        Returns:
+            Dict with success status and account details or error message
+        """
+        data = {
+            'action': 'create',
+            'username': username,
+            'email': email,
+            'passwd': password,
+            'passwd2': password,
+            'domain': domain,
+            'package': 'default',
+            'ip': 'shared',
+            'notify': 'no',
+            'quota': quota,
+            'bandwidth': bandwidth
+        }
+        
+        try:
+            result = self._make_request('CMD_API_ACCOUNT_USER', 'POST', data)
+            if result.get('status') == 'success':
+                return {'success': True, 'data': result}
+            else:
+                return {'success': False, 'error': result.get('error', 'Unknown error')}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
 
 
 class CloudflareAPIClient:
