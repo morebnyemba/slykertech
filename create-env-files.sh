@@ -8,6 +8,9 @@ echo "Creating Environment Files"
 echo "========================================="
 echo ""
 
+# Create backend directory if it doesn't exist
+mkdir -p backend
+
 # Create backend .env
 echo "Creating backend/.env..."
 cat > backend/.env << 'EOF'
