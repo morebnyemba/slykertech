@@ -41,14 +41,31 @@ slykertech/
 
 ## 🛠️ Getting Started
 
+### Quick Setup
+
+For a quick automated setup, use the provided scripts:
+
+```bash
+# Create environment files
+./create-env-files.sh
+
+# Run setup script
+./setup.sh
+```
+
+For detailed environment configuration, see [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md).
+
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.8+
-- PostgreSQL (optional, SQLite is default)
+- PostgreSQL (optional, SQLite is default for development)
 
 ### Frontend Setup
 
 ```bash
+# Create environment file
+cp .env.example .env.local
+
 # Install dependencies
 npm install
 
@@ -71,7 +88,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Copy environment file
+# Create environment file
 cp .env.example .env
 
 # Run migrations

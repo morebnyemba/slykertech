@@ -82,6 +82,9 @@ DB_PORT=5432
 # CORS
 CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
 
+# CSRF & Cookie Settings
+CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
+
 # JWT
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
@@ -168,10 +171,62 @@ sudo systemctl restart nginx
 
 ### 8. SSL Certificate (Let's Encrypt)
 
+Install Certbot:
+
 ```bash
 sudo apt install certbot python3-certbot-nginx -y
+```
+
+#### Obtain SSL Certificate for api.slykertech.co.zw
+
+```bash
 sudo certbot --nginx -d api.slykertech.co.zw
 sudo systemctl reload nginx
+```
+
+#### Certbot Auto-Renewal
+
+Certbot automatically sets up certificate renewal. To test the renewal process:
+
+```bash
+# Test renewal (dry run)
+sudo certbot renew --dry-run
+
+# Check renewal timer status
+sudo systemctl status certbot.timer
+
+# Enable renewal timer if not already enabled
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
+```
+
+Certificates will be automatically renewed when they're close to expiration. The renewal process runs twice daily by default.
+
+#### Manual Certificate Renewal
+
+If you need to manually renew certificates:
+
+```bash
+sudo certbot renew
+sudo systemctl reload nginx
+```
+
+#### Troubleshooting Certbot
+
+If you encounter issues:
+
+```bash
+# View certbot logs
+sudo tail -50 /var/log/letsencrypt/letsencrypt.log
+
+# List all certificates
+sudo certbot certificates
+
+# Delete a specific certificate (if needed)
+sudo certbot delete --cert-name api.slykertech.co.zw
+
+# Reconfigure SSL for a domain
+sudo certbot --nginx -d api.slykertech.co.zw --force-renewal
 ```
 
 ## Frontend Deployment (Next.js)
@@ -233,6 +288,10 @@ sudo ln -s /etc/nginx/sites-available/slykertech-frontend /etc/nginx/sites-enabl
 sudo certbot --nginx -d slykertech.co.zw -d www.slykertech.co.zw
 sudo systemctl reload nginx
 ```
+
+#### Frontend SSL Certificate Renewal
+
+Certbot will automatically handle certificate renewal for the frontend domain as well. The same renewal timer manages all certificates on the server.
 
 ## Database Backups
 
