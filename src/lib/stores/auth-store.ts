@@ -6,6 +6,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+// API URL constant
+const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
+
 interface User {
   id: number;
   email: string;
@@ -44,7 +47,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
+          const apiUrl = getApiUrl();
           const response = await fetch(`${apiUrl}/token/`, {
             method: 'POST',
             headers: {
@@ -93,7 +96,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData) => {
         set({ isLoading: true });
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
+          const apiUrl = getApiUrl();
           const response = await fetch(`${apiUrl}/accounts/register/`, {
             method: 'POST',
             headers: {

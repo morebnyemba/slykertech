@@ -6,6 +6,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 
+// WebSocket URL helper
+const getWebSocketUrl = (endpoint: string) => {
+  const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const apiHost = process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '').replace(/\/api$/, '') || 'api.slykertech.co.zw';
+  return `${protocol}//${apiHost}${endpoint}`;
+};
+
 interface UseWebSocketOptions {
   endpoint: string;
   onMessage?: (data: unknown) => void;
@@ -32,9 +39,7 @@ export function useWebSocket({
 
     try {
       // Determine WebSocket URL based on environment
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const apiHost = process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '') || 'api.slykertech.co.zw';
-      const wsUrl = `${protocol}//${apiHost}${endpoint}?token=${token}`;
+      const wsUrl = `${getWebSocketUrl(endpoint)}?token=${token}`;
 
       const ws = new WebSocket(wsUrl);
 
