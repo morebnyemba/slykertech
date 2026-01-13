@@ -180,6 +180,17 @@ CORS_ALLOWED_ORIGINS = config(
 )
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
+
+# Cookie Settings
+SESSION_COOKIE_DOMAIN = config('SESSION_COOKIE_DOMAIN', default=None)
+CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=None)
+
 # Security Settings (for production)
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
