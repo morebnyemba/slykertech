@@ -19,26 +19,64 @@ import {
     SiMongodb, SiRedis, SiFlask, SiPandas, SiAngular, SiVuedotjs,
     SiNextdotjs, SiGo, SiGin
 } from 'react-icons/si';
+import { apiService } from '@/lib/api-service';
 
-const HomePageClientView = () => { // Changed to const HomePageClientView
+const HomePageClientView = () => {
     const [activeFeatureSlide, setActiveFeatureSlide] = useState(0);
     const [activeSolutionSlide, setActiveSolutionSlide] = useState(0);
     const [activeTechSlide, setActiveTechSlide] = useState(0);
     const [autoFeatureSlide, setAutoFeatureSlide] = useState(true);
     const [autoSolutionSlide, setAutoSolutionSlide] = useState(true);
     const [autoTechSlide, setAutoTechSlide] = useState(true);
+    const [dynamicStats, setDynamicStats] = useState({
+        uptime: 99.99,
+        activeClients: 5,
+        engineers: 1,
+        yearsExperience: 4
+    });
+    const [featuredServices, setFeaturedServices] = useState<any[]>([]);
 
     const handleWhatsAppClick = () => {
         const message = encodeURIComponent("Hi Slyker Tech! I'm interested in your services.");
         window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
     };
 
-    // Stats data
+    // Fetch dynamic data from backend
+    useEffect(() => {
+        const fetchDynamicData = async () => {
+            try {
+                // Fetch stats
+                const statsResponse = await apiService.getPublicStats();
+                if (statsResponse.data) {
+                    setDynamicStats({
+                        uptime: statsResponse.data.uptime || 99.99,
+                        activeClients: statsResponse.data.activeClients || 5,
+                        engineers: statsResponse.data.engineers || 1,
+                        yearsExperience: statsResponse.data.yearsExperience || 4
+                    });
+                }
+
+                // Fetch services
+                const servicesResponse = await apiService.getPublicServices();
+                if (servicesResponse.data) {
+                    const services = servicesResponse.data.results || servicesResponse.data;
+                    setFeaturedServices(services.slice(0, 6)); // Get first 6 services
+                }
+            } catch (error) {
+                console.error('Failed to fetch dynamic data:', error);
+                // Keep default values on error
+            }
+        };
+
+        fetchDynamicData();
+    }, []);
+
+    // Stats data (now dynamic)
     const stats = [
-        { value: "99.99%", label: "Uptime SLA", icon: <FaServer className="w-8 h-8" /> },
-        { value: "5+", label: "Active Clients", icon: <FaUserShield className="w-8 h-8" /> },
-        { value: "1", label: "Expert Engineers", icon: <FaCode className="w-8 h-8" /> },
-        { value: "4+", label: "Years Experience", icon: <FaRegStar className="w-8 h-8" /> }
+        { value: `${dynamicStats.uptime}%`, label: "Uptime SLA", icon: <FaServer className="w-8 h-8" /> },
+        { value: `${dynamicStats.activeClients}+`, label: "Active Clients", icon: <FaUserShield className="w-8 h-8" /> },
+        { value: `${dynamicStats.engineers}`, label: "Expert Engineers", icon: <FaCode className="w-8 h-8" /> },
+        { value: `${dynamicStats.yearsExperience}+`, label: "Years Experience", icon: <FaRegStar className="w-8 h-8" /> }
     ];
 
     // Feature carousel slides

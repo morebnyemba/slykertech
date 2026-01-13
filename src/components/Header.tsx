@@ -2,13 +2,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme toggle
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +26,11 @@ export default function Header() {
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hi Slyker Tech! I'm in need of one of your services.");
     window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
   };
 
   const ContactModal = () => (
@@ -180,9 +189,43 @@ export default function Header() {
           {/* Theme Toggle for Desktop */}
           <ThemeToggle />
 
+          {isAuthenticated ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+              >
+                <FaUserCircle className="text-xl" />
+                <span className="font-medium">{user?.first_name || 'Dashboard'}</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-gray-800 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                <FaSignOutAlt />
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 transform hover:-translate-y-0.5"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+
           <button
             onClick={() => setShowContactModal(true)}
-            className="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 transform hover:-translate-y-0.5 animate-pulse"
+            className="ml-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-green-200/50 transition-all duration-300 transform hover:-translate-y-0.5"
           >
             Get Started
           </button>
@@ -199,6 +242,26 @@ export default function Header() {
           <MobileNavLink href="/services" label="Services" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
+          
+          {isAuthenticated ? (
+            <>
+              <MobileNavLink href="/dashboard" label="Dashboard" onClick={() => setMenuOpen(false)} />
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMenuOpen(false);
+                }}
+                className="w-full text-center text-lg font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 py-3 transition-colors duration-300"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <MobileNavLink href="/login" label="Login" onClick={() => setMenuOpen(false)} />
+              <MobileNavLink href="/signup" label="Sign Up" onClick={() => setMenuOpen(false)} />
+            </>
+          )}
         </nav>
       </div>
 
