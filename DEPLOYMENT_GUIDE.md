@@ -69,7 +69,7 @@ Create `/var/www/slykertech/backend/.env`:
 ```bash
 SECRET_KEY=your-super-secret-key-change-this
 DEBUG=False
-ALLOWED_HOSTS=api.slykertech.co.zw,www.api.slykertech.co.zw,api.slykertech.co.ze
+ALLOWED_HOSTS=api.slykertech.co.zw,www.api.slykertech.co.zw
 
 # Database
 DB_ENGINE=django.db.backends.postgresql
@@ -83,7 +83,7 @@ DB_PORT=5432
 CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
 
 # CSRF & Cookie Settings
-CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw,https://api.slykertech.co.ze
+CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
 
 # JWT
 JWT_ACCESS_TOKEN_LIFETIME=60
@@ -140,7 +140,6 @@ Create `/etc/nginx/sites-available/slykertech-api`:
 server {
     listen 80;
     server_name api.slykertech.co.zw;
-    # Alternative: server_name api.slykertech.co.ze;
 
     location = /favicon.ico { access_log off; log_not_found off; }
     
@@ -178,17 +177,10 @@ Install Certbot:
 sudo apt install certbot python3-certbot-nginx -y
 ```
 
-#### Option 1: For api.slykertech.co.zw domain
+#### Obtain SSL Certificate for api.slykertech.co.zw
 
 ```bash
 sudo certbot --nginx -d api.slykertech.co.zw
-sudo systemctl reload nginx
-```
-
-#### Option 2: For api.slykertech.co.ze domain
-
-```bash
-sudo certbot --nginx -d api.slykertech.co.ze
 sudo systemctl reload nginx
 ```
 

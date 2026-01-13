@@ -7,7 +7,7 @@ This guide provides detailed instructions for setting up and managing SSL certif
 - Ubuntu/Debian server with root or sudo access
 - Nginx web server installed and configured
 - Domain names pointing to your server's IP address:
-  - `api.slykertech.co.zw` or `api.slykertech.co.ze` (Backend API)
+  - `api.slykertech.co.zw` (Backend API)
   - `slykertech.co.zw` (Frontend)
 - Ports 80 and 443 open in your firewall
 
@@ -30,16 +30,6 @@ sudo certbot --nginx -d api.slykertech.co.zw
 
 # With www subdomain (if needed)
 sudo certbot --nginx -d api.slykertech.co.zw -d www.api.slykertech.co.zw
-```
-
-### For Backend API (api.slykertech.co.ze - Alternative Domain)
-
-```bash
-# Single domain
-sudo certbot --nginx -d api.slykertech.co.ze
-
-# With www subdomain (if needed)
-sudo certbot --nginx -d api.slykertech.co.ze -d www.api.slykertech.co.ze
 ```
 
 ### For Frontend (slykertech.co.zw)
@@ -288,12 +278,12 @@ sudo certbot certonly --standalone -d api.slykertech.co.zw
 sudo systemctl start nginx
 ```
 
-## Nginx Configuration for Multiple Domains
+## Nginx Configuration for SSL
 
-Example configuration supporting both domains:
+Example SSL configuration:
 
 ```nginx
-# Backend API - .co.zw domain
+# Backend API
 server {
     listen 443 ssl http2;
     server_name api.slykertech.co.zw;
@@ -309,26 +299,10 @@ server {
     # Your location blocks...
 }
 
-# Backend API - .co.ze domain
-server {
-    listen 443 ssl http2;
-    server_name api.slykertech.co.ze;
-    
-    ssl_certificate /etc/letsencrypt/live/api.slykertech.co.ze/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.slykertech.co.ze/privkey.pem;
-    
-    # SSL configuration
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers on;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
-    
-    # Your location blocks...
-}
-
 # Redirect HTTP to HTTPS
 server {
     listen 80;
-    server_name api.slykertech.co.zw api.slykertech.co.ze;
+    server_name api.slykertech.co.zw;
     return 301 https://$host$request_uri;
 }
 ```

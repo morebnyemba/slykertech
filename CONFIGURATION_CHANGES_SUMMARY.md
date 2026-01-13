@@ -1,6 +1,6 @@
 # Configuration Changes Summary
 
-This document summarizes the changes made to support both `api.slykertech.co.ze` and `slykertech.co.zw` domains with proper CORS, CSRF, and cookie configurations.
+This document summarizes the changes made to support `api.slykertech.co.zw` and `slykertech.co.zw` domains with proper CORS, CSRF, and cookie configurations.
 
 ## Changes Made
 
@@ -30,11 +30,11 @@ These settings allow you to:
 ### 2. Backend Environment Template (`backend/.env.example`)
 
 #### Updated Domains
-- **ALLOWED_HOSTS**: Now includes both `api.slykertech.co.zw` and `api.slykertech.co.ze`
+- **ALLOWED_HOSTS**: Now includes `api.slykertech.co.zw`
 - **CORS_ALLOWED_ORIGINS**: Added `https://www.slykertech.co.zw` for www subdomain support
 - **CSRF_TRUSTED_ORIGINS**: New setting with all required domains:
   - Frontend: `https://slykertech.co.zw`, `https://www.slykertech.co.zw`
-  - Backend APIs: `https://api.slykertech.co.zw`, `https://api.slykertech.co.ze`
+  - Backend API: `https://api.slykertech.co.zw`
 
 #### Cookie Configuration (Optional)
 ```bash
@@ -43,21 +43,9 @@ These settings allow you to:
 # CSRF_COOKIE_DOMAIN=.slykertech.co.zw
 ```
 
-#### Payment Gateway URLs
-Added alternative PAYNOW URLs for `.co.ze` domain:
-```bash
-# For .co.ze domain:
-# PAYNOW_RETURN_URL=https://api.slykertech.co.ze/api/billing/paynow/return/
-# PAYNOW_RESULT_URL=https://api.slykertech.co.ze/api/billing/paynow/result/
-```
-
 ### 3. Frontend Environment Template (`.env.example`)
 
-Added alternative API URL configuration:
-```bash
-# Alternative for .co.ze domain:
-# NEXT_PUBLIC_API_URL=https://api.slykertech.co.ze/api
-```
+No changes to frontend configuration - uses standard production URL.
 
 ### 4. Documentation
 
@@ -80,52 +68,24 @@ Comprehensive guide covering:
 
 ### For Production Deployment
 
-1. **Choose Your Domain**: Decide whether to use `.co.zw` or `.co.ze`
-
-2. **Create Your `.env` File**:
+1. **Create Your `.env` File**:
    ```bash
    cd /var/www/slykertech/backend
    cp .env.example .env
    nano .env
    ```
 
-3. **Configure for .co.zw Domain**:
+2. **Configure Production Settings**:
    ```bash
    ALLOWED_HOSTS=api.slykertech.co.zw
    CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
    CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
    ```
 
-4. **Configure for .co.ze Domain**:
+3. **Setup SSL Certificates**:
    ```bash
-   ALLOWED_HOSTS=api.slykertech.co.ze
-   CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
-   CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.ze
-   ```
-
-5. **Setup SSL Certificates**:
-   ```bash
-   # For .co.zw domain
    sudo certbot --nginx -d api.slykertech.co.zw
-   
-   # For .co.ze domain
-   sudo certbot --nginx -d api.slykertech.co.ze
    ```
-
-### For Using Both Domains
-
-If you want to support both domains simultaneously:
-
-```bash
-ALLOWED_HOSTS=api.slykertech.co.zw,api.slykertech.co.ze
-CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
-CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw,https://api.slykertech.co.ze
-```
-
-You'll need to:
-1. Configure separate Nginx server blocks for each domain
-2. Obtain SSL certificates for both domains
-3. Update payment gateway callbacks based on which domain is used
 
 ## Security Considerations
 
