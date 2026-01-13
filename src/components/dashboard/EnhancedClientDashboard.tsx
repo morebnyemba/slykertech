@@ -168,7 +168,7 @@ export default function EnhancedClientDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Link
             href="/dashboard/services"
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
@@ -221,6 +221,63 @@ export default function EnhancedClientDashboard() {
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Track your project progress
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard/notifications"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <FaBell className="text-2xl text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Notifications
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  View your notifications
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard/wallet"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                <FaCog className="text-2xl text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  My Wallet
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Manage your balance
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard/dns"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <FaServer className="text-2xl text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  DNS Panel
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Manage DNS records
                 </p>
               </div>
             </div>

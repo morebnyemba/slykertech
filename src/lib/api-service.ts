@@ -225,6 +225,138 @@ class ApiService {
   async getNamecheapDomains() {
     return this.request('/integrations/namecheap/');
   }
+
+  // Wallet
+  async getWallets() {
+    return this.request('/wallet/wallets/');
+  }
+
+  async getWallet(id: number) {
+    return this.request(`/wallet/wallets/${id}/`);
+  }
+
+  async getWalletTransactions(walletId?: number) {
+    const endpoint = walletId 
+      ? `/wallet/transactions/?wallet=${walletId}`
+      : '/wallet/transactions/';
+    return this.request(endpoint);
+  }
+
+  async createWalletTransaction(data: Record<string, unknown>) {
+    return this.request('/wallet/transactions/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Payments
+  async getPayments() {
+    return this.request('/billing/payments/');
+  }
+
+  async getPayment(id: number) {
+    return this.request(`/billing/payments/${id}/`);
+  }
+
+  async createPayment(data: Record<string, unknown>) {
+    return this.request('/billing/payments/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Billing Profiles
+  async getBillingProfiles() {
+    return this.request('/billing/billing-profiles/');
+  }
+
+  async getBillingProfile(id: number) {
+    return this.request(`/billing/billing-profiles/${id}/`);
+  }
+
+  async updateBillingProfile(id: number, data: Record<string, unknown>) {
+    return this.request(`/billing/billing-profiles/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Project Milestones
+  async getProjectMilestones(projectId?: number) {
+    const endpoint = projectId 
+      ? `/services/milestones/?project=${projectId}`
+      : '/services/milestones/';
+    return this.request(endpoint);
+  }
+
+  async createProjectMilestone(data: Record<string, unknown>) {
+    return this.request('/services/milestones/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Project Tasks
+  async getProjectTasks(projectId?: number) {
+    const endpoint = projectId 
+      ? `/services/tasks/?project=${projectId}`
+      : '/services/tasks/';
+    return this.request(endpoint);
+  }
+
+  async updateProjectTask(id: number, data: Record<string, unknown>) {
+    return this.request(`/services/tasks/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // User Profile
+  async getUserProfile() {
+    return this.request('/accounts/users/me/');
+  }
+
+  async updateUserProfile(data: Record<string, unknown>) {
+    return this.request('/accounts/users/me/', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Notification Preferences
+  async getNotificationPreferences() {
+    return this.request('/notifications/preferences/');
+  }
+
+  async updateNotificationPreferences(id: number, data: Record<string, unknown>) {
+    return this.request(`/notifications/preferences/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Public endpoints (no auth required)
+  async getPublicServices() {
+    // Temporarily clear token for public request
+    const tempToken = this.token;
+    this.token = null;
+    const result = await this.request('/services/services/');
+    this.token = tempToken;
+    return result;
+  }
+
+  async getPublicStats() {
+    // Mock endpoint - would need to be implemented in backend
+    return {
+      data: {
+        activeClients: 5,
+        uptime: 99.99,
+        engineers: 1,
+        yearsExperience: 4
+      },
+      status: 200
+    };
+  }
 }
 
 // Export singleton instance
