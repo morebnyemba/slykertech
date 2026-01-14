@@ -7,8 +7,7 @@ start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/health", health_handler, []},
-            {"/api/tickets", ticket_handler, []},
-            {"/ws", ticket_ws_handler, []}
+            {"/ws", ticket_websocket_handler, []}
         ]}
     ]),
     {ok, _} = cowboy:start_clear(http_listener,
