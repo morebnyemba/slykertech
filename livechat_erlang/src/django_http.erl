@@ -5,7 +5,7 @@
 call_api(Method, Path, Body) ->
     BaseUrl = case os:getenv("DJANGO_API_URL") of
         false -> "http://backend:8000";
-        Url -> Url
+        EnvUrl -> EnvUrl
     end,
     Url = BaseUrl ++ Path,
     Headers = [{"Content-Type", "application/json"}],
