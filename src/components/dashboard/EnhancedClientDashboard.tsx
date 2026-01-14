@@ -33,7 +33,7 @@ export default function EnhancedClientDashboard() {
   const [loading, setLoading] = useState(true);
 
   // WebSocket connection for real-time analytics
-  const { isConnected, lastMessage, sendMessage } = useAnalyticsWebSocket((data: unknown) => {
+  const { isConnected, sendMessage } = useAnalyticsWebSocket((data: unknown) => {
     if (data && typeof data === 'object' && 'type' in data && data.type === 'analytics_update') {
       const analyticsData = (data as { data: DashboardStats }).data;
       setStats(analyticsData);
@@ -82,7 +82,7 @@ export default function EnhancedClientDashboard() {
                 Welcome back, {user?.first_name || 'User'}!
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Here's what's happening with your account
+                Here&apos;s what&apos;s happening with your account
               </p>
             </div>
             <div className="flex items-center gap-4">
