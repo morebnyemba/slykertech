@@ -9,7 +9,6 @@ COPY rebar.config .
 
 # Download and fetch dependencies
 RUN rebar3 get-deps
-RUN rebar3 compile
 
 # Copy application source
 COPY . .
