@@ -107,6 +107,13 @@ export default function Header() {
 
   return (
     <header className="fixed w-full z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-md dark:shadow-none transition-all duration-300">
+      {/* Maintenance Notice Banner */}
+      <div className="w-full bg-yellow-500 dark:bg-yellow-600 text-black dark:text-white text-sm py-2 px-4">
+        <div className="max-w-7xl mx-auto text-center font-medium">
+          ⚠️ Site Under Maintenance - Some features may be temporarily unavailable
+        </div>
+      </div>
+
       {/* Top Announcement Bar - Always Visible */}
       <div className="w-full bg-blue-800 text-white text-sm py-2 px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
