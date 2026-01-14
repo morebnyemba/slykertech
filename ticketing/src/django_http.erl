@@ -3,7 +3,10 @@
 -export([call_api/3]).
 
 call_api(Method, Path, Body) ->
-    BaseUrl = "http://backend:8000",
+    BaseUrl = case os:getenv("DJANGO_API_URL") of
+        false -> "http://backend:8000";
+        Url -> Url
+    end,
     Url = BaseUrl ++ Path,
     Headers = [{"Content-Type", "application/json"}],
     

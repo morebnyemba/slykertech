@@ -122,7 +122,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - DJANGO_API_URL=http://backend:8000/api
+      - DJANGO_API_URL=http://backend:8000
     depends_on:
       - backend
     restart: unless-stopped
@@ -139,7 +139,7 @@ services:
     ports:
       - "4001:4001"
     environment:
-      - DJANGO_API_URL=http://backend:8000/api
+      - DJANGO_API_URL=http://backend:8000
     depends_on:
       - backend
       - ticketing
