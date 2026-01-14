@@ -42,6 +42,7 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=${DEBUG:-True}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw}
       - DATABASE_URL=postgresql://slykertech:${DB_PASSWORD:-devpassword}@db:5432/slykertech
       - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
@@ -91,6 +92,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw}
       - DATABASE_URL=postgresql://slykertech:${DB_PASSWORD:-devpassword}@db:5432/slykertech
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -109,6 +111,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw}
       - DATABASE_URL=postgresql://slykertech:${DB_PASSWORD:-devpassword}@db:5432/slykertech
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
