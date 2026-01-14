@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaBell, FaSync, FaCheckCircle, FaTrash, FaEnvelope, FaEnvelopeOpen } from 'react-icons/fa';
+import { FaBell, FaSync, FaCheckCircle, FaEnvelope, FaEnvelopeOpen } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
 

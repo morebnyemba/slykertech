@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaUser, FaSave, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUser, FaSave, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
 

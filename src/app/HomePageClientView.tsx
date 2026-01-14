@@ -34,7 +34,7 @@ const HomePageClientView = () => {
         engineers: 1,
         yearsExperience: 4
     });
-    const [featuredServices, setFeaturedServices] = useState<any[]>([]);
+
 
     const handleWhatsAppClick = () => {
         const message = encodeURIComponent("Hi Slyker Tech! I'm interested in your services.");
@@ -57,11 +57,11 @@ const HomePageClientView = () => {
                 }
 
                 // Fetch services
-                const servicesResponse = await apiService.getPublicServices();
-                if (servicesResponse.data) {
-                    const services = servicesResponse.data.results || servicesResponse.data;
-                    setFeaturedServices(services.slice(0, 6)); // Get first 6 services
-                }
+                // const servicesResponse = await apiService.getPublicServices();
+                // if (servicesResponse.data) {
+                //     const services = servicesResponse.data.results || servicesResponse.data;
+                //     // Get first 6 services for potential future use
+                // }
             } catch (error) {
                 console.error('Failed to fetch dynamic data:', error);
                 // Keep default values on error

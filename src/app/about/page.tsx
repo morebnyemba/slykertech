@@ -1,5 +1,6 @@
 // app/about/page.tsx
 
+import Image from 'next/image';
 import { FaGlobeAfrica, FaCode, FaCloud, FaHandshake } from 'react-icons/fa';
 import { MdEngineering, MdPayments, MdSecurity, MdTrendingUp } from 'react-icons/md';
 import metadata from './metadata';
@@ -176,9 +177,11 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-3 gap-12 items-center">
               <div className="relative group">
                 <div className="absolute inset-0 bg-darkgoldenrod dark:bg-yellow-400 rounded-xl transform group-hover:rotate-2 transition-transform"></div>
-                <img
+                <Image
                   src="/founder-moreblessing.jpg"
                   alt="Moreblessing Nyemba"
+                  width={400}
+                  height={400}
                   className="relative z-10 rounded-xl w-full h-auto"
                 />
               </div>

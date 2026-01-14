@@ -120,7 +120,7 @@ export default function ProjectsPage() {
             <div className="col-span-full text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
               <FaProjectDiagram className="text-5xl text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-gray-400 mb-4">No active projects</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">Your projects will appear here once they're created</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500">Your projects will appear here once they&apos;re created</p>
             </div>
           ) : (
             projects.map((project) => (

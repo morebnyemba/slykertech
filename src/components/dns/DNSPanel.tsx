@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaPlus, FaEdit, FaTrash, FaSync, FaWifi, FaGlobe } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -21,8 +21,6 @@ export default function DNSPanel() {
   const { isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<DNSRecord | null>(null);
 
   // WebSocket connection for real-time DNS updates
   const { isConnected, sendMessage } = useWebSocket({
@@ -48,16 +46,16 @@ export default function DNSPanel() {
     }
   }, [isAuthenticated, authLoading, router]);
 
+  const requestRecords = useCallback(() => {
+    setLoading(true);
+    sendMessage({ type: 'request_records' });
+  }, [sendMessage]);
+
   useEffect(() => {
     if (isConnected) {
       requestRecords();
     }
-  }, [isConnected]);
-
-  const requestRecords = () => {
-    setLoading(true);
-    sendMessage({ type: 'request_records' });
-  };
+  }, [isConnected, requestRecords]);
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this DNS record?')) {
@@ -160,7 +158,7 @@ export default function DNSPanel() {
                     <td colSpan={7} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                       <FaGlobe className="text-4xl mx-auto mb-2 opacity-50" />
                       <p>No DNS records found</p>
-                      <p className="text-sm mt-2">Click "Add Record" to create your first DNS record</p>
+                      <p className="text-sm mt-2">Click &quot;Add Record&quot; to create your first DNS record</p>
                     </td>
                   </tr>
                 ) : (
