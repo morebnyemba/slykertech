@@ -12,7 +12,7 @@ The application was experiencing CORS (Cross-Origin Resource Sharing) policy err
 
 1. **Duplicate CORS Configuration**: The `CORS_ALLOWED_ORIGINS` setting was being configured twice in `settings.py`, with the second configuration overriding the first.
 
-2. **Missing API Domain**: The API domain itself (`https://api.slykertech.co.zw`) was not included in the `CORS_ALLOWED_ORIGINS` list.
+2. **Missing Frontend Domains**: The frontend domains were correctly listed in the `CORS_ALLOWED_ORIGINS`, but there was a duplicate configuration later that was overriding it.
 
 3. **Missing Credentials in Frontend**: The frontend API service was not sending `credentials: 'include'` with fetch requests, which is required for cross-origin requests with cookies/sessions.
 
@@ -32,7 +32,7 @@ The application was experiencing CORS (Cross-Origin Resource Sharing) policy err
        CORS_ALLOW_ALL_ORIGINS = False
        CORS_ALLOWED_ORIGINS = config(
            'CORS_ALLOWED_ORIGINS',
-           default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw',
+           default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
            cast=lambda v: [s.strip() for s in v.split(',')]
        )
    ```
@@ -45,8 +45,9 @@ The application was experiencing CORS (Cross-Origin Resource Sharing) policy err
    ```python
    SESSION_COOKIE_DOMAIN = config('SESSION_COOKIE_DOMAIN', default=None)
    CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=None)
-   SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # Required for cross-origin
-   CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'  # Required for cross-origin
+   # SameSite=None is required for cross-origin requests but requires Secure=True (enforced below in production)
+   SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+   CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
    SESSION_COOKIE_HTTPONLY = True  # Security: prevent JavaScript access
    CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript to read it
    ```
@@ -113,7 +114,7 @@ Ensure the following environment variables are set in production:
 ```env
 # Backend (.env)
 DEBUG=False
-CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
+CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
 CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
 ALLOWED_HOSTS=localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw
 
