@@ -8,7 +8,7 @@ start(_StartType, _StartArgs) ->
         {'_', [
             {"/health", health_handler, []},
             {"/ws/chat/:room", chat_websocket_handler, []},
-            {"/ws/[...]", chat_websocket_handler, []}
+            {"/ws/chat/[...]", chat_websocket_handler, []}
         ]}
     ]),
     {ok, _} = cowboy:start_clear(http_listener,

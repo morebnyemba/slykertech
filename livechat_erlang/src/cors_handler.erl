@@ -2,14 +2,6 @@
 -module(cors_handler).
 -export([init/2]).
 
-%% Allowed origins for CORS
--define(ALLOWED_ORIGINS, [
-    <<"https://slykertech.co.zw">>,
-    <<"https://www.slykertech.co.zw">>,
-    <<"http://localhost:3000">>,
-    <<"http://127.0.0.1:3000">>
-]).
-
 init(Req0, State) ->
     %% Get the Origin header
     Origin = cowboy_req:header(<<"origin">>, Req0, <<"">>),
@@ -20,9 +12,9 @@ init(Req0, State) ->
     %% Check if this is an OPTIONS request (CORS preflight)
     case Method of
         <<"OPTIONS">> ->
-            %% Check if Origin is allowed
-            case lists:member(Origin, ?ALLOWED_ORIGINS) of
-                true ->
+            %% Check if Origin is allowed using shared configuration
+            case cors_config:is_origin_allowed(Origin) of
+                true when Origin =/= <<"">> ->
                     %% Send CORS headers for preflight
                     Req = cowboy_req:reply(204,
                         #{
@@ -35,8 +27,8 @@ init(Req0, State) ->
                         <<>>,
                         Req0),
                     {ok, Req, State};
-                false ->
-                    %% Origin not allowed
+                _ ->
+                    %% Origin not allowed or empty
                     Req = cowboy_req:reply(403,
                         #{<<"content-type">> => <<"text/plain">>},
                         <<"Forbidden: Invalid origin">>,
