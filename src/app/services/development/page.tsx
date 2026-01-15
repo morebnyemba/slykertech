@@ -78,7 +78,7 @@ export default function DevelopmentPage() {
                   {/* Left side - Category Info */}
                   <div className="md:w-1/2 p-8">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className={\`bg-gradient-to-r \${category.color} p-4 rounded-lg\`}>
+                      <div className={`bg-gradient-to-r ${category.color} p-4 rounded-lg`}>
                         <Icon className="w-8 h-8 text-white" />
                       </div>
                       <div>
@@ -105,7 +105,7 @@ export default function DevelopmentPage() {
                     </ul>
 
                     <Link
-                      href={\`/services/development/\${category.slug}\`}
+                      href={`/services/development/${category.slug}`}
                       className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
                     >
                       View {category.name} Packages
@@ -114,7 +114,7 @@ export default function DevelopmentPage() {
                   </div>
 
                   {/* Right side - Visual */}
-                  <div className={\`md:w-1/2 bg-gradient-to-br \${category.color} p-12 flex items-center justify-center\`}>
+                  <div className={`md:w-1/2 bg-gradient-to-br ${category.color} p-12 flex items-center justify-center`}>
                     <Icon className="w-48 h-48 text-white opacity-20" />
                   </div>
                 </div>

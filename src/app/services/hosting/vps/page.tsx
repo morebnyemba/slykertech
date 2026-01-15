@@ -65,7 +65,7 @@ export default function VPSHostingPage() {
       } else {
         setError(response.error || 'Failed to load VPS hosting products');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load VPS hosting products');
     } finally {
       setLoading(false);
