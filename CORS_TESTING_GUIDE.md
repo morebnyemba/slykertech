@@ -302,8 +302,8 @@ chmod +x test-cors.sh
 1. Verify `.env` file has correct production values:
    ```env
    DEBUG=False
-   CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
-   CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
+   CORS_ALLOWED_ORIGINS="https://slykertech.co.zw,https://www.slykertech.co.zw"
+   CSRF_TRUSTED_ORIGINS="https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw"
    ```
 2. Restart backend service to reload environment variables
 3. Check Django logs for CORS-related messages

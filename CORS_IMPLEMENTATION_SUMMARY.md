@@ -103,10 +103,10 @@ CORS_EXPOSE_HEADERS = [
 DEBUG=False
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw
+CORS_ALLOWED_ORIGINS="https://slykertech.co.zw,https://www.slykertech.co.zw"
 
 # CSRF Trusted Origins
-CSRF_TRUSTED_ORIGINS=https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
+CSRF_TRUSTED_ORIGINS="https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw"
 ```
 
 ## Why This Approach Works
