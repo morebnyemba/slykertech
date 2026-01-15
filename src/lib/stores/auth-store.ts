@@ -50,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
           const apiUrl = getApiUrl();
           const response = await fetch(`${apiUrl}/token/`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -65,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Get user profile
           const profileResponse = await fetch(`${apiUrl}/accounts/profile/`, {
+            credentials: 'include',
             headers: {
               'Authorization': `Bearer ${data.access}`,
             },
@@ -99,6 +101,7 @@ export const useAuthStore = create<AuthState>()(
           const apiUrl = getApiUrl();
           const response = await fetch(`${apiUrl}/accounts/register/`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
             },
