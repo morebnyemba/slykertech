@@ -218,11 +218,17 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
-    cast=lambda v: [s.strip() for s in v.split(',')]
-)
+# Allow all origins in development, specific origins in production
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
+        cast=lambda v: [s.strip() for s in v.split(',')]
+    )
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -254,6 +260,11 @@ CSRF_TRUSTED_ORIGINS = config(
 # Cookie Settings
 SESSION_COOKIE_DOMAIN = config('SESSION_COOKIE_DOMAIN', default=None)
 CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=None)
+# SameSite=None is required for cross-origin requests but requires Secure=True (enforced below in production)
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+SESSION_COOKIE_HTTPONLY = True  # Security: prevent JavaScript access
+CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript to read it
 
 # Security Settings (for production)
 if not DEBUG:
@@ -421,15 +432,7 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-# WebSocket CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
-if not DEBUG:
-    # Production: Use specific origins
-    CORS_ALLOWED_ORIGINS = config(
-        'CORS_ALLOWED_ORIGINS',
-        default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
-        cast=lambda v: [s.strip() for s in v.split(',')]
-    )
+# WebSocket configuration (CORS settings are already configured above)
 
 # WebSocket CORS settings for Channels
 CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [(config('REDIS_HOST', default='redis'), config('REDIS_PORT', default=6379, cast=int))]
