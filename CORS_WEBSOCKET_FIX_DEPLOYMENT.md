@@ -196,16 +196,17 @@ If you see 400 errors before CORS errors:
 ## Files Changed
 
 ### Backend Configuration
-- `backend/config/settings.py`: Added `parse_comma_separated()` helper function
-- `.env.example`: Updated to show unquoted format
+- `backend/config/settings.py`: Added `parse_comma_separated()` helper function for robust environment variable parsing
+- `.env.example`: Updated to show unquoted format for better compatibility
 
 ### Erlang LiveChat Service
-- `livechat_erlang/src/chat_websocket_handler.erl`: Added origin validation
-- `livechat_erlang/src/livechat_app.erl`: Updated routing patterns
-- `livechat_erlang/src/cors_handler.erl`: New CORS preflight handler
+- `livechat_erlang/src/cors_config.erl`: **NEW** - Shared CORS configuration module to avoid duplication
+- `livechat_erlang/src/chat_websocket_handler.erl`: Added origin validation using shared config
+- `livechat_erlang/src/livechat_app.erl`: Updated routing to `/ws/chat/[...]` for better specificity
+- `livechat_erlang/src/cors_handler.erl`: **NEW** - CORS preflight handler for OPTIONS requests
 
 ### Docker Configuration
-- `docker-compose.yml`: Added CORS_ALLOWED_ORIGINS and CSRF_TRUSTED_ORIGINS environment variables
+- `docker-compose.yml`: Added CORS_ALLOWED_ORIGINS and CSRF_TRUSTED_ORIGINS environment variables to backend service
 
 ## Security Notes
 
