@@ -41,6 +41,7 @@ class ApiService {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
+        credentials: 'include', // Include cookies for CORS
         headers: {
           ...this.getHeaders(),
           ...options.headers,
