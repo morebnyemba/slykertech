@@ -20,6 +20,20 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Helper function to parse comma-separated config values
+def parse_comma_separated(value):
+    """
+    Parse comma-separated values from environment variables.
+    Handles both quoted and unquoted values, strips whitespace and quotes.
+    """
+    if not value:
+        return []
+    # Remove surrounding quotes if present
+    value = value.strip().strip('"').strip("'")
+    # Split by comma and strip whitespace
+    return [s.strip().strip('"').strip("'") for s in value.split(',') if s.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -32,7 +46,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS', 
     default='localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw', 
-    cast=lambda v: [s.strip() for s in v.split(',')]
+    cast=parse_comma_separated
 )
 
 
@@ -226,7 +240,7 @@ else:
     CORS_ALLOWED_ORIGINS = config(
         'CORS_ALLOWED_ORIGINS',
         default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
-        cast=lambda v: [s.strip() for s in v.split(',')]
+        cast=parse_comma_separated
     )
 
 CORS_ALLOW_CREDENTIALS = True
@@ -258,7 +272,7 @@ CORS_EXPOSE_HEADERS = [
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
     default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw',
-    cast=lambda v: [s.strip() for s in v.split(',')]
+    cast=parse_comma_separated
 )
 
 # Cookie Settings
