@@ -1,6 +1,66 @@
 from rest_framework import serializers
-from .models import Invoice, InvoiceItem, Payment, BillingProfile
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem
 from clients.serializers import ClientSerializer
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    """Serializer for CartItem model"""
+    
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    service_category = serializers.CharField(source='service.category', read_only=True)
+    total_price = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CartItem
+        fields = ['id', 'cart', 'service', 'service_name', 'service_category', 
+                  'service_metadata', 'quantity', 'unit_price', 'billing_cycle', 
+                  'total_price', 'created_at']
+        read_only_fields = ['id', 'created_at', 'total_price']
+    
+    def get_total_price(self, obj):
+        return float(obj.get_price())
+    
+    def validate_service_metadata(self, value):
+        """Validate service-specific metadata"""
+        # Get service from context or instance
+        service = None
+        if self.instance:
+            service = self.instance.service
+        elif 'service' in self.initial_data:
+            from services.models import Service
+            try:
+                service = Service.objects.get(id=self.initial_data['service'])
+            except Service.DoesNotExist:
+                pass
+        
+        if service and service.category == 'domain':
+            # Validate domain transfer has EPP code
+            if value.get('action') == 'transfer' and not value.get('epp_code'):
+                raise serializers.ValidationError(
+                    'EPP/Auth code is required for domain transfers'
+                )
+        
+        return value
+
+
+class CartSerializer(serializers.ModelSerializer):
+    """Serializer for Cart model"""
+    
+    items = CartItemSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
+    item_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Cart
+        fields = ['id', 'client', 'session_id', 'status', 'items', 'total', 
+                  'item_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'total', 'item_count']
+    
+    def get_total(self, obj):
+        return float(obj.get_total())
+    
+    def get_item_count(self, obj):
+        return obj.get_item_count()
 
 
 class InvoiceItemSerializer(serializers.ModelSerializer):

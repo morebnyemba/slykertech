@@ -39,6 +39,7 @@ ALLOWED_HOSTS = config(
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',  # Must be before django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -307,4 +309,121 @@ LOGGING = {
 
 # Create logs directory if it doesn't exist
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# Whitenoise Configuration for Static Files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Jazzmin Admin Theme Configuration
+JAZZMIN_SETTINGS = {
+    # Title on the login screen and nav bar
+    "site_title": "Slyker Tech Admin",
+    "site_header": "Slyker Tech",
+    "site_brand": "Slyker Tech Platform",
+    "site_logo": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    
+    # Welcome text on the login screen
+    "welcome_sign": "Welcome to Slyker Tech Admin",
+    
+    # Copyright on the footer
+    "copyright": "Slyker Tech Web Services",
+    
+    # Use our brand colors
+    "show_ui_builder": False,
+    
+    # Top Menu
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Site", "url": "/", "new_window": True},
+        {"model": "auth.User"},
+    ],
+    
+    # User Menu
+    "usermenu_links": [
+        {"model": "auth.user"}
+    ],
+    
+    # Side Menu
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Ordering
+    "order_with_respect_to": ["auth", "accounts", "clients", "services", "billing"],
+    
+    # Icons from Font Awesome
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "accounts.User": "fas fa-user-circle",
+        "clients.Client": "fas fa-building",
+        "services.Service": "fas fa-server",
+        "services.ServiceSubscription": "fas fa-handshake",
+        "services.HostingProduct": "fas fa-hdd",
+        "services.DomainProduct": "fas fa-globe",
+        "services.DomainRegistration": "fas fa-registered",
+        "billing.Invoice": "fas fa-file-invoice-dollar",
+        "billing.Payment": "fas fa-credit-card",
+        "billing.Cart": "fas fa-shopping-cart",
+        "notifications": "fas fa-bell",
+        "wallet": "fas fa-wallet",
+    },
+    
+    # Slyker Tech Brand Colors
+    "custom_css": None,
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}
+
+# WebSocket CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
+if not DEBUG:
+    # Production: Use specific origins
+    CORS_ALLOWED_ORIGINS = config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
+        cast=lambda v: [s.strip() for s in v.split(',')]
+    )
+
+# WebSocket CORS settings for Channels
+CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [(config('REDIS_HOST', default='redis'), config('REDIS_PORT', default=6379, cast=int))]
 

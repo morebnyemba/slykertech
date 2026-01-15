@@ -1,11 +1,106 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Invoice, Payment, BillingProfile
+from .models import Invoice, Payment, BillingProfile, Cart, CartItem
 from .serializers import (
     InvoiceSerializer, InvoiceCreateSerializer,
-    PaymentSerializer, BillingProfileSerializer
+    PaymentSerializer, BillingProfileSerializer,
+    CartSerializer, CartItemSerializer
 )
+
+
+class CartViewSet(viewsets.ModelViewSet):
+    """ViewSet for shopping cart"""
+    
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+    permission_classes = [permissions.AllowAny]  # Allow non-authenticated users
+    
+    def get_queryset(self):
+        """Filter carts based on user or session"""
+        user = self.request.user
+        session_id = self.request.session.session_key
+        
+        if user.is_authenticated:
+            # Get or create user's active cart
+            if hasattr(user, 'client'):
+                return Cart.objects.filter(client=user.client, status='active')
+            return Cart.objects.none()
+        elif session_id:
+            # Get session cart
+            return Cart.objects.filter(session_id=session_id, status='active')
+        return Cart.objects.none()
+    
+    @action(detail=False, methods=['get'])
+    def current(self, request):
+        """Get current user's or session's active cart"""
+        user = request.user
+        session_id = request.session.session_key
+        
+        cart = None
+        if user.is_authenticated and hasattr(user, 'client'):
+            cart, _ = Cart.objects.get_or_create(
+                client=user.client,
+                status='active',
+                defaults={'session_id': session_id}
+            )
+        elif session_id:
+            cart, _ = Cart.objects.get_or_create(
+                session_id=session_id,
+                status='active'
+            )
+        else:
+            # Create session if doesn't exist
+            if not request.session.session_key:
+                request.session.create()
+            session_id = request.session.session_key
+            cart, _ = Cart.objects.get_or_create(
+                session_id=session_id,
+                status='active'
+            )
+        
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def add_item(self, request, pk=None):
+        """Add item to cart"""
+        cart = self.get_object()
+        serializer = CartItemSerializer(data=request.data, context={'request': request})
+        
+        if serializer.is_valid():
+            serializer.save(cart=cart)
+            # Return updated cart
+            cart_serializer = self.get_serializer(cart)
+            return Response(cart_serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['delete'])
+    def remove_item(self, request, pk=None):
+        """Remove item from cart"""
+        cart = self.get_object()
+        item_id = request.data.get('item_id')
+        
+        try:
+            item = cart.items.get(id=item_id)
+            item.delete()
+            # Return updated cart
+            cart_serializer = self.get_serializer(cart)
+            return Response(cart_serializer.data)
+        except CartItem.DoesNotExist:
+            return Response(
+                {"error": "Item not found in cart"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=True, methods=['post'])
+    def clear(self, request, pk=None):
+        """Clear all items from cart"""
+        cart = self.get_object()
+        cart.items.all().delete()
+        cart_serializer = self.get_serializer(cart)
+        return Response(cart_serializer.data)
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
