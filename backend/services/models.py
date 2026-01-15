@@ -8,6 +8,7 @@ class Service(models.Model):
     
     SERVICE_CATEGORY_CHOICES = [
         ('hosting', 'Web Hosting'),
+        ('domain', 'Domain Services'),
         ('development', 'Development'),
         ('design', 'Design'),
         ('marketing', 'Marketing'),
@@ -31,6 +32,14 @@ class Service(models.Model):
                                     help_text="Payment structure for this service")
     pricing_options = models.JSONField(default=dict, blank=True,
                                       help_text="Different pricing tiers/options for this service")
+    
+    # Polymorphic metadata field for service-specific attributes
+    # For Hosting: {types: ['shared', 'vps', 'dedicated'], regions: ['US', 'EU'], os_options: ['Ubuntu', 'CentOS']}
+    # For Development: {types: ['web', 'mobile', 'desktop', 'hybrid'], requires_brief: true}
+    # For Domains: {actions: ['registration', 'transfer'], requires_epp_for_transfer: true, tlds: ['.com', '.net']}
+    service_metadata = models.JSONField(default=dict, blank=True,
+                                       help_text="Service-specific configuration and options")
+    
     requires_provisioning = models.BooleanField(default=False,
                                                help_text="Requires automatic provisioning (e.g., cPanel account)")
     provisioning_type = models.CharField(max_length=50, blank=True, null=True,

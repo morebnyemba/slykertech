@@ -184,3 +184,84 @@ class BillingProfile(models.Model):
     def __str__(self):
         return f"Billing Profile - {self.client.company_name}"
 
+
+class Cart(models.Model):
+    """Shopping cart for services with polymorphic support"""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('checkout', 'In Checkout'),
+        ('completed', 'Completed'),
+        ('abandoned', 'Abandoned'),
+    ]
+    
+    client = models.ForeignKey('clients.Client', on_delete=models.CASCADE, related_name='carts', null=True, blank=True)
+    session_id = models.CharField(max_length=255, blank=True, null=True, help_text="For non-authenticated users")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('cart')
+        verbose_name_plural = _('carts')
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        if self.client:
+            return f"Cart - {self.client.company_name}"
+        return f"Cart - Session {self.session_id}"
+    
+    def get_total(self):
+        """Calculate total cart value"""
+        return sum(item.get_price() for item in self.items.all())
+    
+    def get_item_count(self):
+        """Get total number of items in cart"""
+        return self.items.count()
+
+
+class CartItem(models.Model):
+    """Individual items in shopping cart with service-specific metadata"""
+    
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    service = models.ForeignKey('services.Service', on_delete=models.CASCADE)
+    
+    # Polymorphic service metadata
+    # For Hosting: {type: 'shared|vps|dedicated', ram: '4GB', cpu: '2 cores', region: 'US', os: 'Ubuntu'}
+    # For Development: {type: 'web|mobile|desktop|hybrid', brief: 'Project requirements...'}
+    # For Domains: {action: 'registration|transfer', domain_name: 'example.com', epp_code: 'ABC123'}
+    service_metadata = models.JSONField(default=dict, help_text="Service-specific configuration")
+    
+    quantity = models.IntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    billing_cycle = models.CharField(max_length=20, default='monthly')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = _('cart item')
+        verbose_name_plural = _('cart items')
+        ordering = ['id']
+    
+    def __str__(self):
+        return f"{self.service.name} - {self.cart}"
+    
+    def get_price(self):
+        """Calculate item price"""
+        return self.quantity * self.unit_price
+    
+    def clean(self):
+        """Validate service-specific metadata"""
+        from django.core.exceptions import ValidationError
+        
+        if self.service.category == 'domain':
+            # Validate domain transfer has EPP code
+            if self.service_metadata.get('action') == 'transfer':
+                if not self.service_metadata.get('epp_code'):
+                    raise ValidationError({
+                        'service_metadata': 'EPP/Auth code is required for domain transfers'
+                    })
+        
+        super().clean()
+
