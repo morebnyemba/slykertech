@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import ClientBackgroundWrapper from '@/components/ClientBackgroundWrapper'; // Import the wrapper
+import LiveChatWidget from '@/components/LiveChatWidget';
 
 export const metadata = defaultMetadata;
 
@@ -71,6 +72,9 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+
+          {/* Live Chat Widget - Persistent across all pages */}
+          <LiveChatWidget />
 
           {/* Structured Data */}
           <script

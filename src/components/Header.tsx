@@ -3,15 +3,18 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle, FaSignOutAlt, FaShoppingCart, FaChevronDown } from 'react-icons/fa';
 import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme toggle
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useCartStore } from '@/lib/stores/cart-store';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const [showServicesDropdown, setShowServicesDropdown] = useState(false);
+  const { isAuthenticated, user, logout, token } = useAuthStore();
+  const { cart, fetchCart, getItemCount } = useCartStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +26,11 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch cart on mount and when auth state changes
+  useEffect(() => {
+    fetchCart(token || undefined);
+  }, [fetchCart, token]);
+
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hi Slyker Tech! I'm in need of one of your services.");
     window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
@@ -32,6 +40,15 @@ export default function Header() {
     logout();
     router.push('/');
   };
+
+  const cartItemCount = getItemCount();
+
+  const serviceCategories = [
+    { name: 'Web Hosting', href: '/services/hosting', description: 'Shared, VPS, Dedicated' },
+    { name: 'Domain Services', href: '/services/domains', description: 'Registration & Transfer' },
+    { name: 'Development', href: '/services/development', description: 'Web, Mobile, Desktop' },
+    { name: 'Design Services', href: '/services/design', description: 'UI/UX, Graphics' },
+  ];
 
   const ContactModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -157,14 +174,6 @@ export default function Header() {
           {/* Theme Toggle for Mobile */}
           <ThemeToggle />
 
-          {/* Mobile Get Started Button - Next to Hamburger */}
-          <button
-            onClick={() => setShowContactModal(true)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-blue-200/50 transition-all duration-300 animate-pulse text-sm"
-          >
-            Get Started
-          </button>
-
           {/* Mobile Hamburger Icon */}
           <button
             className="text-blue-700 hover:text-blue-800 focus:outline-none transition-all duration-300 ease-in-out"
@@ -189,12 +198,53 @@ export default function Header() {
         <nav className="hidden sm:flex items-center space-x-8">
           <NavLink href="/" label="Home" />
           <NavLink href="/about" label="About" />
-          <NavLink href="/services" label="Services" />
+          
+          {/* Services Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowServicesDropdown(true)}
+            onMouseLeave={() => setShowServicesDropdown(false)}
+          >
+            <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
+              Services
+              <FaChevronDown className="w-3 h-3" />
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </button>
+            
+            {showServicesDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {serviceCategories.map((category) => (
+                  <Link
+                    key={category.name}
+                    href={category.href}
+                    className="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{category.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{category.description}</div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          
           <NavLink href="/portfolio" label="Portfolio" />
           <NavLink href="/contact" label="Contact" />
 
           {/* Theme Toggle for Desktop */}
           <ThemeToggle />
+
+          {/* Cart Icon with Badge */}
+          <Link 
+            href="/cart" 
+            className="relative text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+          >
+            <FaShoppingCart className="text-xl" />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                {cartItemCount}
+              </span>
+            )}
+          </Link>
 
           {isAuthenticated ? (
             <>
@@ -229,13 +279,6 @@ export default function Header() {
               </Link>
             </>
           )}
-
-          <button
-            onClick={() => setShowContactModal(true)}
-            className="ml-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-green-200/50 transition-all duration-300 transform hover:-translate-y-0.5"
-          >
-            Get Started
-          </button>
         </nav>
       </div>
 
