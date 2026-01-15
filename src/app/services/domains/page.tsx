@@ -1,37 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaGlobe, FaSearch, FaShieldAlt, FaLock, FaCheck } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { apiService } from '@/lib/api-service';
 
-const domainPricing = [
-  { tld: '.com', price: 12.99, popular: true },
-  { tld: '.net', price: 13.99, popular: false },
-  { tld: '.org', price: 12.99, popular: false },
-  { tld: '.co.zw', price: 15.00, popular: true },
-  { tld: '.io', price: 39.99, popular: false },
-  { tld: '.tech', price: 24.99, popular: false },
-];
+interface DomainProduct {
+  id: number;
+  tld: string;
+  description: string;
+  registration_price_1yr: string;
+  registration_price_2yr: string | null;
+  registration_price_3yr: string | null;
+  renewal_price: string;
+  transfer_price: string;
+  whois_privacy_price: string;
+  is_featured: boolean;
+  is_active: boolean;
+}
 
 export default function DomainsPage() {
+  const [domainProducts, setDomainProducts] = useState<DomainProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionType, setActionType] = useState<'registration' | 'transfer'>('registration');
   const [domainName, setDomainName] = useState('');
   const [eppCode, setEppCode] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [selectedTLD, setSelectedTLD] = useState<DomainProduct | null>(null);
   
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
 
+  useEffect(() => {
+    fetchDomainProducts();
+  }, []);
+
+  const fetchDomainProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getDomainProducts();
+      if (response.data) {
+        const products = Array.isArray(response.data) ? response.data : response.data.results || [];
+        setDomainProducts(products);
+      } else {
+        setError(response.error || 'Failed to load domain products');
+      }
+    } catch (err) {
+      setError('Failed to load domain products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      alert(`Checking availability for: ${searchQuery}`);
+      alert(\`Checking availability for: \${searchQuery}\`);
       // In production, this would check domain availability via API
     }
   };
 
-  const handleAddToCart = async (tld: string, price: number) => {
+  const handleAddToCart = async (product: DomainProduct) => {
     if (!domainName.trim()) {
       alert('Please enter a domain name');
       return;
@@ -42,11 +73,15 @@ export default function DomainsPage() {
       return;
     }
 
+    const price = actionType === 'registration' 
+      ? parseFloat(product.registration_price_1yr)
+      : parseFloat(product.transfer_price);
+
     const cartItem = {
-      service: 1, // Domain service ID - would be dynamic in production
+      service: product.id,
       service_metadata: {
         action: actionType,
-        domain_name: `${domainName}${tld}`,
+        domain_name: \`\${domainName}\${product.tld}\`,
         ...(actionType === 'transfer' && { epp_code: eppCode }),
       },
       quantity: 1,
@@ -61,10 +96,27 @@ export default function DomainsPage() {
       setShowModal(false);
       setDomainName('');
       setEppCode('');
+      setSelectedTLD(null);
     } else {
-      alert(`Failed to add to cart: ${result.error}`);
+      alert(\`Failed to add to cart: \${result.error}\`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading domain products...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-12">
@@ -105,7 +157,7 @@ export default function DomainsPage() {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <FaGlobe className="w-12 h-12 text-blue-600 mx-auto mb-4" />
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Wide Selection</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">100+ TLDs available</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{domainProducts.length}+ TLDs available</p>
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <FaShieldAlt className="w-12 h-12 text-blue-600 mx-auto mb-4" />
@@ -129,21 +181,21 @@ export default function DomainsPage() {
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1">
             <button
               onClick={() => setActionType('registration')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={\`px-6 py-2 rounded-lg font-medium transition-colors \${
                 actionType === 'registration'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
+              }\`}
             >
               Register Domain
             </button>
             <button
               onClick={() => setActionType('transfer')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={\`px-6 py-2 rounded-lg font-medium transition-colors \${
                 actionType === 'transfer'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
+              }\`}
             >
               Transfer Domain
             </button>
@@ -151,57 +203,74 @@ export default function DomainsPage() {
         </div>
 
         {/* Domain Pricing Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden mb-16">
-          <div className="p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {actionType === 'registration' ? 'Registration' : 'Transfer'} Pricing
-            </h2>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {domainPricing.map((domain) => (
-                <div
-                  key={domain.tld}
-                  className={`border rounded-lg p-6 ${
-                    domain.popular
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {domain.tld}
-                    </span>
-                    {domain.popular && (
-                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-blue-600">
-                      ${domain.price}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">/year</span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setShowModal(true);
-                      setDomainName('');
-                    }}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+        {domainProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              No domain products available yet.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden mb-16">
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                {actionType === 'registration' ? 'Registration' : 'Transfer'} Pricing
+              </h2>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {domainProducts.map((domain) => (
+                  <div
+                    key={domain.id}
+                    className={\`border rounded-lg p-6 \${
+                      domain.is_featured
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }\`}
                   >
-                    {actionType === 'registration' ? 'Register' : 'Transfer'}
-                  </button>
-                </div>
-              ))}
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {domain.tld}
+                      </span>
+                      {domain.is_featured && (
+                        <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-blue-600">
+                        \${actionType === 'registration' 
+                          ? parseFloat(domain.registration_price_1yr).toFixed(2)
+                          : parseFloat(domain.transfer_price).toFixed(2)}
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-400">/year</span>
+                    </div>
+
+                    {domain.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        {domain.description}
+                      </p>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setSelectedTLD(domain);
+                        setShowModal(true);
+                        setDomainName('');
+                      }}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      {actionType === 'registration' ? 'Register' : 'Transfer'}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Domain Configuration Modal */}
-        {showModal && (
+        {showModal && selectedTLD && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
@@ -213,13 +282,18 @@ export default function DomainsPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Domain Name
                 </label>
-                <input
-                  type="text"
-                  value={domainName}
-                  onChange={(e) => setDomainName(e.target.value)}
-                  placeholder="example"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={domainName}
+                    onChange={(e) => setDomainName(e.target.value)}
+                    placeholder="example"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                  <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 font-medium">
+                    {selectedTLD.tld}
+                  </div>
+                </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Enter domain without TLD (e.g., example, not example.com)
                 </p>
@@ -250,17 +324,14 @@ export default function DomainsPage() {
                     setShowModal(false);
                     setDomainName('');
                     setEppCode('');
+                    setSelectedTLD(null);
                   }}
                   className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    // For demo, use first domain
-                    const selectedDomain = domainPricing[0];
-                    handleAddToCart(selectedDomain.tld, selectedDomain.price);
-                  }}
+                  onClick={() => handleAddToCart(selectedTLD)}
                   className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                   Add to Cart
