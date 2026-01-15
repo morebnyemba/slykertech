@@ -37,8 +37,12 @@ class CorsOriginValidator(OriginValidator):
         if super().valid_origin(parsed_origin):
             return True
         
-        # Then check against CORS_ALLOWED_ORIGINS if not in DEBUG mode
-        if not settings.DEBUG and hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
+        # In DEBUG mode with CORS_ALLOW_ALL_ORIGINS, allow all
+        if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
+            return True
+        
+        # Check against CORS_ALLOWED_ORIGINS if configured
+        if hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
             # Reconstruct the full origin from parsed_origin
             origin = f"{parsed_origin[0]}://{parsed_origin[1]}"
             if parsed_origin[2] is not None:
@@ -47,10 +51,6 @@ class CorsOriginValidator(OriginValidator):
             # Check if origin is in CORS_ALLOWED_ORIGINS
             if origin in settings.CORS_ALLOWED_ORIGINS:
                 return True
-        
-        # In DEBUG mode with CORS_ALLOW_ALL_ORIGINS, allow all
-        if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
-            return True
         
         return False
 
