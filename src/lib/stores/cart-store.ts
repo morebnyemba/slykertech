@@ -87,20 +87,15 @@ export const useCartStore = create<CartState>()(
         set({ isLoading: true, error: null });
         try {
           const apiUrl = getApiUrl();
-          const { cart } = get();
+          let { cart } = get();
           
           if (!cart) {
             // Fetch cart first
             await get().fetchCart(token);
-            const updatedCart = get().cart;
-            if (!updatedCart) {
+            cart = get().cart;
+            if (!cart) {
               throw new Error('Failed to get cart');
             }
-          }
-
-          const currentCart = get().cart;
-          if (!currentCart) {
-            throw new Error('No cart available');
           }
 
           const headers: Record<string, string> = {
@@ -111,7 +106,7 @@ export const useCartStore = create<CartState>()(
             headers['Authorization'] = `Bearer ${token}`;
           }
 
-          const response = await fetch(`${apiUrl}/billing/carts/${currentCart.id}/add_item/`, {
+          const response = await fetch(`${apiUrl}/billing/carts/${cart.id}/add_item/`, {
             method: 'POST',
             headers,
             credentials: 'include',

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { isUserStaff } from '@/lib/utils/user-roles';
 
 interface Message {
   type: string;
@@ -27,7 +28,7 @@ export default function LiveChatWidget() {
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const isStaff = user?.role === 'admin' || user?.role === 'staff';
+  const isStaff = isUserStaff(user);
 
   const departments = [
     { id: 'sales', name: 'Sales', description: 'Product inquiries and quotes' },
