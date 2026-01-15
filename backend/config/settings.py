@@ -249,6 +249,10 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = config(

@@ -7,72 +7,86 @@ The application was experiencing CORS (Cross-Origin Resource Sharing) policy err
 ### Error Messages:
 - `Access to fetch at 'https://api.slykertech.co.zw/api/billing/carts/current/' from origin 'https://slykertech.co.zw' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.`
 - `Failed to load resource: net::ERR_FAILED`
+- `WebSocket connection to 'wss://api.slykertech.co.zw/ws/chat/support/' failed`
 
 ## Root Causes Identified
 
-1. **Duplicate CORS Configuration**: The `CORS_ALLOWED_ORIGINS` setting was being configured twice in `settings.py`, with the second configuration overriding the first.
+1. **WebSocket Origin Validation**: The `AllowedHostsOriginValidator` in ASGI only validated against `ALLOWED_HOSTS`, which didn't properly handle cross-origin WebSocket connections from the frontend domain.
 
-2. **Missing Frontend Domains**: The frontend domains were correctly listed in the `CORS_ALLOWED_ORIGINS`, but there was a duplicate configuration later that was overriding it.
+2. **Missing CORS Expose Headers**: The frontend couldn't access certain response headers because they weren't explicitly exposed via `CORS_EXPOSE_HEADERS`.
 
-3. **Missing Credentials in Frontend**: The frontend API service was not sending `credentials: 'include'` with fetch requests, which is required for cross-origin requests with cookies/sessions.
-
-4. **Cookie SameSite Settings**: The `SESSION_COOKIE_SAMESITE` and `CSRF_COOKIE_SAMESITE` settings were not configured for cross-origin requests.
+3. **Origin Header Not Passed for WebSockets**: The nginx proxy wasn't passing the Origin header for WebSocket connections, preventing proper origin validation.
 
 ## Changes Made
 
-### Backend Changes (`backend/config/settings.py`)
+### Backend Changes
 
-1. **Consolidated CORS Configuration** (Lines 220-232):
-   ```python
-   # CORS Settings
-   # Allow all origins in development, specific origins in production
-   if DEBUG:
-       CORS_ALLOW_ALL_ORIGINS = True
-   else:
-       CORS_ALLOW_ALL_ORIGINS = False
-       CORS_ALLOWED_ORIGINS = config(
-           'CORS_ALLOWED_ORIGINS',
-           default='http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw',
-           cast=lambda v: [s.strip() for s in v.split(',')]
-       )
-   ```
+#### 1. Custom WebSocket Origin Validator (`backend/config/asgi.py`)
 
-2. **Removed Duplicate Configuration** (Lines 424-433):
-   - Removed the duplicate `CORS_ALLOW_ALL_ORIGINS` and `CORS_ALLOWED_ORIGINS` configuration
-   - Replaced with a comment noting that CORS settings are configured above
+Created a custom `CorsOriginValidator` that validates WebSocket connections against both `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS`:
 
-3. **Updated Cookie Settings** (Lines 261-267):
-   ```python
-   SESSION_COOKIE_DOMAIN = config('SESSION_COOKIE_DOMAIN', default=None)
-   CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=None)
-   # SameSite=None is required for cross-origin requests but requires Secure=True (enforced below in production)
-   SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-   CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-   SESSION_COOKIE_HTTPONLY = True  # Security: prevent JavaScript access
-   CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript to read it
-   ```
+```python
+class CorsOriginValidator(OriginValidator):
+    """
+    Custom origin validator that respects CORS_ALLOWED_ORIGINS setting
+    for WebSocket connections in addition to ALLOWED_HOSTS
+    """
+    
+    def valid_origin(self, parsed_origin):
+        """
+        Validate origin against both ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS
+        """
+        # First check with parent class (uses ALLOWED_HOSTS)
+        if super().valid_origin(parsed_origin):
+            return True
+        
+        # In DEBUG mode with CORS_ALLOW_ALL_ORIGINS, allow all
+        if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
+            return True
+        
+        # Check against CORS_ALLOWED_ORIGINS if configured
+        if hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
+            # Reconstruct the full origin from parsed_origin
+            origin = f"{parsed_origin[0]}://{parsed_origin[1]}"
+            if parsed_origin[2] is not None:
+                origin = f"{origin}:{parsed_origin[2]}"
+            
+            # Check if origin is in CORS_ALLOWED_ORIGINS
+            if origin in settings.CORS_ALLOWED_ORIGINS:
+                return True
+        
+        return False
+```
 
-### Frontend Changes (`src/lib/api-service.ts`)
+#### 2. Added CORS Expose Headers (`backend/config/settings.py`)
 
-1. **Added Credentials to Fetch Requests** (Line 44):
-   ```typescript
-   const response = await fetch(`${this.baseUrl}${endpoint}`, {
-     ...options,
-     credentials: 'include', // Include cookies for CORS
-     headers: {
-       ...this.getHeaders(),
-       ...options.headers,
-     },
-   });
-   ```
+Added `CORS_EXPOSE_HEADERS` to allow the frontend to access specific response headers:
 
-### Configuration Changes (`backend/.env.example`)
+```python
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+```
 
-1. **Updated CORS_ALLOWED_ORIGINS**:
-   ```env
-   # Add all domains that will access the API, including the API domain itself
-   CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw
-   ```
+### Nginx Configuration Changes (`nginx.conf`)
+
+Updated the WebSocket proxy configuration to pass the Origin header:
+
+```nginx
+location /ws/ {
+    proxy_pass http://backend;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Origin $http_origin;  # Added this line
+    proxy_read_timeout 86400;
+}
+```
 
 ## How CORS Works
 
@@ -86,26 +100,43 @@ For certain HTTP requests (like POST, PUT, DELETE with custom headers), browsers
 - `Access-Control-Allow-Methods`: Specifies which HTTP methods are allowed
 - `Access-Control-Allow-Headers`: Specifies which headers are allowed
 - `Access-Control-Allow-Credentials`: Indicates if cookies can be included
+- `Access-Control-Expose-Headers`: Specifies which response headers can be accessed by the frontend
+
+### WebSocket CORS
+
+WebSockets have a different CORS mechanism:
+- During the WebSocket handshake, the browser sends an `Origin` header
+- The server must validate this origin before accepting the connection
+- Unlike HTTP CORS, there are no preflight OPTIONS requests for WebSockets
 
 ### The Fix
 
-The `django-cors-headers` package handles all of this automatically, but it needs to be properly configured:
+The `django-cors-headers` package handles HTTP CORS automatically, but WebSocket validation required custom implementation:
 
-1. **CORS middleware** must be positioned correctly in the middleware stack (after SessionMiddleware, before CommonMiddleware)
-2. **Allowed origins** must include all domains that will make requests to the API
-3. **Credentials** must be allowed if cookies/sessions are used
-4. **SameSite cookie settings** must be set to 'None' for cross-origin requests in production
+1. **CORS middleware** handles HTTP requests (already properly configured)
+2. **Custom origin validator** handles WebSocket connections from allowed origins
+3. **Nginx passes Origin header** so the validator can check it properly
+4. **Expose headers** allows frontend to read necessary response headers
 
 ## Testing the Fix
 
 To verify the CORS configuration is working:
 
-1. **Check Browser Console**: Ensure no CORS errors appear
+### For HTTP API Requests:
+
+1. **Check Browser Console**: Ensure no CORS errors appear for API requests
 2. **Check Network Tab**: Verify that preflight OPTIONS requests return 200 status
 3. **Check Response Headers**: Verify the following headers are present:
    - `Access-Control-Allow-Origin: https://slykertech.co.zw`
    - `Access-Control-Allow-Credentials: true`
    - `Access-Control-Allow-Methods: DELETE, GET, OPTIONS, PATCH, POST, PUT`
+   - `Access-Control-Expose-Headers: content-type, x-csrftoken`
+
+### For WebSocket Connections:
+
+1. **Check Browser Console**: Ensure WebSocket connections succeed without errors
+2. **Check Connection Status**: Verify the connection shows as "open" in browser dev tools
+3. **Test Message Sending**: Send and receive messages through the WebSocket
 
 ## Environment Variables
 
@@ -129,9 +160,35 @@ NEXT_PUBLIC_SITE_URL=https://slykertech.co.zw
 2. **Credentials**: Only enable for trusted origins
 3. **Specific Origins**: Never use `CORS_ALLOW_ALL_ORIGINS=True` in production
 4. **HTTPS**: Always use HTTPS in production for secure cookie transmission
+5. **Origin Validation**: Custom validator checks both ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS
 
 ## Additional Notes
 
 - The cart endpoint (`/api/billing/carts/current/`) requires session support, which is why proper cookie configuration is essential
 - The login endpoint (`/api/token/`) needs CORS headers to accept credentials from the frontend
 - All API endpoints now properly support cross-origin requests from the frontend domain
+- WebSocket connections for live chat (`/ws/chat/support/`) now properly validate origins
+- The custom origin validator allows for flexible configuration while maintaining security
+
+## Troubleshooting
+
+If CORS issues persist:
+
+1. **Check Django logs**: Look for origin validation failures
+2. **Verify environment variables**: Ensure all domains are listed correctly
+3. **Check nginx logs**: Verify requests are being proxied properly
+4. **Browser dev tools**: Check Network tab for CORS-related error messages
+5. **Test with curl**: Verify CORS headers are present in responses:
+   ```bash
+   curl -H "Origin: https://slykertech.co.zw" -H "Access-Control-Request-Method: GET" \
+        -X OPTIONS https://api.slykertech.co.zw/api/billing/carts/current/ -v
+   ```
+
+## Deployment Checklist
+
+- [ ] Update environment variables on production server
+- [ ] Restart Django/Daphne service
+- [ ] Reload nginx configuration: `nginx -t && nginx -s reload`
+- [ ] Test API endpoints from frontend
+- [ ] Test WebSocket connections from frontend
+- [ ] Monitor logs for any CORS-related errors
