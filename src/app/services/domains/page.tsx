@@ -48,7 +48,7 @@ export default function DomainsPage() {
       } else {
         setError(response.error || 'Failed to load domain products');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load domain products');
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ export default function DomainsPage() {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      alert(\`Checking availability for: \${searchQuery}\`);
+      alert(`Checking availability for: ${searchQuery}`);
       // In production, this would check domain availability via API
     }
   };
@@ -81,7 +81,7 @@ export default function DomainsPage() {
       service: product.id,
       service_metadata: {
         action: actionType,
-        domain_name: \`\${domainName}\${product.tld}\`,
+        domain_name: `${domainName}${product.tld}`,
         ...(actionType === 'transfer' && { epp_code: eppCode }),
       },
       quantity: 1,
@@ -98,7 +98,7 @@ export default function DomainsPage() {
       setEppCode('');
       setSelectedTLD(null);
     } else {
-      alert(\`Failed to add to cart: \${result.error}\`);
+      alert(`Failed to add to cart: ${result.error}`);
     }
   };
 
@@ -181,21 +181,21 @@ export default function DomainsPage() {
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1">
             <button
               onClick={() => setActionType('registration')}
-              className={\`px-6 py-2 rounded-lg font-medium transition-colors \${
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 actionType === 'registration'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }\`}
+              }`}
             >
               Register Domain
             </button>
             <button
               onClick={() => setActionType('transfer')}
-              className={\`px-6 py-2 rounded-lg font-medium transition-colors \${
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 actionType === 'transfer'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }\`}
+              }`}
             >
               Transfer Domain
             </button>
@@ -220,11 +220,11 @@ export default function DomainsPage() {
                 {domainProducts.map((domain) => (
                   <div
                     key={domain.id}
-                    className={\`border rounded-lg p-6 \${
+                    className={`border rounded-lg p-6 ${
                       domain.is_featured
                         ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-gray-300 dark:border-gray-600'
-                    }\`}
+                    }`}
                   >
                     <div className="flex justify-between items-center mb-4">
                       <span className="text-2xl font-bold text-gray-900 dark:text-white">

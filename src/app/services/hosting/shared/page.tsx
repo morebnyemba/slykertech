@@ -64,7 +64,7 @@ export default function SharedHostingPage() {
       } else {
         setError(response.error || 'Failed to load shared hosting products');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load shared hosting products');
     } finally {
       setLoading(false);

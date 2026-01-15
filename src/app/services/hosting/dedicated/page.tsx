@@ -65,7 +65,7 @@ export default function DedicatedHostingPage() {
       } else {
         setError(response.error || 'Failed to load dedicated server products');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load dedicated server products');
     } finally {
       setLoading(false);
