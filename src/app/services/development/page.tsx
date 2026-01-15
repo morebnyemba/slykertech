@@ -5,7 +5,18 @@ import { FaCode, FaMobile, FaDesktop, FaLayerGroup, FaCheck } from 'react-icons/
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
-const developmentServices = [
+interface DevelopmentService {
+  id: number;
+  type: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  price: number;
+  description: string;
+  features: string[];
+  popular: boolean;
+}
+
+const developmentServices: DevelopmentService[] = [
   {
     id: 1,
     type: 'web',
@@ -85,7 +96,7 @@ const developmentServices = [
 ];
 
 export default function DevelopmentPage() {
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<DevelopmentService | null>(null);
   const [projectBrief, setProjectBrief] = useState('');
   const [projectName, setProjectName] = useState('');
   const [timeline, setTimeline] = useState('1-3 months');
@@ -93,7 +104,7 @@ export default function DevelopmentPage() {
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
 
-  const handleAddToCart = async (service: any) => {
+  const handleAddToCart = async (service: DevelopmentService) => {
     if (!projectName.trim()) {
       alert('Please enter a project name');
       return;

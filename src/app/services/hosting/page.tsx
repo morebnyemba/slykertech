@@ -5,7 +5,19 @@ import { FaServer, FaCloud, FaShieldAlt, FaClock, FaCheck } from 'react-icons/fa
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
-const hostingPlans = [
+interface HostingPlan {
+  id: number;
+  type: string;
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  regions: string[];
+  osOptions?: string[];
+  popular: boolean;
+}
+
+const hostingPlans: HostingPlan[] = [
   {
     id: 1,
     type: 'shared',
@@ -66,7 +78,7 @@ const hostingPlans = [
 ];
 
 export default function HostingPage() {
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<HostingPlan | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedOS, setSelectedOS] = useState('');
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -74,7 +86,7 @@ export default function HostingPage() {
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
 
-  const handleAddToCart = async (plan: any) => {
+  const handleAddToCart = async (plan: HostingPlan) => {
     if (!selectedRegion) {
       alert('Please select a region');
       return;

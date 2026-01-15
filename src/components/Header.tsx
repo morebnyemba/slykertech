@@ -14,7 +14,7 @@ export default function Header() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const { isAuthenticated, user, logout, token } = useAuthStore();
-  const { cart, fetchCart, getItemCount } = useCartStore();
+  const { fetchCart, getItemCount } = useCartStore();
   const router = useRouter();
 
   useEffect(() => {

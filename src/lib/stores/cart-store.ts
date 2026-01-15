@@ -13,7 +13,7 @@ interface CartItem {
   service: number;
   service_name: string;
   service_category: string;
-  service_metadata: Record<string, any>;
+  service_metadata: Record<string, unknown>;
   quantity: number;
   unit_price: number;
   billing_cycle: string;
