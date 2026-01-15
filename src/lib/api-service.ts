@@ -112,6 +112,42 @@ class ApiService {
     return this.request(`/services/services/${id}/`);
   }
 
+  // Hosting Products
+  async getHostingProducts() {
+    return this.request('/services/hosting-products/');
+  }
+
+  async getHostingProduct(id: number) {
+    return this.request(`/services/hosting-products/${id}/`);
+  }
+
+  // Domain Products
+  async getDomainProducts() {
+    return this.request('/services/domain-products/');
+  }
+
+  async getDomainProduct(id: number) {
+    return this.request(`/services/domain-products/${id}/`);
+  }
+
+  // Service Addons
+  async getServiceAddons() {
+    return this.request('/services/service-addons/');
+  }
+
+  async getServiceAddon(id: number) {
+    return this.request(`/services/service-addons/${id}/`);
+  }
+
+  // Domain Registrations
+  async getDomainRegistrations() {
+    return this.request('/services/domain-registrations/');
+  }
+
+  async getDomainRegistration(id: number) {
+    return this.request(`/services/domain-registrations/${id}/`);
+  }
+
   // Subscriptions
   async getSubscriptions() {
     return this.request('/services/subscriptions/');

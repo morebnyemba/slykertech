@@ -1,113 +1,148 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaServer, FaCloud, FaShieldAlt, FaClock, FaCheck } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { apiService } from '@/lib/api-service';
 
-interface HostingPlan {
+interface HostingProduct {
   id: number;
-  type: string;
   name: string;
-  price: number;
+  slug: string;
   description: string;
-  features: string[];
-  regions: string[];
-  osOptions?: string[];
-  popular: boolean;
+  hosting_type: string;
+  disk_space: number;
+  bandwidth: number;
+  email_accounts: number;
+  databases: number;
+  ftp_accounts: number;
+  subdomains: number;
+  addon_domains: number;
+  parked_domains: number;
+  ssl_certificate: boolean;
+  dedicated_ip: boolean;
+  cpanel_access: boolean;
+  ssh_access: boolean;
+  cron_jobs: boolean;
+  backups_included: boolean;
+  monthly_price: string;
+  quarterly_price: string | null;
+  semi_annual_price: string | null;
+  annual_price: string | null;
+  biennial_price: string | null;
+  triennial_price: string | null;
+  is_featured: boolean;
+  is_active: boolean;
 }
 
-const hostingPlans: HostingPlan[] = [
-  {
-    id: 1,
-    type: 'shared',
-    name: 'Shared Starter',
-    price: 10,
-    description: 'Perfect for small websites and blogs',
-    features: [
-      '10 GB SSD Storage',
-      '100 GB Bandwidth',
-      '5 Email Accounts',
-      'Free SSL Certificate',
-      'cPanel Access',
-      'Daily Backups',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    popular: false,
-  },
-  {
-    id: 2,
-    type: 'vps',
-    name: 'VPS Business',
-    price: 50,
-    description: 'Scalable resources for growing businesses',
-    features: [
-      '4 CPU Cores',
-      '8 GB RAM',
-      '100 GB SSD Storage',
-      'Unlimited Bandwidth',
-      'Root Access',
-      'DDoS Protection',
-      'Free SSL',
-      '99.9% Uptime',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    osOptions: ['Ubuntu 22.04', 'CentOS 8', 'Debian 11', 'Windows Server 2019'],
-    popular: true,
-  },
-  {
-    id: 3,
-    type: 'dedicated',
-    name: 'Dedicated Enterprise',
-    price: 200,
-    description: 'Maximum performance and control',
-    features: [
-      '16 CPU Cores',
-      '64 GB RAM',
-      '2 TB SSD Storage',
-      'Unlimited Bandwidth',
-      'Full Root Access',
-      'Advanced DDoS Protection',
-      'Managed Services Available',
-      '100% Uptime SLA',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    osOptions: ['Ubuntu 22.04', 'CentOS 8', 'Debian 11', 'Windows Server 2019', 'Windows Server 2022'],
-    popular: false,
-  },
-];
-
 export default function HostingPage() {
-  const [selectedPlan, setSelectedPlan] = useState<HostingPlan | null>(null);
+  const [hostingProducts, setHostingProducts] = useState<HostingProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<HostingProduct | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedOS, setSelectedOS] = useState('');
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const [filterType, setFilterType] = useState<string>('all');
   
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
 
-  const handleAddToCart = async (plan: HostingPlan) => {
+  useEffect(() => {
+    fetchHostingProducts();
+  }, []);
+
+  const fetchHostingProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getHostingProducts();
+      if (response.data) {
+        setHostingProducts(response.data);
+      } else {
+        setError(response.error || 'Failed to load hosting products');
+      }
+    } catch (err) {
+      setError('Failed to load hosting products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatFeatures = (product: HostingProduct): string[] => {
+    const features: string[] = [];
+    
+    if (product.disk_space === 0) {
+      features.push('Unlimited Storage');
+    } else {
+      features.push(`${Math.floor(product.disk_space / 1024)} GB Storage`);
+    }
+    
+    if (product.bandwidth === 0) {
+      features.push('Unlimited Bandwidth');
+    } else {
+      features.push(`${Math.floor(product.bandwidth / 1024)} GB Bandwidth`);
+    }
+    
+    if (product.email_accounts === 0) {
+      features.push('Unlimited Email Accounts');
+    } else {
+      features.push(`${product.email_accounts} Email Accounts`);
+    }
+    
+    if (product.databases === 0) {
+      features.push('Unlimited Databases');
+    } else {
+      features.push(`${product.databases} Databases`);
+    }
+    
+    if (product.ssl_certificate) features.push('Free SSL Certificate');
+    if (product.dedicated_ip) features.push('Dedicated IP Address');
+    if (product.cpanel_access) features.push('cPanel Access');
+    if (product.ssh_access) features.push('SSH Access');
+    if (product.cron_jobs) features.push('Cron Jobs');
+    if (product.backups_included) features.push('Daily Backups');
+    
+    return features;
+  };
+
+  const getPrice = (product: HostingProduct): string => {
+    switch (billingCycle) {
+      case 'quarterly':
+        return product.quarterly_price || product.monthly_price;
+      case 'semi_annual':
+        return product.semi_annual_price || product.monthly_price;
+      case 'annual':
+        return product.annual_price || product.monthly_price;
+      case 'biennial':
+        return product.biennial_price || product.monthly_price;
+      case 'triennial':
+        return product.triennial_price || product.monthly_price;
+      default:
+        return product.monthly_price;
+    }
+  };
+
+  const handleAddToCart = async (product: HostingProduct) => {
     if (!selectedRegion) {
       alert('Please select a region');
       return;
     }
 
-    if (plan.osOptions && !selectedOS) {
+    if ((product.hosting_type === 'vps' || product.hosting_type === 'dedicated') && !selectedOS) {
       alert('Please select an operating system');
       return;
     }
 
     const cartItem = {
-      service: plan.id,
+      service: product.id,
       service_metadata: {
-        type: plan.type,
+        type: product.hosting_type,
         region: selectedRegion,
-        ...(plan.osOptions && { os: selectedOS }),
-        ram: plan.type === 'vps' ? '8GB' : plan.type === 'dedicated' ? '64GB' : undefined,
-        cpu: plan.type === 'vps' ? '4 cores' : plan.type === 'dedicated' ? '16 cores' : undefined,
+        ...(selectedOS && { os: selectedOS }),
       },
       quantity: 1,
-      unit_price: plan.price,
+      unit_price: parseFloat(getPrice(product)),
       billing_cycle: billingCycle,
     };
 
@@ -115,13 +150,33 @@ export default function HostingPage() {
     
     if (result.success) {
       alert('Added to cart successfully!');
-      setSelectedPlan(null);
+      setSelectedProduct(null);
       setSelectedRegion('');
       setSelectedOS('');
     } else {
       alert(`Failed to add to cart: ${result.error}`);
     }
   };
+
+  const filteredProducts = filterType === 'all' 
+    ? hostingProducts 
+    : hostingProducts.filter(p => p.hosting_type === filterType);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading hosting products...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-12">
@@ -160,58 +215,112 @@ export default function HostingPage() {
           </div>
         </div>
 
-        {/* Hosting Plans */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {hostingPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border-2 ${
-                plan.popular ? 'border-blue-600' : 'border-transparent'
-              } transition-transform hover:scale-105`}
-            >
-              {plan.popular && (
-                <div className="bg-blue-600 text-white text-center py-2 font-bold">
-                  Most Popular
-                </div>
-              )}
-              
-              <div className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">{plan.description}</p>
-                
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-blue-600">${plan.price}</span>
-                  <span className="text-gray-600 dark:text-gray-400">/month</span>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <FaCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => setSelectedPlan(plan)}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
-                >
-                  Select Plan
-                </button>
-              </div>
-            </div>
-          ))}
+        {/* Filter Buttons */}
+        <div className="flex justify-center gap-4 mb-8 flex-wrap">
+          <button
+            onClick={() => setFilterType('all')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              filterType === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            All Hosting
+          </button>
+          <button
+            onClick={() => setFilterType('shared')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              filterType === 'shared'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            Shared Hosting
+          </button>
+          <button
+            onClick={() => setFilterType('vps')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              filterType === 'vps'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            VPS Hosting
+          </button>
+          <button
+            onClick={() => setFilterType('dedicated')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              filterType === 'dedicated'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            Dedicated Servers
+          </button>
         </div>
 
+        {/* Hosting Plans */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              No hosting products available for this category yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className={`bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border-2 ${
+                  product.is_featured ? 'border-blue-600' : 'border-transparent'
+                } transition-transform hover:scale-105`}
+              >
+                {product.is_featured && (
+                  <div className="bg-blue-600 text-white text-center py-2 font-bold">
+                    Most Popular
+                  </div>
+                )}
+                
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {product.name}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">{product.description}</p>
+                  
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-blue-600">
+                      ${parseFloat(getPrice(product)).toFixed(2)}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">/month</span>
+                  </div>
+
+                  <ul className="space-y-3 mb-8">
+                    {formatFeatures(product).map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <FaCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => setSelectedProduct(product)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                  >
+                    Select Plan
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Configuration Modal */}
-        {selectedPlan && (
+        {selectedProduct && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Configure {selectedPlan.name}
+                Configure {selectedProduct.name}
               </h3>
 
               {/* Region Selection */}
@@ -225,14 +334,15 @@ export default function HostingPage() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
                   <option value="">Choose a region...</option>
-                  {selectedPlan.regions.map((region: string) => (
-                    <option key={region} value={region}>{region}</option>
-                  ))}
+                  <option value="US">United States</option>
+                  <option value="EU">Europe</option>
+                  <option value="Asia">Asia</option>
+                  <option value="Africa">Africa</option>
                 </select>
               </div>
 
               {/* OS Selection (for VPS and Dedicated) */}
-              {selectedPlan.osOptions && (
+              {(selectedProduct.hosting_type === 'vps' || selectedProduct.hosting_type === 'dedicated') && (
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Operating System
@@ -243,9 +353,17 @@ export default function HostingPage() {
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">Choose an OS...</option>
-                    {selectedPlan.osOptions.map((os: string) => (
-                      <option key={os} value={os}>{os}</option>
-                    ))}
+                    <option value="Ubuntu 22.04">Ubuntu 22.04 LTS</option>
+                    <option value="Ubuntu 24.04">Ubuntu 24.04 LTS</option>
+                    <option value="CentOS 8">CentOS 8</option>
+                    <option value="Debian 11">Debian 11</option>
+                    <option value="Debian 12">Debian 12</option>
+                    {selectedProduct.hosting_type === 'dedicated' && (
+                      <>
+                        <option value="Windows Server 2019">Windows Server 2019</option>
+                        <option value="Windows Server 2022">Windows Server 2022</option>
+                      </>
+                    )}
                   </select>
                 </div>
               )}
@@ -261,15 +379,28 @@ export default function HostingPage() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
                   <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly (Save 10%)</option>
-                  <option value="annual">Annual (Save 20%)</option>
+                  {selectedProduct.quarterly_price && (
+                    <option value="quarterly">Quarterly</option>
+                  )}
+                  {selectedProduct.semi_annual_price && (
+                    <option value="semi_annual">Semi-Annual</option>
+                  )}
+                  {selectedProduct.annual_price && (
+                    <option value="annual">Annual</option>
+                  )}
+                  {selectedProduct.biennial_price && (
+                    <option value="biennial">Biennial (2 years)</option>
+                  )}
+                  {selectedProduct.triennial_price && (
+                    <option value="triennial">Triennial (3 years)</option>
+                  )}
                 </select>
               </div>
 
               <div className="flex gap-4">
                 <button
                   onClick={() => {
-                    setSelectedPlan(null);
+                    setSelectedProduct(null);
                     setSelectedRegion('');
                     setSelectedOS('');
                   }}
@@ -278,7 +409,7 @@ export default function HostingPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleAddToCart(selectedPlan)}
+                  onClick={() => handleAddToCart(selectedProduct)}
                   className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                   Add to Cart

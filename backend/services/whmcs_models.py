@@ -12,9 +12,20 @@ class HostingProduct(models.Model):
     WHMCS-style hosting product/package definition
     Defines resource limits and pricing for hosting packages
     """
+    
+    HOSTING_TYPE_CHOICES = [
+        ('shared', 'Shared Hosting'),
+        ('vps', 'VPS Hosting'),
+        ('dedicated', 'Dedicated Server'),
+        ('cloud', 'Cloud Hosting'),
+        ('reseller', 'Reseller Hosting'),
+    ]
+    
     name = models.CharField(max_length=255, help_text="e.g., Basic Hosting, Business Hosting")
     slug = models.SlugField(unique=True)
     description = models.TextField()
+    hosting_type = models.CharField(max_length=20, choices=HOSTING_TYPE_CHOICES, default='shared',
+                                    help_text="Type of hosting package")
     
     # Resource Limits (like WHMCS product configuration)
     disk_space = models.IntegerField(help_text="Disk space in MB, 0 = unlimited")
