@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Service, ServiceSubscription, DNSRecord,
-                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment)
+                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
+                    HostingProduct, DomainProduct, ServiceAddon, DomainRegistration)
 from clients.serializers import ClientSerializer
 from accounts.serializers import UserSerializer
 
@@ -112,4 +113,79 @@ class ProjectTrackerCreateSerializer(serializers.ModelSerializer):
         fields = ['subscription', 'title', 'description', 'status', 'priority', 
                   'estimated_hours', 'start_date', 'estimated_completion_date', 
                   'assigned_to', 'metadata']
+
+
+class HostingProductSerializer(serializers.ModelSerializer):
+    """Serializer for HostingProduct model"""
+    
+    class Meta:
+        model = HostingProduct
+        fields = [
+            'id', 'name', 'slug', 'description', 'hosting_type',
+            'disk_space', 'bandwidth', 'email_accounts', 'databases', 
+            'ftp_accounts', 'subdomains', 'addon_domains', 'parked_domains',
+            'ssl_certificate', 'dedicated_ip', 'cpanel_access', 'ssh_access', 
+            'cron_jobs', 'backups_included',
+            'monthly_price', 'quarterly_price', 'semi_annual_price', 
+            'annual_price', 'biennial_price', 'triennial_price',
+            'setup_fee_monthly', 'setup_fee_quarterly', 'setup_fee_annual',
+            'is_featured', 'sort_order', 'is_active', 
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class DomainProductSerializer(serializers.ModelSerializer):
+    """Serializer for DomainProduct model"""
+    
+    class Meta:
+        model = DomainProduct
+        fields = [
+            'id', 'tld', 'description',
+            'registration_price_1yr', 'registration_price_2yr', 
+            'registration_price_3yr', 'registration_price_5yr', 'registration_price_10yr',
+            'renewal_price', 'transfer_price', 'redemption_price',
+            'whois_privacy_price', 'auto_renew_default', 'epp_code_required',
+            'grace_period_days', 'redemption_period_days',
+            'min_registration_years', 'max_registration_years',
+            'is_active', 'is_featured', 'sort_order',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ServiceAddonSerializer(serializers.ModelSerializer):
+    """Serializer for ServiceAddon model"""
+    
+    compatible_products = HostingProductSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = ServiceAddon
+        fields = [
+            'id', 'name', 'description', 'addon_type', 'billing_type',
+            'monthly_price', 'quarterly_price', 'annual_price', 'one_time_price',
+            'quantity', 'is_active', 'requires_hosting', 'compatible_products',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class DomainRegistrationSerializer(serializers.ModelSerializer):
+    """Serializer for DomainRegistration model"""
+    
+    client = ClientSerializer(read_only=True)
+    domain_product = DomainProductSerializer(read_only=True)
+    
+    class Meta:
+        model = DomainRegistration
+        fields = [
+            'id', 'client', 'domain_name', 'domain_product',
+            'registration_date', 'expiry_date', 'registration_years',
+            'status', 'auto_renew', 'whois_privacy', 'whois_privacy_expiry',
+            'epp_code', 'is_transfer',
+            'nameserver1', 'nameserver2', 'nameserver3', 'nameserver4', 'nameserver5',
+            'notes', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 

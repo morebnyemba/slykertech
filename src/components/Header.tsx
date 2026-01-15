@@ -125,40 +125,44 @@ export default function Header() {
   return (
     <header className="fixed w-full z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-md dark:shadow-none transition-all duration-300">
       {/* Maintenance Notice Banner */}
-      <div className="w-full bg-yellow-500 dark:bg-yellow-600 text-black dark:text-white text-sm py-2 px-4">
+      <div className="w-full bg-yellow-500 dark:bg-yellow-600 text-black dark:text-white text-xs sm:text-sm py-2 px-2 sm:px-4">
         <div className="max-w-7xl mx-auto text-center font-medium">
-          ⚠️ Site Under Maintenance - Some features may be temporarily unavailable
+          <span className="hidden min-[400px]:inline">⚠️ Site Under Maintenance - Some features may be temporarily unavailable</span>
+          <span className="min-[400px]:hidden">⚠️ Maintenance</span>
         </div>
       </div>
 
       {/* Top Announcement Bar - Always Visible */}
-      <div className="w-full bg-blue-800 text-white text-sm py-2 px-4">
+      <div className="w-full bg-blue-800 text-white text-xs sm:text-sm py-2 px-2 sm:px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <a href="tel:+263787211325" className="flex items-center hover:text-blue-200 transition">
-              <FaPhone className="w-3 h-3 mr-1" />
-              +263 78 721 1325
+          <div className="flex items-center space-x-2 sm:space-x-4 overflow-hidden">
+            <a href="tel:+263787211325" className="flex items-center hover:text-blue-200 transition whitespace-nowrap text-xs sm:text-sm">
+              <FaPhone className="w-3 h-3 mr-1 flex-shrink-0" />
+              <span className="hidden min-[400px]:inline">+263 78 721 1325</span>
+              <span className="min-[400px]:hidden">Call</span>
             </a>
-            <a href="mailto:support@slykertech.co.zw" className="flex items-center hover:text-blue-200 transition">
-              <FaEnvelope className="w-3 h-3 mr-1" />
-              support@slykertech.co.zw
+            <a href="mailto:support@slykertech.co.zw" className="flex items-center hover:text-blue-200 transition text-xs sm:text-sm">
+              <FaEnvelope className="w-3 h-3 mr-1 flex-shrink-0" />
+              <span className="hidden sm:inline truncate max-w-[120px] md:max-w-none">support@slykertech.co.zw</span>
+              <span className="sm:hidden">Email</span>
             </a>
           </div>
-          <div className="hidden md:flex items-center space-x-4">
-            <a href="#" className="hover:text-blue-200 transition">
-              <FaFacebook className="w-4 h-4" />
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+            <a href="#" className="hover:text-blue-200 transition" aria-label="Facebook">
+              <FaFacebook className="w-3 h-3 sm:w-4 sm:h-4" />
             </a>
-            <a href="#" className="hover:text-blue-200 transition">
-              <FaTwitter className="w-4 h-4" />
-            </a></div>
+            <a href="#" className="hover:text-blue-200 transition" aria-label="Twitter">
+              <FaTwitter className="w-3 h-3 sm:w-4 sm:h-4" />
+            </a>
+          </div>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-6 py-3 sm:py-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-3 md:py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
-          <div className="relative w-16 h-16">
+        <Link href="/" className="flex items-center flex-shrink-0">
+          <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16">
             <Image
               src="/images/stws.png"
               alt="Slyker Tech Web Services Logo"
@@ -170,24 +174,38 @@ export default function Header() {
         </Link>
 
         {/* Mobile Navigation Controls */}
-        <div className="sm:hidden flex items-center gap-4">
+        <div className="sm:hidden flex items-center gap-1.5 min-[400px]:gap-2 sm:gap-3">
+          {/* Cart Icon for Mobile */}
+          <Link 
+            href="/cart" 
+            className="relative text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors p-2"
+            aria-label="Shopping cart"
+          >
+            <FaShoppingCart className="text-lg" />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
+                {cartItemCount}
+              </span>
+            )}
+          </Link>
+
           {/* Theme Toggle for Mobile */}
           <ThemeToggle />
 
           {/* Mobile Hamburger Icon */}
           <button
-            className="text-blue-700 hover:text-blue-800 focus:outline-none transition-all duration-300 ease-in-out"
+            className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none transition-all duration-300 ease-in-out p-2"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
             <div className="relative w-6 h-6">
-              <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
+              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${
                 menuOpen ? 'rotate-45 top-3' : 'top-1'
               }`}></span>
-              <span className={`absolute h-0.5 w-6 bg-blue-700 top-3 transition-all duration-200 ${
+              <span className={`absolute h-0.5 w-6 bg-current top-3 transition-all duration-200 ${
                 menuOpen ? 'opacity-0' : 'opacity-100'
               }`}></span>
-              <span className={`absolute h-0.5 w-6 bg-blue-700 transform transition-all duration-300 ease-in-out ${
+              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${
                 menuOpen ? '-rotate-45 top-3' : 'top-5'
               }`}></span>
             </div>
@@ -195,7 +213,7 @@ export default function Header() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden sm:flex items-center space-x-8">
+        <nav className="hidden sm:flex items-center space-x-4 lg:space-x-8">
           <NavLink href="/" label="Home" />
           <NavLink href="/about" label="About" />
           
@@ -284,12 +302,14 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-        menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
       }`}>
-        <nav className="flex flex-col items-center space-y-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-4">
+        <nav className="flex flex-col items-stretch bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-2">
           <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/about" label="About" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/services" label="Services" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/services/hosting" label="Hosting" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/services/domains" label="Domains" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="/services/development" label="Development" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
           
@@ -301,7 +321,7 @@ export default function Header() {
                   handleLogout();
                   setMenuOpen(false);
                 }}
-                className="w-full text-center text-lg font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 py-3 transition-colors duration-300"
+                className="w-full text-center text-base font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 py-3 transition-colors duration-300 border-b border-gray-100 dark:border-gray-800"
               >
                 Logout
               </button>
@@ -339,7 +359,7 @@ function MobileNavLink({ href, label, onClick }) {
   return (
     <Link
       href={href}
-      className="w-full text-center text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 py-3 transition-colors duration-300 border-b border-gray-100 dark:border-gray-800 last:border-0"
+      className="w-full text-center text-base font-medium text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 py-3 transition-colors duration-300 border-b border-gray-100 dark:border-gray-800 last:border-0"
       onClick={onClick}
     >
       {label}

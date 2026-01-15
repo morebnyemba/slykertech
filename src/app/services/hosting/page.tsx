@@ -1,127 +1,56 @@
 'use client';
 
-import { useState } from 'react';
-import { FaServer, FaCloud, FaShieldAlt, FaClock, FaCheck } from 'react-icons/fa';
-import { useCartStore } from '@/lib/stores/cart-store';
-import { useAuthStore } from '@/lib/stores/auth-store';
-
-interface HostingPlan {
-  id: number;
-  type: string;
-  name: string;
-  price: number;
-  description: string;
-  features: string[];
-  regions: string[];
-  osOptions?: string[];
-  popular: boolean;
-}
-
-const hostingPlans: HostingPlan[] = [
-  {
-    id: 1,
-    type: 'shared',
-    name: 'Shared Starter',
-    price: 10,
-    description: 'Perfect for small websites and blogs',
-    features: [
-      '10 GB SSD Storage',
-      '100 GB Bandwidth',
-      '5 Email Accounts',
-      'Free SSL Certificate',
-      'cPanel Access',
-      'Daily Backups',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    popular: false,
-  },
-  {
-    id: 2,
-    type: 'vps',
-    name: 'VPS Business',
-    price: 50,
-    description: 'Scalable resources for growing businesses',
-    features: [
-      '4 CPU Cores',
-      '8 GB RAM',
-      '100 GB SSD Storage',
-      'Unlimited Bandwidth',
-      'Root Access',
-      'DDoS Protection',
-      'Free SSL',
-      '99.9% Uptime',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    osOptions: ['Ubuntu 22.04', 'CentOS 8', 'Debian 11', 'Windows Server 2019'],
-    popular: true,
-  },
-  {
-    id: 3,
-    type: 'dedicated',
-    name: 'Dedicated Enterprise',
-    price: 200,
-    description: 'Maximum performance and control',
-    features: [
-      '16 CPU Cores',
-      '64 GB RAM',
-      '2 TB SSD Storage',
-      'Unlimited Bandwidth',
-      'Full Root Access',
-      'Advanced DDoS Protection',
-      'Managed Services Available',
-      '100% Uptime SLA',
-    ],
-    regions: ['US', 'EU', 'Asia'],
-    osOptions: ['Ubuntu 22.04', 'CentOS 8', 'Debian 11', 'Windows Server 2019', 'Windows Server 2022'],
-    popular: false,
-  },
-];
+import { FaServer, FaCloud, FaShieldAlt, FaClock, FaArrowRight } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function HostingPage() {
-  const [selectedPlan, setSelectedPlan] = useState<HostingPlan | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedOS, setSelectedOS] = useState('');
-  const [billingCycle, setBillingCycle] = useState('monthly');
-  
-  const { addItem } = useCartStore();
-  const { token } = useAuthStore();
-
-  const handleAddToCart = async (plan: HostingPlan) => {
-    if (!selectedRegion) {
-      alert('Please select a region');
-      return;
-    }
-
-    if (plan.osOptions && !selectedOS) {
-      alert('Please select an operating system');
-      return;
-    }
-
-    const cartItem = {
-      service: plan.id,
-      service_metadata: {
-        type: plan.type,
-        region: selectedRegion,
-        ...(plan.osOptions && { os: selectedOS }),
-        ram: plan.type === 'vps' ? '8GB' : plan.type === 'dedicated' ? '64GB' : undefined,
-        cpu: plan.type === 'vps' ? '4 cores' : plan.type === 'dedicated' ? '16 cores' : undefined,
-      },
-      quantity: 1,
-      unit_price: plan.price,
-      billing_cycle: billingCycle,
-    };
-
-    const result = await addItem(cartItem, token || undefined);
-    
-    if (result.success) {
-      alert('Added to cart successfully!');
-      setSelectedPlan(null);
-      setSelectedRegion('');
-      setSelectedOS('');
-    } else {
-      alert(`Failed to add to cart: ${result.error}`);
-    }
-  };
+  const hostingCategories = [
+    {
+      name: 'Shared Hosting',
+      slug: 'shared',
+      icon: FaServer,
+      description: 'Affordable hosting perfect for personal websites and small businesses',
+      features: [
+        'Easy to use cPanel',
+        'Free SSL certificates',
+        'Email accounts included',
+        'One-click app installs',
+        '99.9% uptime guarantee',
+      ],
+      startingPrice: '$10',
+      color: 'from-blue-500 to-blue-600',
+    },
+    {
+      name: 'VPS Hosting',
+      slug: 'vps',
+      icon: FaCloud,
+      description: 'Scalable virtual servers with dedicated resources',
+      features: [
+        'Dedicated resources',
+        'Root/SSH access',
+        'Choose your OS',
+        'Easy scaling',
+        'SSD storage',
+      ],
+      startingPrice: '$30',
+      color: 'from-purple-500 to-purple-600',
+    },
+    {
+      name: 'Dedicated Servers',
+      slug: 'dedicated',
+      icon: FaShieldAlt,
+      description: 'Maximum performance with enterprise-grade hardware',
+      features: [
+        'Bare metal performance',
+        'Full server control',
+        'Enterprise security',
+        '100% dedicated resources',
+        '99.99% uptime SLA',
+      ],
+      startingPrice: '$100',
+      color: 'from-green-500 to-green-600',
+    },
+  ];
 
   return (
     <div className="min-h-screen py-12">
@@ -132,7 +61,7 @@ export default function HostingPage() {
             Web Hosting Services
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Reliable, fast, and secure hosting solutions for your websites and applications
+            Choose the perfect hosting solution for your needs - from shared hosting to dedicated servers
           </p>
         </div>
 
@@ -160,133 +89,91 @@ export default function HostingPage() {
           </div>
         </div>
 
-        {/* Hosting Plans */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {hostingPlans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border-2 ${
-                plan.popular ? 'border-blue-600' : 'border-transparent'
-              } transition-transform hover:scale-105`}
-            >
-              {plan.popular && (
-                <div className="bg-blue-600 text-white text-center py-2 font-bold">
-                  Most Popular
-                </div>
-              )}
-              
-              <div className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">{plan.description}</p>
-                
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-blue-600">${plan.price}</span>
-                  <span className="text-gray-600 dark:text-gray-400">/month</span>
-                </div>
+        {/* Hosting Categories */}
+        <div className="space-y-8 mb-16">
+          {hostingCategories.map((category) => {
+            const Icon = category.icon;
+            return (
+              <div
+                key={category.slug}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-shadow"
+              >
+                <div className="md:flex">
+                  {/* Left side - Category Info */}
+                  <div className="md:w-1/2 p-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className={`bg-gradient-to-r ${category.color} p-4 rounded-lg`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                          {category.name}
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Starting from <span className="text-blue-600 font-bold text-lg">{category.startingPrice}/mo</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      {category.description}
+                    </p>
 
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <FaCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                    <ul className="space-y-3 mb-6">
+                      {category.features.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
 
-                <button
-                  onClick={() => setSelectedPlan(plan)}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
-                >
-                  Select Plan
-                </button>
+                    <Link
+                      href={`/services/hosting/${category.slug}`}
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                    >
+                      View {category.name} Plans
+                      <FaArrowRight />
+                    </Link>
+                  </div>
+
+                  {/* Right side - Visual */}
+                  <div className={`md:w-1/2 bg-gradient-to-br ${category.color} p-12 flex items-center justify-center`}>
+                    <Icon className="w-48 h-48 text-white opacity-20" />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Configuration Modal */}
-        {selectedPlan && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Configure {selectedPlan.name}
-              </h3>
-
-              {/* Region Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Select Region
-                </label>
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => setSelectedRegion(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="">Choose a region...</option>
-                  {selectedPlan.regions.map((region: string) => (
-                    <option key={region} value={region}>{region}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* OS Selection (for VPS and Dedicated) */}
-              {selectedPlan.osOptions && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Select Operating System
-                  </label>
-                  <select
-                    value={selectedOS}
-                    onChange={(e) => setSelectedOS(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Choose an OS...</option>
-                    {selectedPlan.osOptions.map((os: string) => (
-                      <option key={os} value={os}>{os}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Billing Cycle */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Billing Cycle
-                </label>
-                <select
-                  value={billingCycle}
-                  onChange={(e) => setBillingCycle(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly (Save 10%)</option>
-                  <option value="annual">Annual (Save 20%)</option>
-                </select>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => {
-                    setSelectedPlan(null);
-                    setSelectedRegion('');
-                    setSelectedOS('');
-                  }}
-                  className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleAddToCart(selectedPlan)}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Add to Cart
-                </button>
-              </div>
+        {/* Why Choose Us Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-12 text-white">
+          <h2 className="text-3xl font-bold mb-8 text-center">Why Choose Slyker Tech Hosting?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="text-5xl font-bold mb-2">24/7</div>
+              <div className="text-blue-100 text-lg">Expert Support</div>
+              <p className="text-blue-200 text-sm mt-2">
+                Our team is always available to help you succeed
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-bold mb-2">99.9%</div>
+              <div className="text-blue-100 text-lg">Uptime Guarantee</div>
+              <p className="text-blue-200 text-sm mt-2">
+                Your website stays online when you need it most
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-bold mb-2">100+</div>
+              <div className="text-blue-100 text-lg">Happy Clients</div>
+              <p className="text-blue-200 text-sm mt-2">
+                Trusted by businesses across Zimbabwe and beyond
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
