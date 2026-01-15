@@ -58,7 +58,9 @@ export default function HostingPage() {
       setLoading(true);
       const response = await apiService.getHostingProducts();
       if (response.data) {
-        setHostingProducts(response.data);
+        // Handle paginated response from Django REST Framework
+        const products = Array.isArray(response.data) ? response.data : response.data.results || [];
+        setHostingProducts(products);
       } else {
         setError(response.error || 'Failed to load hosting products');
       }
