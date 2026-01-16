@@ -1,9 +1,28 @@
 %% Chat WebSocket Handler
 -module(chat_websocket_handler).
--export([init/2, websocket_handle/2, websocket_info/2]).
+-export([init/2, websocket_init/1, websocket_handle/2, websocket_info/2]).
 
-init(Req, State) ->
-    {cowboy_websocket, Req, State}.
+init(Req0, State) ->
+    %% Get the Origin header
+    Origin = cowboy_req:header(<<"origin">>, Req0, <<"">>),
+    
+    %% Check if Origin is allowed using shared configuration
+    case cors_config:is_origin_allowed(Origin) of
+        true ->
+            %% Origin is allowed, proceed with WebSocket upgrade
+            {cowboy_websocket, Req0, State};
+        false ->
+            %% Origin not allowed, reject connection
+            Req = cowboy_req:reply(403,
+                #{<<"content-type">> => <<"text/plain">>},
+                <<"Forbidden: Invalid origin">>,
+                Req0),
+            {ok, Req, State}
+    end.
+
+websocket_init(State) ->
+    %% Initialize WebSocket connection
+    {ok, State}.
 
 websocket_handle({text, Msg}, State) ->
     %% Handle incoming message
