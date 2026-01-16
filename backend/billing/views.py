@@ -7,6 +7,9 @@ from .serializers import (
     PaymentSerializer, BillingProfileSerializer,
     CartSerializer, CartItemSerializer
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -34,9 +37,6 @@ class CartViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def current(self, request):
         """Get current user's or session's active cart"""
-        import logging
-        logger = logging.getLogger(__name__)
-        
         user = request.user
         session_id = request.session.session_key
         

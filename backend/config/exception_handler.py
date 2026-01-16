@@ -6,7 +6,7 @@ Ensures CORS headers are present on all error responses
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
-from django.conf import settings
+from .cors_utils import add_cors_headers_to_response
 import logging
 
 logger = logging.getLogger(__name__)
@@ -64,53 +64,11 @@ def custom_exception_handler(exc, context):
     
     # Ensure CORS headers are present on error responses
     if request:
-        add_cors_headers(response, request)
+        origin = request.META.get('HTTP_ORIGIN')
+        if origin:
+            add_cors_headers_to_response(response, origin)
     
     return response
-
-
-def add_cors_headers(response, request):
-    """
-    Manually add CORS headers to response if not already present.
-    This ensures error responses also have CORS headers.
-    """
-    origin = request.META.get('HTTP_ORIGIN')
-    
-    if origin:
-        # Check if origin is allowed
-        if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
-            response['Access-Control-Allow-Origin'] = origin
-            response['Access-Control-Allow-Credentials'] = 'true'
-        elif hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
-            if origin in settings.CORS_ALLOWED_ORIGINS:
-                response['Access-Control-Allow-Origin'] = origin
-                response['Access-Control-Allow-Credentials'] = 'true'
-        
-        # Add other CORS headers if not present
-        if 'Access-Control-Allow-Methods' not in response:
-            response['Access-Control-Allow-Methods'] = ', '.join(
-                getattr(settings, 'CORS_ALLOW_METHODS', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
-            )
-        
-        if 'Access-Control-Allow-Headers' not in response:
-            response['Access-Control-Allow-Headers'] = ', '.join(
-                getattr(settings, 'CORS_ALLOW_HEADERS', [
-                    'accept',
-                    'accept-encoding', 
-                    'authorization',
-                    'content-type',
-                    'dnt',
-                    'origin',
-                    'user-agent',
-                    'x-csrftoken',
-                    'x-requested-with',
-                ])
-            )
-        
-        if 'Access-Control-Expose-Headers' not in response:
-            response['Access-Control-Expose-Headers'] = ', '.join(
-                getattr(settings, 'CORS_EXPOSE_HEADERS', ['content-type', 'x-csrftoken'])
-            )
 
 
 def get_error_message(data):

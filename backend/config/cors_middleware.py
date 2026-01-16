@@ -2,8 +2,8 @@
 Enhanced CORS middleware to ensure headers are always present,
 even on error responses and when corsheaders middleware might miss them.
 """
-from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
+from .cors_utils import add_cors_headers_to_response, is_origin_allowed
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,53 +30,9 @@ class EnhancedCorsMiddleware(MiddlewareMixin):
         # Only add headers if Access-Control-Allow-Origin is not already set
         # (to avoid conflicts with django-cors-headers)
         if 'Access-Control-Allow-Origin' not in response:
-            # Check if origin is allowed
-            if self.is_origin_allowed(origin):
-                response['Access-Control-Allow-Origin'] = origin
-                response['Access-Control-Allow-Credentials'] = 'true'
-                
-                # Add other CORS headers
-                response['Access-Control-Allow-Methods'] = ', '.join(
-                    getattr(settings, 'CORS_ALLOW_METHODS', [
-                        'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT'
-                    ])
-                )
-                
-                response['Access-Control-Allow-Headers'] = ', '.join(
-                    getattr(settings, 'CORS_ALLOW_HEADERS', [
-                        'accept',
-                        'accept-encoding',
-                        'authorization',
-                        'content-type',
-                        'dnt',
-                        'origin',
-                        'user-agent',
-                        'x-csrftoken',
-                        'x-requested-with',
-                    ])
-                )
-                
-                response['Access-Control-Expose-Headers'] = ', '.join(
-                    getattr(settings, 'CORS_EXPOSE_HEADERS', [
-                        'content-type',
-                        'x-csrftoken',
-                    ])
-                )
-                
+            # Check if origin is allowed and add headers
+            if is_origin_allowed(origin):
+                add_cors_headers_to_response(response, origin)
                 logger.debug(f"Enhanced CORS middleware added headers for origin: {origin}")
         
         return response
-    
-    def is_origin_allowed(self, origin):
-        """
-        Check if the origin is allowed based on CORS settings.
-        """
-        # In DEBUG mode with CORS_ALLOW_ALL_ORIGINS, allow all
-        if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
-            return True
-        
-        # Check against CORS_ALLOWED_ORIGINS
-        if hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
-            return origin in settings.CORS_ALLOWED_ORIGINS
-        
-        return False

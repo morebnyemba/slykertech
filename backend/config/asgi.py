@@ -18,6 +18,10 @@ from channels.security.websocket import OriginValidator
 # Configure logging for WebSocket debugging
 logger = logging.getLogger(__name__)
 
+# Standard HTTP/HTTPS port numbers
+HTTP_PORT = 80
+HTTPS_PORT = 443
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 django_asgi_app = get_asgi_application()
@@ -66,7 +70,7 @@ class CorsOriginValidator(OriginValidator):
             
             # Also check without port for standard ports (80, 443)
             # since browsers may or may not include them
-            if parsed_origin[2] in (80, 443, None):
+            if parsed_origin[2] in (HTTP_PORT, HTTPS_PORT, None):
                 origin_without_port = f"{parsed_origin[0]}://{parsed_origin[1]}"
                 if origin_without_port in settings.CORS_ALLOWED_ORIGINS:
                     logger.info(f"Origin (without port) found in CORS_ALLOWED_ORIGINS: {origin_without_port}")
