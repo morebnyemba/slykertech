@@ -11,8 +11,19 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Detect docker compose command (docker compose vs docker-compose)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo -e "${RED}❌ Neither 'docker compose' nor 'docker-compose' is available${NC}"
+    echo "Please install Docker Compose first."
+    exit 1
+fi
+
 # Configuration
-# Get the actual volume name from docker-compose (project name + volume name)
+# Get the actual volume name from Docker Compose (project name + volume name)
 # Docker Compose uses lowercase directory name with non-alphanumeric chars (except _ and -) removed
 PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
 POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
@@ -88,7 +99,7 @@ fi
 
 echo ""
 echo "Step 1: Stopping containers..."
-docker-compose down
+$DOCKER_COMPOSE down
 
 echo ""
 echo "Step 2: Removing database volume..."
@@ -97,13 +108,13 @@ docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || echo "Volume not found or alr
 
 echo ""
 echo "Step 3: Starting services with fresh database..."
-docker-compose up -d --build
+$DOCKER_COMPOSE up -d --build
 
 echo ""
 echo "Waiting for database to be ready..."
 elapsed=0
 while [ $elapsed -lt $MAX_WAIT_TIME ]; do
-    if docker-compose exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
+    if $DOCKER_COMPOSE exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
         echo -e "${GREEN}✅ Database is ready${NC}"
         break
     fi
@@ -114,7 +125,7 @@ done
 
 if [ $elapsed -ge $MAX_WAIT_TIME ]; then
     echo -e "${RED}❌ Database did not become ready in time${NC}"
-    echo "Check logs with: docker-compose logs db"
+    echo "Check logs with: $DOCKER_COMPOSE logs db"
     exit 1
 fi
 
@@ -124,12 +135,12 @@ sleep 5
 
 echo ""
 echo "Step 4: Running migrations..."
-if docker-compose exec -T backend python manage.py migrate; then
+if $DOCKER_COMPOSE exec -T backend python manage.py migrate; then
     echo -e "${GREEN}✅ Migrations completed successfully${NC}"
 else
     echo -e "${RED}❌ Migrations failed${NC}"
-    echo "Check backend logs with: docker-compose logs backend"
-    echo "You may need to run migrations manually: docker-compose exec backend python manage.py migrate"
+    echo "Check backend logs with: $DOCKER_COMPOSE logs backend"
+    echo "You may need to run migrations manually: $DOCKER_COMPOSE exec backend python manage.py migrate"
 fi
 
 echo ""
@@ -140,8 +151,8 @@ echo ""
 echo "The database has been recreated with the password from your .env file."
 echo ""
 echo "Next steps:"
-echo "1. Create a superuser: docker-compose exec backend python manage.py createsuperuser"
-echo "2. Populate initial data: docker-compose exec backend python manage.py populate_services"
+echo "1. Create a superuser: $DOCKER_COMPOSE exec backend python manage.py createsuperuser"
+echo "2. Populate initial data: $DOCKER_COMPOSE exec backend python manage.py populate_services"
 echo ""
 echo "Your services should now be accessible at:"
 echo "  - Frontend: http://localhost:3000"

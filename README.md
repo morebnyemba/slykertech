@@ -58,7 +58,15 @@ This will:
 
 For detailed Docker setup instructions and troubleshooting, see [DOCKER_SETUP_README.md](DOCKER_SETUP_README.md).
 
-**Note:** If you encounter database authentication errors, see the [troubleshooting section](DOCKER_SETUP_README.md#database-authentication-error) in the Docker setup guide.
+### ⚠️ Database Authentication Error?
+
+If you see `FATAL: password authentication failed for user "slykertech"`, run:
+
+```bash
+./fix-db-auth.sh
+```
+
+See [TROUBLESHOOTING_DB_AUTH.md](TROUBLESHOOTING_DB_AUTH.md) for detailed solutions.
 
 ### Local Development Setup
 

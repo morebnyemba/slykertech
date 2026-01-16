@@ -1,5 +1,19 @@
 version: '3.8'
 
+# ===========================================
+# Slyker Tech - Docker Compose Configuration
+# ===========================================
+#
+# IMPORTANT: Before running this file:
+#   1. Ensure .env file exists: cp .env.example .env
+#   2. Set DB_PASSWORD in .env file
+#
+# For first-time setup, run: ./docker-setup.sh
+# For database auth errors, run: ./fix-db-auth.sh
+#
+# See TROUBLESHOOTING_DB_AUTH.md for help with database issues.
+# ===========================================
+
 services:
   db:
     image: postgres:15-alpine
