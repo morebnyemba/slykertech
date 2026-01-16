@@ -6,6 +6,8 @@ services:
     environment:
       POSTGRES_DB: slykertech
       POSTGRES_USER: slykertech
+      # IMPORTANT: DB_PASSWORD must match the value in your .env file
+      # If you get authentication errors, see DB_AUTH_ERROR_FIX.md
       POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -45,6 +47,7 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,https://slykertech.co.zw,https://www.slykertech.co.zw,https://api.slykertech.co.zw}
+      # Database URL must use the same DB_PASSWORD as the db service
       - DATABASE_URL=postgresql://slykertech:${DB_PASSWORD:-devpassword}@db:5432/slykertech
       - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
