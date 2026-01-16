@@ -41,9 +41,28 @@ slykertech/
 
 ## 🛠️ Getting Started
 
-### Quick Setup
+### Docker Setup (Recommended)
 
-For a quick automated setup, use the provided scripts:
+The easiest way to get started is using Docker:
+
+```bash
+# Run automated Docker setup
+./docker-setup.sh
+```
+
+This will:
+- Create the necessary `.env` file with proper configuration
+- Start all services (backend, frontend, database, Redis)
+- Run database migrations
+- Set up the database with the correct password
+
+For detailed Docker setup instructions and troubleshooting, see [DOCKER_SETUP_README.md](DOCKER_SETUP_README.md).
+
+**Note:** If you encounter database authentication errors, see the [troubleshooting section](DOCKER_SETUP_README.md#database-authentication-error) in the Docker setup guide.
+
+### Local Development Setup
+
+For local development without Docker, use the provided scripts:
 
 ```bash
 # Create environment files
@@ -56,6 +75,12 @@ For a quick automated setup, use the provided scripts:
 For detailed environment configuration, see [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md).
 
 ### Prerequisites
+
+**For Docker:**
+- Docker 20.10+
+- Docker Compose 2.0+
+
+**For Local Development:**
 - Node.js 18+ and npm
 - Python 3.8+
 - PostgreSQL (optional, SQLite is default for development)
