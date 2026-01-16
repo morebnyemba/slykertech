@@ -59,14 +59,10 @@ echo "Cleaning up stale database types..."
 if python /app/cleanup_db_types.py; then
     echo "✅ Database cleanup completed successfully"
 else
-    cleanup_exit_code=$?
-    if [ $cleanup_exit_code -eq 1 ]; then
-        echo "⚠️  Database cleanup failed - database may not be ready yet"
-        echo "This is normal during initial startup. Proceeding with migrations..."
-    else
-        echo "⚠️  Database cleanup encountered an issue (exit code: $cleanup_exit_code)"
-        echo "Proceeding with migrations anyway..."
-    fi
+    # Note: Exit code 1 indicates database connection failure (expected during startup)
+    # We proceed with migrations as they will also wait for database to be ready
+    echo "⚠️  Database cleanup failed - database may not be ready yet"
+    echo "This is normal during initial startup. Proceeding with migrations..."
 fi
 
 echo ""

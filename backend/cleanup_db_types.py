@@ -12,12 +12,34 @@ from urllib.parse import urlparse
 
 
 def cleanup_stale_types():
-    """Remove stale PostgreSQL types that can conflict with migrations."""
+    """
+    Remove stale PostgreSQL types that can conflict with migrations.
+    
+    A 'stale type' is a custom PostgreSQL type (typically created by Django for
+    custom user models or enum fields) that exists in the pg_type catalog but
+    whose corresponding table does not exist. This situation occurs when:
+    - Migrations are interrupted mid-execution
+    - Database volumes contain remnants from incomplete migrations
+    - Manual database operations left orphaned types
+    
+    Cleanup Criteria:
+    - Type exists in pg_type catalog
+    - Corresponding table does NOT exist in information_schema.tables
+    - Only types in TYPE_NAMES_TO_CLEANUP list are checked
+    
+    Returns:
+        bool: True if cleanup completed successfully (or no cleanup needed),
+              False if database connection failed or couldn't be established.
+    
+    Raises:
+        No exceptions are raised; all errors are caught and logged.
+    """
     
     # List of type names to check and clean up
-    # Add more type names here if needed for other models
+    # Each entry should be the expected table name for the type
+    # Note: For custom user models, the type name matches the table name
     TYPE_NAMES_TO_CLEANUP = [
-        'accounts_user',
+        'accounts_user',  # Custom user model table/type name
         # Add other custom type names here if needed
     ]
     
@@ -91,19 +113,22 @@ def cleanup_stale_types():
         
         # Check and clean each type name
         for type_name in TYPE_NAMES_TO_CLEANUP:
-            # Check if type exists
+            # Check if type exists (using EXISTS for better performance)
             cursor.execute("""
-                SELECT COUNT(*) FROM pg_type t
-                JOIN pg_namespace n ON t.typnamespace = n.oid
-                WHERE t.typname = %s AND n.nspname = 'public'
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_type t
+                    JOIN pg_namespace n ON t.typnamespace = n.oid
+                    WHERE t.typname = %s AND n.nspname = 'public'
+                )
             """, (type_name,))
             
-            count = cursor.fetchone()[0]
+            type_exists = cursor.fetchone()[0]
             
-            if count > 0:
-                print(f"Found {count} stale '{type_name}' type(s). Attempting cleanup...")
+            if type_exists:
+                print(f"Found stale '{type_name}' type. Attempting cleanup...")
                 
                 # Check if the corresponding table exists
+                # Note: This assumes table name matches type name (true for Django user models)
                 cursor.execute("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
