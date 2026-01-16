@@ -80,7 +80,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',  # Disabled - CORS handled by NGINX to avoid duplicate headers
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -232,6 +232,9 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
+# NOTE: CORS is handled entirely by NGINX (see nginx.conf) to avoid duplicate headers.
+# Django's corsheaders middleware is disabled to prevent duplicate Access-Control-Allow-Origin headers.
+# If DEBUG mode changes, ensure NGINX configuration is appropriately updated.
 # Allow all origins in development, specific origins in production
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
