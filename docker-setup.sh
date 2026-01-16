@@ -17,7 +17,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 # Get the actual volume name from docker-compose (project name + volume name)
-PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+# Docker Compose uses lowercase directory name with non-alphanumeric chars (except _ and -) removed
+PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
 POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
 MAX_WAIT_TIME=60
 CHECK_INTERVAL=3
@@ -187,14 +188,28 @@ while [ $elapsed -lt $MAX_WAIT_TIME ]; do
 done
 
 if [ $elapsed -ge $MAX_WAIT_TIME ]; then
-    echo -e "${YELLOW}⚠️  Database did not become ready in expected time${NC}"
-    echo "Continuing anyway, but you may need to run migrations manually"
+    echo -e "${RED}❌ Database did not become ready in expected time${NC}"
+    echo "Check database logs with: docker-compose logs db"
+    echo "You may need to fix database issues and run migrations manually."
+    exit 1
 fi
+
+# Wait for backend service
+echo ""
+echo "Waiting for backend service to be ready..."
+sleep 5
 
 # Run migrations
 echo ""
 echo "Running database migrations..."
-docker-compose exec -T backend python manage.py migrate
+if docker-compose exec -T backend python manage.py migrate; then
+    echo -e "${GREEN}✅ Migrations completed successfully${NC}"
+else
+    echo -e "${RED}❌ Migrations failed${NC}"
+    echo "Check backend logs with: docker-compose logs backend"
+    echo "You may need to run migrations manually: docker-compose exec backend python manage.py migrate"
+    echo ""
+fi
 
 # Check if superuser exists, if not prompt to create one
 echo ""
@@ -208,7 +223,11 @@ fi
 # Populate initial services
 echo ""
 echo "Populating initial services..."
-docker-compose exec -T backend python manage.py populate_services || echo "Note: populate_services command not available or already run"
+if docker-compose exec -T backend python manage.py populate_services 2>/dev/null; then
+    echo -e "${GREEN}✅ Initial services populated${NC}"
+else
+    echo -e "${YELLOW}Note: populate_services command not available or already run${NC}"
+fi
 
 echo ""
 echo "========================================="

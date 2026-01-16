@@ -13,7 +13,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 # Get the actual volume name from docker-compose (project name + volume name)
-PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+# Docker Compose uses lowercase directory name with non-alphanumeric chars (except _ and -) removed
+PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
 POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
 MAX_WAIT_TIME=60
 CHECK_INTERVAL=3
@@ -118,8 +119,18 @@ if [ $elapsed -ge $MAX_WAIT_TIME ]; then
 fi
 
 echo ""
+echo "Waiting for backend service to be ready..."
+sleep 5
+
+echo ""
 echo "Step 4: Running migrations..."
-docker-compose exec -T backend python manage.py migrate
+if docker-compose exec -T backend python manage.py migrate; then
+    echo -e "${GREEN}✅ Migrations completed successfully${NC}"
+else
+    echo -e "${RED}❌ Migrations failed${NC}"
+    echo "Check backend logs with: docker-compose logs backend"
+    echo "You may need to run migrations manually: docker-compose exec backend python manage.py migrate"
+fi
 
 echo ""
 echo "========================================="
