@@ -55,6 +55,17 @@ if [ $attempt -eq $max_attempts ]; then
 fi
 
 echo ""
+echo "Cleaning up stale database types..."
+if python /app/cleanup_db_types.py; then
+    echo "✅ Database cleanup completed successfully"
+else
+    # Note: Exit code 1 indicates database connection failure (expected during startup)
+    # We proceed with migrations as they will also wait for database to be ready
+    echo "⚠️  Database cleanup failed - database may not be ready yet"
+    echo "This is normal during initial startup. Proceeding with migrations..."
+fi
+
+echo ""
 echo "Running database migrations..."
 python manage.py migrate --noinput
 
@@ -63,6 +74,11 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ WARNING: Migrations failed or partially completed"
     echo "The application will still start, but database may not be up to date"
+    echo ""
+    echo "If you see 'duplicate key' or 'pg_type' errors:"
+    echo "  1. See MIGRATION_ERROR_FIX.md for automatic fix details"
+    echo "  2. Or run: docker-compose exec backend python /app/cleanup_db_types.py"
+    echo "  3. Or reset database: ./fix-db-auth.sh"
 fi
 
 echo ""
