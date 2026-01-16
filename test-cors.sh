@@ -94,10 +94,14 @@ echo "Test 4: WebSocket Connection Test"
 echo "--------------------------------------"
 if command -v wscat &> /dev/null; then
   echo "Testing WebSocket connection with wscat..."
-  timeout 5 wscat -c "wss://api.slykertech.co.zw/ws/analytics/" -H "Origin: $FRONTEND_URL" 2>&1 | head -5 || true
+  # Convert https to wss for WebSocket URL
+  WS_URL="${API_URL/https:/wss:}"
+  timeout 5 wscat -c "${WS_URL}/ws/analytics/" -H "Origin: $FRONTEND_URL" 2>&1 | head -5 || true
 elif command -v websocat &> /dev/null; then
   echo "Testing WebSocket connection with websocat..."
-  timeout 5 websocat -H="Origin: $FRONTEND_URL" "wss://api.slykertech.co.zw/ws/analytics/" 2>&1 | head -5 || true
+  # Convert https to wss for WebSocket URL
+  WS_URL="${API_URL/https:/wss:}"
+  timeout 5 websocat -H="Origin: $FRONTEND_URL" "${WS_URL}/ws/analytics/" 2>&1 | head -5 || true
 else
   echo -e "${YELLOW}⚠ SKIP${NC} - wscat or websocat not installed"
   echo "Install with: npm install -g wscat"
