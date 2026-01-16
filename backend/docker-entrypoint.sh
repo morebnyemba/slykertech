@@ -55,6 +55,10 @@ if [ $attempt -eq $max_attempts ]; then
 fi
 
 echo ""
+echo "Cleaning up stale database types..."
+python /app/cleanup_db_types.py || echo "⚠️  Cleanup script failed or database not ready yet"
+
+echo ""
 echo "Running database migrations..."
 python manage.py migrate --noinput
 

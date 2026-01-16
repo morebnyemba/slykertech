@@ -134,7 +134,15 @@ echo "Waiting for backend service to be ready..."
 sleep 5
 
 echo ""
-echo "Step 4: Running migrations..."
+echo "Step 4: Running database cleanup..."
+if $DOCKER_COMPOSE exec -T backend python /app/cleanup_db_types.py; then
+    echo -e "${GREEN}✅ Database cleanup completed${NC}"
+else
+    echo -e "${YELLOW}⚠️  Database cleanup warning (may be normal)${NC}"
+fi
+
+echo ""
+echo "Step 5: Running migrations..."
 if $DOCKER_COMPOSE exec -T backend python manage.py migrate; then
     echo -e "${GREEN}✅ Migrations completed successfully${NC}"
 else
