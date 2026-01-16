@@ -106,7 +106,7 @@ def main():
         print("\nPlease fix the configuration errors above before starting the application.")
         print("\nFor help, see:")
         print("  - DOCKER_SETUP_README.md")
-        print("  - DB_AUTH_ERROR_FIX.md")
+        print("  - TROUBLESHOOTING_DB_AUTH.md")
         return 1
 
 

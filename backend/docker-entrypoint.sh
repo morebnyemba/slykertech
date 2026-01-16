@@ -11,7 +11,7 @@ echo ""
 
 # Check environment configuration
 echo "Validating environment configuration..."
-python check_env.py
+python /app/check_env.py
 
 if [ $? -ne 0 ]; then
     echo ""
