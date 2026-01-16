@@ -16,28 +16,29 @@ The CORS errors were caused by:
 
 ## Solution Architecture
 
-The solution implements a **single-layer CORS handling approach** where Django is responsible for all CORS logic:
+**UPDATE (2026-01-16)**: The solution has been updated to implement a **single-layer CORS handling approach** where NGINX is responsible for all CORS headers. This prevents duplicate CORS headers that were occurring when both NGINX and Django were adding the same headers.
 
 ```
-Browser → Nginx (passes Origin header) → Django (handles CORS) → Browser
+Browser → Nginx (handles CORS) → Django (CORS middleware disabled) → Browser
 ```
 
 ### Layer 1: Nginx (Reverse Proxy)
-- **Role**: Pass-through proxy that forwards the Origin header
+- **Role**: Handle all CORS headers and validation
 - **Responsibilities**:
-  - Forward `Origin` header using `proxy_set_header Origin $http_origin`
+  - Add `Access-Control-Allow-Origin` header based on `$http_origin`
+  - Handle OPTIONS preflight requests
+  - Add appropriate CORS headers to all responses (including errors)
+  - Forward Origin header using `proxy_set_header Origin $http_origin`
   - Forward other necessary headers (Host, X-Real-IP, X-Forwarded-For, etc.)
   - Handle WebSocket upgrade for `/ws/` endpoints
-  - Do NOT add CORS headers (let Django handle it)
 
 ### Layer 2: Django (Application)
-- **Role**: Handle all CORS logic using `django-cors-headers` middleware
+- **Role**: Application logic without CORS middleware
 - **Responsibilities**:
-  - Validate origins against `CORS_ALLOWED_ORIGINS` setting
-  - Add appropriate CORS headers to responses
-  - Handle OPTIONS preflight requests
-  - Allow credentials with `CORS_ALLOW_CREDENTIALS = True`
-  - Expose necessary headers via `CORS_EXPOSE_HEADERS`
+  - Handle business logic and API endpoints
+  - Process requests normally
+  - **CORS middleware is disabled** to prevent duplicate headers
+  - CSRF protection still active for form submissions
 
 ### Layer 3: Django Channels (WebSockets)
 - **Role**: Custom WebSocket origin validation
@@ -64,29 +65,29 @@ Browser → Nginx (passes Origin header) → Django (handles CORS) → Browser
 
 ### 2. Django Configuration (`backend/config/settings.py`)
 
-**Existing Configuration (verified):**
+**Updated Configuration:**
 ```python
-# CORS middleware properly positioned
+# CORS middleware is DISABLED to prevent duplicate headers with NGINX
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ← Must be before CommonMiddleware
+    # 'corsheaders.middleware.CorsMiddleware',  # DISABLED - CORS handled by NGINX
     'django.middleware.common.CommonMiddleware',
     # ... other middleware
 ]
 
-# CORS settings
-CORS_ALLOW_CREDENTIALS = True  # Allow cookies/auth headers
+# CORS settings are still defined for reference, but not used by Django
+# All CORS handling is done by NGINX
+CORS_ALLOW_CREDENTIALS = True  # For reference only
 CORS_ALLOWED_ORIGINS = [
     'https://slykertech.co.zw',
     'https://www.slykertech.co.zw',
 ]
-CORS_EXPOSE_HEADERS = [
-    'content-type',
-    'x-csrftoken',
-]
 ```
+
+**Why This Change?**
+The duplicate `Access-Control-Allow-Origin` header error occurred because both NGINX and Django were adding CORS headers. By disabling Django's CORS middleware, only NGINX manages CORS headers, preventing duplicates.
 
 ### 3. ASGI Configuration (`backend/config/asgi.py`)
 
@@ -112,24 +113,20 @@ CSRF_TRUSTED_ORIGINS="https://slykertech.co.zw,https://www.slykertech.co.zw,http
 ## Why This Approach Works
 
 ### 1. Single Source of Truth
-- Django is the only layer managing CORS logic
-- No conflicts between Nginx and Django CORS headers
+- NGINX is the only layer managing CORS headers
+- No conflicts or duplicate headers between NGINX and Django
 - Easier to debug and maintain
+- All CORS configuration in one place (nginx.conf)
 
-### 2. Proper Origin Validation
-- Origin header reaches Django, allowing proper validation
-- Django can check against `CORS_ALLOWED_ORIGINS` configuration
-- WebSocket connections validated through custom validator
+### 2. Eliminates Duplicate Headers
+- Previous implementation had both NGINX and Django adding `Access-Control-Allow-Origin`
+- This caused the error: "The 'Access-Control-Allow-Origin' header contains multiple values"
+- Now only NGINX adds CORS headers, solving the duplicate header issue
 
-### 3. Browser Compatibility
-- Proper handling of preflight OPTIONS requests
-- Correct CORS headers in all responses
-- Credentials (cookies, auth headers) properly supported
-
-### 4. Security
-- Explicit origin whitelist in production (`DEBUG=False`)
-- No wildcard origins in production
-- Credentials only sent to trusted domains
+### 3. Proper Origin Validation
+- NGINX uses `$http_origin` variable to echo back the requesting origin
+- Works with multiple allowed origins
+- Provides proper CORS support for all endpoints including admin and static files
 
 ## Testing & Verification
 
@@ -200,17 +197,18 @@ For detailed testing instructions, see [CORS_TESTING_GUIDE.md](./CORS_TESTING_GU
 ### Issue: Still Getting CORS Errors
 
 **Check:**
-1. Nginx has been reloaded: `sudo nginx -s reload`
-2. Django service has been restarted
-3. Environment variables are set correctly: `python manage.py shell` then check settings
-4. Origin header is being passed: Check nginx logs or Django logs
+1. Nginx has been reloaded: `sudo nginx -s reload` or `docker-compose restart nginx`
+2. Backend container has been restarted to load new settings.py
+3. Verify Django's CORS middleware is disabled in settings.py
+4. Check nginx.conf has CORS headers configured for all API locations
+5. Clear browser cache and test in incognito mode
 
-### Issue: OPTIONS Requests Failing
+### Issue: Duplicate CORS Headers
 
-**Check:**
-1. CORS middleware is before CommonMiddleware in Django settings
-2. Django is receiving OPTIONS requests (not being blocked by Nginx)
-3. `CORS_ALLOWED_ORIGINS` includes the origin making the request
+**Solution:**
+- This was the original problem - ensure Django's corsheaders.middleware.CorsMiddleware is commented out
+- Only NGINX should add CORS headers
+- Restart both nginx and backend services after making changes
 
 ### Issue: WebSocket Connections Failing
 
