@@ -14,6 +14,13 @@ from urllib.parse import urlparse
 def cleanup_stale_types():
     """Remove stale PostgreSQL types that can conflict with migrations."""
     
+    # List of type names to check and clean up
+    # Add more type names here if needed for other models
+    TYPE_NAMES_TO_CLEANUP = [
+        'accounts_user',
+        # Add other custom type names here if needed
+    ]
+    
     # Get database connection parameters from environment
     db_name = os.environ.get('DB_NAME', 'slykertech')
     db_user = os.environ.get('DB_USER', 'slykertech')
@@ -28,34 +35,38 @@ def cleanup_stale_types():
             result = urlparse(database_url)
             
             # Validate that we have all required components
-            if result.path and len(result.path) > 1:
+            url_valid = True
+            missing_components = []
+            
+            if not result.path or len(result.path) <= 1:
+                missing_components.append('database name')
+                url_valid = False
+            else:
                 db_name = result.path[1:]  # Remove leading '/'
-            else:
-                print("Warning: DATABASE_URL missing database name")
-                database_url = None  # Fall back to environment variables
             
-            if database_url and result.username:
+            if not result.username:
+                missing_components.append('username')
+                url_valid = False
+            else:
                 db_user = result.username
-            else:
-                print("Warning: DATABASE_URL missing username")
-                database_url = None
             
-            if database_url and result.password:
+            if not result.password:
+                missing_components.append('password')
+                url_valid = False
+            else:
                 db_password = result.password
-            else:
-                print("Warning: DATABASE_URL missing password")
-                database_url = None
             
-            if database_url and result.hostname:
+            if not result.hostname:
+                missing_components.append('hostname')
+                url_valid = False
+            else:
                 db_host = result.hostname
-            else:
-                print("Warning: DATABASE_URL missing hostname")
-                database_url = None
             
-            if database_url and result.port:
+            if result.port:
                 db_port = result.port
             
-            if not database_url:
+            if not url_valid:
+                print(f"Warning: DATABASE_URL missing: {', '.join(missing_components)}")
                 print("Falling back to individual DB environment variables")
                 
         except Exception as e:
@@ -76,42 +87,50 @@ def cleanup_stale_types():
         
         print("Checking for stale PostgreSQL types...")
         
-        # Check if accounts_user type exists
-        cursor.execute("""
-            SELECT COUNT(*) FROM pg_type t
-            JOIN pg_namespace n ON t.typnamespace = n.oid
-            WHERE t.typname = 'accounts_user' AND n.nspname = 'public'
-        """)
+        cleanup_performed = False
         
-        count = cursor.fetchone()[0]
-        
-        if count > 0:
-            print(f"Found {count} stale 'accounts_user' type(s). Attempting cleanup...")
-            
-            # Check if the accounts_user table exists
+        # Check and clean each type name
+        for type_name in TYPE_NAMES_TO_CLEANUP:
+            # Check if type exists
             cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_name = 'accounts_user'
-                )
-            """)
+                SELECT COUNT(*) FROM pg_type t
+                JOIN pg_namespace n ON t.typnamespace = n.oid
+                WHERE t.typname = %s AND n.nspname = 'public'
+            """, (type_name,))
             
-            table_exists = cursor.fetchone()[0]
+            count = cursor.fetchone()[0]
             
-            if not table_exists:
-                # Safe to drop the type since the table doesn't exist
-                print("Table 'accounts_user' does not exist. Dropping stale type...")
-                try:
-                    cursor.execute("DROP TYPE IF EXISTS accounts_user CASCADE")
-                    print("✅ Successfully removed stale 'accounts_user' type")
-                except Exception as e:
-                    print(f"⚠️  Warning: Could not drop type: {e}")
-                    print("This may be normal if the type is in use")
-            else:
-                print("⚠️  Table 'accounts_user' exists. Skipping type cleanup.")
-                print("This is expected if migrations have already been applied.")
-        else:
+            if count > 0:
+                print(f"Found {count} stale '{type_name}' type(s). Attempting cleanup...")
+                
+                # Check if the corresponding table exists
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_name = %s
+                    )
+                """, (type_name,))
+                
+                table_exists = cursor.fetchone()[0]
+                
+                if not table_exists:
+                    # Safe to drop the type since the table doesn't exist
+                    print(f"Table '{type_name}' does not exist. Dropping stale type...")
+                    try:
+                        cursor.execute(sql.SQL("DROP TYPE IF EXISTS {} CASCADE").format(
+                            sql.Identifier(type_name)
+                        ))
+                        print(f"✅ Successfully removed stale '{type_name}' type")
+                        cleanup_performed = True
+                    except Exception as e:
+                        print(f"⚠️  Warning: Could not drop type '{type_name}': {e}")
+                        print("This may be normal if the type is in use")
+                else:
+                    print(f"⚠️  Table '{type_name}' exists. Skipping type cleanup.")
+                    print("This is expected if migrations have already been applied.")
+        
+        if not cleanup_performed:
             print("✅ No stale types found. Database is clean.")
         
         cursor.close()
