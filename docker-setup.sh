@@ -15,27 +15,32 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Configuration
-# Get the actual volume name from docker-compose (project name + volume name)
-# Docker Compose uses lowercase directory name with non-alphanumeric chars (except _ and -) removed
-PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
-POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
-MAX_WAIT_TIME=60
-CHECK_INTERVAL=3
-
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}❌ Docker is not installed. Please install Docker first.${NC}"
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+# Detect docker compose command (docker compose vs docker-compose)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
     echo -e "${RED}❌ Docker Compose is not installed. Please install Docker Compose first.${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✅ Docker and Docker Compose are installed${NC}"
 echo ""
+
+# Configuration
+# Get the actual volume name from Docker Compose (project name + volume name)
+# Docker Compose uses lowercase directory name with non-alphanumeric chars (except _ and -) removed
+PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
+POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
+MAX_WAIT_TIME=60
+CHECK_INTERVAL=3
 
 # Check if .env file exists
 if [ -f ".env" ]; then
@@ -155,7 +160,7 @@ if docker volume ls | grep -q "$POSTGRES_VOLUME"; then
     
     if [[ "$reset_db" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         echo "Stopping and removing containers..."
-        docker-compose down
+        $DOCKER_COMPOSE down
         
         echo "Removing PostgreSQL volume..."
         docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || true
@@ -172,13 +177,13 @@ echo ""
 
 # Build and start services
 echo "Building and starting services..."
-docker-compose up -d --build
+$DOCKER_COMPOSE up -d --build
 
 echo ""
 echo "Waiting for database to be ready..."
 elapsed=0
 while [ $elapsed -lt $MAX_WAIT_TIME ]; do
-    if docker-compose exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
+    if $DOCKER_COMPOSE exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
         echo -e "${GREEN}✅ Database is ready${NC}"
         break
     fi
@@ -189,7 +194,7 @@ done
 
 if [ $elapsed -ge $MAX_WAIT_TIME ]; then
     echo -e "${RED}❌ Database did not become ready in expected time${NC}"
-    echo "Check database logs with: docker-compose logs db"
+    echo "Check database logs with: $DOCKER_COMPOSE logs db"
     echo "You may need to fix database issues and run migrations manually."
     exit 1
 fi
@@ -202,12 +207,12 @@ sleep 5
 # Run migrations
 echo ""
 echo "Running database migrations..."
-if docker-compose exec -T backend python manage.py migrate; then
+if $DOCKER_COMPOSE exec -T backend python manage.py migrate; then
     echo -e "${GREEN}✅ Migrations completed successfully${NC}"
 else
     echo -e "${RED}❌ Migrations failed${NC}"
-    echo "Check backend logs with: docker-compose logs backend"
-    echo "You may need to run migrations manually: docker-compose exec backend python manage.py migrate"
+    echo "Check backend logs with: $DOCKER_COMPOSE logs backend"
+    echo "You may need to run migrations manually: $DOCKER_COMPOSE exec backend python manage.py migrate"
     echo ""
 fi
 
@@ -217,13 +222,13 @@ echo "Do you want to create a superuser? (y/n)"
 read -r create_superuser
 
 if [[ "$create_superuser" =~ ^[Yy]([Ee][Ss])?$ ]]; then
-    docker-compose exec backend python manage.py createsuperuser
+    $DOCKER_COMPOSE exec backend python manage.py createsuperuser
 fi
 
 # Populate initial services
 echo ""
 echo "Populating initial services..."
-if docker-compose exec -T backend python manage.py populate_services 2>/dev/null; then
+if $DOCKER_COMPOSE exec -T backend python manage.py populate_services 2>/dev/null; then
     echo -e "${GREEN}✅ Initial services populated${NC}"
 else
     echo -e "${YELLOW}Note: populate_services command not available or already run${NC}"
@@ -242,13 +247,13 @@ echo "  - Database:   localhost:5432"
 echo "  - Redis:      localhost:6379"
 echo ""
 echo "To view logs:"
-echo "  docker-compose logs -f"
+echo "  $DOCKER_COMPOSE logs -f"
 echo ""
 echo "To stop services:"
-echo "  docker-compose down"
+echo "  $DOCKER_COMPOSE down"
 echo ""
 echo "To restart services:"
-echo "  docker-compose restart"
+echo "  $DOCKER_COMPOSE restart"
 echo ""
 echo -e "${YELLOW}⚠️  Remember to keep your database password safe and consistent!${NC}"
 echo "The password is stored in your .env file."
