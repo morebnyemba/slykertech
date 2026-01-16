@@ -11,6 +11,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Configuration
+POSTGRES_VOLUME="slykertech_postgres_data"
+MAX_WAIT_TIME=60
+CHECK_INTERVAL=3
+
 echo "========================================="
 echo "Database Authentication Fix"
 echo "========================================="
@@ -26,23 +31,35 @@ if [ ! -f ".env" ]; then
     
     if [ "$create_env" = "y" ]; then
         echo ""
-        echo "Enter database password (press Enter for default 'devpassword'):"
+        echo "Enter database password (minimum 8 characters, no default):"
         read -s -r db_password
-        db_password=${db_password:-devpassword}
         echo ""
         
-        cp .env.example .env
-        sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${db_password}/" .env
+        # Validate password
+        if [ -z "$db_password" ]; then
+            echo -e "${RED}❌ Password cannot be empty${NC}"
+            exit 1
+        fi
         
-        echo -e "${GREEN}✅ .env file created with password: ${db_password}${NC}"
+        if [ ${#db_password} -lt 8 ]; then
+            echo -e "${RED}❌ Password must be at least 8 characters${NC}"
+            exit 1
+        fi
+        
+        # Create .env from example
+        cp .env.example .env
+        
+        # Safely update DB_PASSWORD using awk to avoid sed delimiter issues
+        awk -v pwd="$db_password" '{if ($0 ~ /^DB_PASSWORD=/) {print "DB_PASSWORD=" pwd} else {print $0}}' .env > .env.tmp && mv .env.tmp .env
+        
+        echo -e "${GREEN}✅ .env file created${NC}"
     else
         echo "Please create a .env file manually and try again."
         exit 1
     fi
 fi
 
-echo -e "${BLUE}Current database password in .env:${NC}"
-grep "DB_PASSWORD=" .env | cut -d'=' -f2
+echo -e "${BLUE}Database password is configured in .env${NC}"
 
 echo ""
 echo -e "${YELLOW}⚠️  Database authentication errors usually occur when:${NC}"
@@ -72,7 +89,7 @@ docker-compose down
 
 echo ""
 echo "Step 2: Removing database volume..."
-docker volume rm slykertech_postgres_data 2>/dev/null || echo "Volume not found (this is OK)"
+docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || echo "Volume not found (this is OK)"
 
 echo ""
 echo "Step 3: Starting services with fresh database..."
@@ -80,7 +97,22 @@ docker-compose up -d --build
 
 echo ""
 echo "Waiting for database to be ready..."
-sleep 15
+elapsed=0
+while [ $elapsed -lt $MAX_WAIT_TIME ]; do
+    if docker-compose exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ Database is ready${NC}"
+        break
+    fi
+    echo "Waiting for database... (${elapsed}s / ${MAX_WAIT_TIME}s)"
+    sleep $CHECK_INTERVAL
+    elapsed=$((elapsed + CHECK_INTERVAL))
+done
+
+if [ $elapsed -ge $MAX_WAIT_TIME ]; then
+    echo -e "${RED}❌ Database did not become ready in time${NC}"
+    echo "Check logs with: docker-compose logs db"
+    exit 1
+fi
 
 echo ""
 echo "Step 4: Running migrations..."

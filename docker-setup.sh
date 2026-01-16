@@ -15,6 +15,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Configuration
+POSTGRES_VOLUME="slykertech_postgres_data"
+MAX_WAIT_TIME=60
+CHECK_INTERVAL=3
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}❌ Docker is not installed. Please install Docker first.${NC}"
@@ -64,10 +69,20 @@ if [ ! -f ".env" ]; then
     
     # Prompt for database password
     echo ""
-    echo "Enter database password (press Enter for default 'devpassword'):"
+    echo "Enter database password (minimum 8 characters, required for security):"
     read -s -r db_password
-    db_password=${db_password:-devpassword}
     echo ""
+    
+    # Validate password
+    if [ -z "$db_password" ]; then
+        echo -e "${RED}❌ Password cannot be empty${NC}"
+        exit 1
+    fi
+    
+    if [ ${#db_password} -lt 8 ]; then
+        echo -e "${RED}❌ Password must be at least 8 characters${NC}"
+        exit 1
+    fi
     
     # Prompt for debug mode
     echo "Enable debug mode? (y/n, default: n for production):"
@@ -77,7 +92,6 @@ if [ ! -f ".env" ]; then
     else
         debug_mode="False"
     fi
-    
     # Create .env file
     cat > .env << EOF
 # ===========================================
@@ -130,7 +144,7 @@ fi
 # Check if volumes exist and if we need to reset the database
 echo ""
 echo "Checking Docker volumes..."
-if docker volume ls | grep -q "slykertech_postgres_data"; then
+if docker volume ls | grep -q "$POSTGRES_VOLUME"; then
     echo -e "${YELLOW}⚠️  Existing PostgreSQL volume found${NC}"
     echo "If you're experiencing database authentication errors, you may need to reset the database."
     echo "Do you want to remove existing database volume and start fresh? (y/n)"
@@ -141,7 +155,7 @@ if docker volume ls | grep -q "slykertech_postgres_data"; then
         docker-compose down
         
         echo "Removing PostgreSQL volume..."
-        docker volume rm slykertech_postgres_data 2>/dev/null || true
+        docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || true
         
         echo -e "${GREEN}✅ Database volume removed${NC}"
     fi
@@ -159,9 +173,24 @@ docker-compose up -d --build
 
 echo ""
 echo "Waiting for database to be ready..."
-sleep 10
+elapsed=0
+while [ $elapsed -lt $MAX_WAIT_TIME ]; do
+    if docker-compose exec -T db pg_isready -U slykertech >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ Database is ready${NC}"
+        break
+    fi
+    echo "Waiting for database... (${elapsed}s / ${MAX_WAIT_TIME}s)"
+    sleep $CHECK_INTERVAL
+    elapsed=$((elapsed + CHECK_INTERVAL))
+done
+
+if [ $elapsed -ge $MAX_WAIT_TIME ]; then
+    echo -e "${YELLOW}⚠️  Database did not become ready in expected time${NC}"
+    echo "Continuing anyway, but you may need to run migrations manually"
+fi
 
 # Run migrations
+echo ""
 echo "Running database migrations..."
 docker-compose exec -T backend python manage.py migrate
 
@@ -200,6 +229,6 @@ echo ""
 echo "To restart services:"
 echo "  docker-compose restart"
 echo ""
-echo -e "${YELLOW}⚠️  Database password: ${db_password}${NC}"
-echo "Keep this password safe and consistent!"
+echo -e "${YELLOW}⚠️  Remember to keep your database password safe and consistent!${NC}"
+echo "The password is stored in your .env file."
 echo ""
