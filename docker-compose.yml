@@ -90,7 +90,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A backend worker -l info
+    command: celery -A config worker -l info
     volumes:
       - ./backend:/app
     environment:
@@ -109,7 +109,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A backend beat -l info
+    command: celery -A config beat -l info
     volumes:
       - ./backend:/app
     environment:
