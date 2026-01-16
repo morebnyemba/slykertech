@@ -83,7 +83,7 @@ class CartViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.exception(f"Error getting/creating cart: {str(e)}")
             return Response(
-                {"error": f"Unable to retrieve cart: {str(e)}"},
+                {"error": "Unable to retrieve cart. Please try again or contact support."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

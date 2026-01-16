@@ -74,8 +74,8 @@ def is_origin_allowed(origin):
     if settings.DEBUG and getattr(settings, 'CORS_ALLOW_ALL_ORIGINS', False):
         return True
     
-    # Check against CORS_ALLOWED_ORIGINS
-    if hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
-        return origin in settings.CORS_ALLOWED_ORIGINS
+    # Check against CORS_ALLOWED_ORIGINS (works in both DEBUG and production)
+    if hasattr(settings, 'CORS_ALLOWED_ORIGINS') and origin in settings.CORS_ALLOWED_ORIGINS:
+        return True
     
     return False
