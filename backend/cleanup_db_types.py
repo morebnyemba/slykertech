@@ -8,6 +8,7 @@ import os
 import sys
 import psycopg2
 from psycopg2 import sql
+from urllib.parse import urlparse
 
 
 def cleanup_stale_types():
@@ -24,13 +25,39 @@ def cleanup_stale_types():
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
         try:
-            from urllib.parse import urlparse
             result = urlparse(database_url)
-            db_name = result.path[1:]  # Remove leading '/'
-            db_user = result.username
-            db_password = result.password
-            db_host = result.hostname
-            db_port = result.port or 5432
+            
+            # Validate that we have all required components
+            if result.path and len(result.path) > 1:
+                db_name = result.path[1:]  # Remove leading '/'
+            else:
+                print("Warning: DATABASE_URL missing database name")
+                database_url = None  # Fall back to environment variables
+            
+            if database_url and result.username:
+                db_user = result.username
+            else:
+                print("Warning: DATABASE_URL missing username")
+                database_url = None
+            
+            if database_url and result.password:
+                db_password = result.password
+            else:
+                print("Warning: DATABASE_URL missing password")
+                database_url = None
+            
+            if database_url and result.hostname:
+                db_host = result.hostname
+            else:
+                print("Warning: DATABASE_URL missing hostname")
+                database_url = None
+            
+            if database_url and result.port:
+                db_port = result.port
+            
+            if not database_url:
+                print("Falling back to individual DB environment variables")
+                
         except Exception as e:
             print(f"Warning: Failed to parse DATABASE_URL: {e}")
             print("Falling back to individual DB environment variables")
