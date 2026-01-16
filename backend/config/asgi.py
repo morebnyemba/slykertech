@@ -29,6 +29,13 @@ class CorsOriginValidator(OriginValidator):
     for WebSocket connections in addition to ALLOWED_HOSTS
     """
     
+    def __init__(self, application):
+        """
+        Initialize the validator with the application.
+        We pass an empty list to parent since we override valid_origin.
+        """
+        super().__init__(application, [])
+    
     def valid_origin(self, parsed_origin):
         """
         Validate origin against both ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS

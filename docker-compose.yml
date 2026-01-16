@@ -33,7 +33,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
     volumes:
       - ./backend:/app
       - backend_media:/app/media
@@ -90,7 +90,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A config worker -l info
+    command: ["celery", "-A", "config", "worker", "-l", "info"]
     volumes:
       - ./backend:/app
     environment:
@@ -109,7 +109,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A config beat -l info
+    command: ["celery", "-A", "config", "beat", "-l", "info"]
     volumes:
       - ./backend:/app
     environment:
