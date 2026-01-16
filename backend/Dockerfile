@@ -18,9 +18,11 @@ COPY . .
 # Create directories for media and static files
 RUN mkdir -p media staticfiles
 
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
+# Copy and set up entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8000
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
