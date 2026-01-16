@@ -27,9 +27,13 @@ If you prefer to fix it manually:
 docker-compose down
 ```
 
-### Step 2: Remove database volume
+### Step 2: Remove the database volume
 ```bash
-docker volume rm slykertech_postgres_data
+# First, find the actual volume name
+docker volume ls | grep postgres_data
+
+# Then remove it (replace <volume_name> with the actual name)
+docker volume rm <volume_name>
 ```
 
 ### Step 3: Ensure .env file exists and has correct password
@@ -80,6 +84,12 @@ To prevent this error in the future:
 ## Why This Happens
 
 PostgreSQL initializes the database with the password provided in the `POSTGRES_PASSWORD` environment variable **only on first run**. If the database volume already exists with a different password, PostgreSQL won't change it, but your application will try to connect with the new password from the `.env` file, causing authentication to fail.
+
+The database volume is typically named `<project_directory>_postgres_data` where `<project_directory>` is the name of your project directory. To find your actual volume name, run:
+
+```bash
+docker volume ls | grep postgres_data
+```
 
 ## Related Documentation
 

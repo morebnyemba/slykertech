@@ -12,7 +12,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-POSTGRES_VOLUME="slykertech_postgres_data"
+# Get the actual volume name from docker-compose (project name + volume name)
+PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
 MAX_WAIT_TIME=60
 CHECK_INTERVAL=3
 
@@ -29,7 +31,7 @@ if [ ! -f ".env" ]; then
     echo "Would you like to create it now? (y/n)"
     read -r create_env
     
-    if [ "$create_env" = "y" ]; then
+    if [[ "$create_env" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         echo ""
         echo "Enter database password (minimum 8 characters, no default):"
         read -s -r db_password
@@ -78,7 +80,7 @@ echo -e "${RED}⚠️  WARNING: This will delete all existing database data!${NC
 echo "Do you want to proceed? (y/n)"
 read -r proceed
 
-if [ "$proceed" != "y" ]; then
+if [[ ! "$proceed" =~ ^[Yy]([Ee][Ss])?$ ]]; then
     echo "Operation cancelled."
     exit 0
 fi
@@ -89,7 +91,8 @@ docker-compose down
 
 echo ""
 echo "Step 2: Removing database volume..."
-docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || echo "Volume not found (this is OK)"
+echo "Looking for volume: $POSTGRES_VOLUME"
+docker volume rm "$POSTGRES_VOLUME" 2>/dev/null || echo "Volume not found or already removed (this is OK)"
 
 echo ""
 echo "Step 3: Starting services with fresh database..."

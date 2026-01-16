@@ -16,7 +16,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-POSTGRES_VOLUME="slykertech_postgres_data"
+# Get the actual volume name from docker-compose (project name + volume name)
+PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+POSTGRES_VOLUME="${PROJECT_NAME}_postgres_data"
 MAX_WAIT_TIME=60
 CHECK_INTERVAL=3
 
@@ -150,7 +152,7 @@ if docker volume ls | grep -q "$POSTGRES_VOLUME"; then
     echo "Do you want to remove existing database volume and start fresh? (y/n)"
     read -r reset_db
     
-    if [ "$reset_db" = "y" ]; then
+    if [[ "$reset_db" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         echo "Stopping and removing containers..."
         docker-compose down
         
@@ -199,7 +201,7 @@ echo ""
 echo "Do you want to create a superuser? (y/n)"
 read -r create_superuser
 
-if [ "$create_superuser" = "y" ]; then
+if [[ "$create_superuser" =~ ^[Yy]([Ee][Ss])?$ ]]; then
     docker-compose exec backend python manage.py createsuperuser
 fi
 
