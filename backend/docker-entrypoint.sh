@@ -67,6 +67,11 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ WARNING: Migrations failed or partially completed"
     echo "The application will still start, but database may not be up to date"
+    echo ""
+    echo "If you see 'duplicate key' or 'pg_type' errors:"
+    echo "  1. See MIGRATION_ERROR_FIX.md for automatic fix details"
+    echo "  2. Or run: docker-compose exec backend python /app/cleanup_db_types.py"
+    echo "  3. Or reset database: ./fix-db-auth.sh"
 fi
 
 echo ""
