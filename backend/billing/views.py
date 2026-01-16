@@ -7,6 +7,9 @@ from .serializers import (
     PaymentSerializer, BillingProfileSerializer,
     CartSerializer, CartItemSerializer
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -37,30 +40,52 @@ class CartViewSet(viewsets.ModelViewSet):
         user = request.user
         session_id = request.session.session_key
         
-        cart = None
-        if user.is_authenticated and hasattr(user, 'client'):
-            cart, _ = Cart.objects.get_or_create(
-                client=user.client,
-                status='active',
-                defaults={'session_id': session_id}
-            )
-        elif session_id:
-            cart, _ = Cart.objects.get_or_create(
-                session_id=session_id,
-                status='active'
-            )
-        else:
-            # Create session if doesn't exist
-            if not request.session.session_key:
-                request.session.create()
-            session_id = request.session.session_key
-            cart, _ = Cart.objects.get_or_create(
-                session_id=session_id,
-                status='active'
-            )
+        logger.info(f"Cart request - User authenticated: {user.is_authenticated}, Session ID: {session_id}")
         
-        serializer = self.get_serializer(cart)
-        return Response(serializer.data)
+        cart = None
+        try:
+            if user.is_authenticated and hasattr(user, 'client'):
+                cart, created = Cart.objects.get_or_create(
+                    client=user.client,
+                    status='active',
+                    defaults={'session_id': session_id}
+                )
+                logger.info(f"User cart {'created' if created else 'retrieved'} for client: {user.client.id}")
+            elif session_id:
+                cart, created = Cart.objects.get_or_create(
+                    session_id=session_id,
+                    status='active'
+                )
+                logger.info(f"Session cart {'created' if created else 'retrieved'} for session: {session_id}")
+            else:
+                # Create session if doesn't exist
+                if not request.session.session_key:
+                    request.session.create()
+                    request.session.save()  # Ensure session is saved
+                session_id = request.session.session_key
+                
+                if not session_id:
+                    logger.error("Failed to create session for anonymous user")
+                    return Response(
+                        {"error": "Unable to create shopping session. Please enable cookies and try again."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                cart, created = Cart.objects.get_or_create(
+                    session_id=session_id,
+                    status='active'
+                )
+                logger.info(f"New session cart {'created' if created else 'retrieved'} for session: {session_id}")
+            
+            serializer = self.get_serializer(cart)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.exception(f"Error getting/creating cart: {str(e)}")
+            return Response(
+                {"error": "Unable to retrieve cart. Please try again or contact support."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def add_item(self, request, pk=None):
