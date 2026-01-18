@@ -15,7 +15,6 @@ export default function Header() {
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
-  const [showProductsDropdown, setShowProductsDropdown] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (section: string) => {
@@ -63,20 +62,7 @@ export default function Header() {
 
   const companyLinks = [
     { name: 'About Us', href: '/about', description: 'Mission, vision, and leadership' },
-    { name: 'Invest', href: '/invest', description: 'Opportunities and investor relations' },
-    { name: 'Partner', href: '/partner', description: 'Alliances, resellers, and agencies' },
-    { name: 'Our Portfolio', href: '/portfolio', description: 'Selected work and case studies' },
-    { name: 'Support', href: '/support', description: 'Help center and guides' },
-    { name: 'Join Us', href: '/careers', description: 'Careers and open roles' }
-  ];
-
-  const productLinks = [
-    { name: 'Managed WordPress', href: '/products/managed-wordpress', description: 'Optimized WP hosting with updates' },
-    { name: 'Site Builder', href: '/products/site-builder', description: 'Launch fast with drag-and-drop' },
-    { name: 'Email & Collaboration Suite', href: '/products/email-suite', description: 'Business email, calendar, docs' },
-    { name: 'SSL & Security Suite', href: '/products/security-suite', description: 'TLS, WAF, malware protection' },
-    { name: 'CDN & Edge Caching', href: '/products/cdn', description: 'Global acceleration and caching' },
-    { name: 'Backups & Disaster Recovery', href: '/products/backups', description: 'Snapshots, restores, continuity' }
+    { name: 'Our Portfolio', href: '/portfolio', description: 'Selected work and case studies' }
   ];
 
   const ContactModal = () => (
@@ -275,36 +261,6 @@ export default function Header() {
             )}
           </div>
 
-          {/* Products Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setShowProductsDropdown(true)}
-            onMouseLeave={() => setShowProductsDropdown(false)}
-          >
-            <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
-              Products
-              <FaChevronDown className="w-3 h-3" />
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-            </button>
-
-            {showProductsDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                {productLinks.map((product, idx) => (
-                  <div key={product.name}>
-                    <Link
-                      href={product.href}
-                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
-                    >
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">{product.description}</div>
-                    </Link>
-                    {idx < productLinks.length - 1 && <div className="border-t border-gray-100 dark:border-gray-700 mx-4" />}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Services Dropdown */}
           <div 
             className="relative"
@@ -429,24 +385,6 @@ export default function Header() {
           {expandedSections['company'] && (
             <>
               {companyLinks.map((link) => (
-                <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
-              ))}
-            </>
-          )}
-
-          {/* Products Section */}
-          <button
-            onClick={() => toggleSection('products')}
-            className={`w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase flex items-center justify-between transition-colors ${expandedSections['products'] ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'} hover:text-blue-700 dark:hover:text-blue-200`}
-          >
-            Products
-            <span className={`transform transition-transform ${expandedSections['products'] ? 'rotate-180 text-blue-600 dark:text-blue-300' : ''}`}>
-              ▼
-            </span>
-          </button>
-          {expandedSections['products'] && (
-            <>
-              {productLinks.map((link) => (
                 <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
               ))}
             </>
