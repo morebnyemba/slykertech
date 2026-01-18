@@ -1,8 +1,32 @@
 // app/contact/page.tsx
 'use client';
 
+import { Metadata } from 'next';
 import { FaWhatsapp, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa';
 import { MdAccessTime } from 'react-icons/md';
+
+export const metadata: Metadata = {
+  title: 'Contact Us | Slyker Tech Web Services',
+  description: 'Get in touch with Slyker Tech for all your web development, hosting, and digital service needs. Multiple contact options available.',
+  keywords: ['contact', 'web services', 'support', 'digital solutions'],
+  openGraph: {
+    title: 'Contact Us | Slyker Tech Web Services',
+    description: 'Reach out to our team for professional web services and digital solutions',
+    url: 'https://slykertech.co.zw/contact',
+    images: [{
+      url: '/images/stws.png',
+      width: 1200,
+      height: 630,
+      alt: 'Slyker Tech Contact'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact Us | Slyker Tech Web Services',
+    description: 'Get in touch with our team',
+    images: ['/images/stws.png']
+  }
+};
 
 export default function ContactPage() {
   const whatsappMessage = encodeURIComponent(

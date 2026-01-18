@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = "Slyker Tech Web Services";
 export const BASE_URL = "https://slykertech.co.zw";
-export const DEFAULT_OG_IMAGE = "/images/stws.jpeg";
+export const DEFAULT_OG_IMAGE = "/images/stws.png";
+export const FAVICON = "/images/stws.ico";
 
 export const SOCIAL_HANDLES = {
   twitter: "@SlykerTech",
@@ -17,21 +18,37 @@ const formatTitle = (pageTitle?: string) =>
 
 export const defaultMetadata: Metadata = {
   title: SITE_NAME,
-  description: "Complete digital solutions provider offering professional web services worldwide",
+  description: "Professional web hosting, domain services, web development, and design solutions. Trusted global provider of digital services.",
+  keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting"],
   metadataBase: new URL(BASE_URL),
+  authors: [{ name: "Slyker Tech", url: BASE_URL }],
+  creator: "Slyker Tech",
+  publisher: "Slyker Tech",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  icons: {
+    icon: FAVICON,
+    apple: "/images/stws.png",
+  },
   alternates: {
     canonical: BASE_URL
   },
   openGraph: {
     type: 'website',
+    locale: 'en_US',
     siteName: SITE_NAME,
     title: SITE_NAME,
-    description: "Your complete digital partner for all web services",
+    description: "Your complete digital partner for web services, hosting, domains, and development",
+    url: BASE_URL,
     images: [{
       url: DEFAULT_OG_IMAGE,
       width: 1200,
       height: 630,
-      alt: SITE_NAME
+      alt: SITE_NAME,
+      type: 'image/png'
     }]
   },
   twitter: {
@@ -39,7 +56,7 @@ export const defaultMetadata: Metadata = {
     site: SOCIAL_HANDLES.twitter,
     creator: SOCIAL_HANDLES.twitter,
     title: SITE_NAME,
-    description: "One-stop solution for all digital needs",
+    description: "Professional web services and digital solutions",
     images: [DEFAULT_OG_IMAGE]
   }
 };

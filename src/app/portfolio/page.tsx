@@ -1,18 +1,36 @@
 // app/portfolio/page.tsx
 'use client';
 
+import { Metadata } from 'next';
 import Link from 'next/link';
-import Head from 'next/head';
 import { FiMail, FiMessageSquare, FiGithub, FiCode, FiLayers } from 'react-icons/fi';
+
+export const metadata: Metadata = {
+  title: 'Portfolio | Slyker Tech Web Services',
+  description: 'View our portfolio of web development, design, and digital solutions projects.',
+  keywords: ['portfolio', 'projects', 'web development', 'case studies'],
+  openGraph: {
+    title: 'Portfolio | Slyker Tech Web Services',
+    description: 'Explore our completed projects and digital solutions',
+    url: 'https://slykertech.co.zw/portfolio',
+    images: [{
+      url: '/images/stws.png',
+      width: 1200,
+      height: 630,
+      alt: 'Slyker Tech Portfolio'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Portfolio | Slyker Tech Web Services',
+    description: 'View our completed projects',
+    images: ['/images/stws.png']
+  }
+};
 
 export default function Portfolio() {
   return (
     <>
-      <Head>
-        <title>Portfolio | Slyker Tech Web Services</title>
-        <meta name="description" content="Our portfolio is currently under development. Contact us to see examples of our work." />
-      </Head>
-
       <main className="min-h-screen">
         {/* Hero Section */}
         <section className="relative py-20 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 text-white">

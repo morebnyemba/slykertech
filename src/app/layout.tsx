@@ -43,7 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <head>
-        <link rel="icon" href="/images/stws.jpeg" sizes="any" />
+        <link rel="icon" href="/images/stws.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/stws.png" />
+        <meta name="theme-color" content="#0066cc" />
       </head>
       <body className="min-h-screen antialiased bg-background text-foreground">
         <ThemeProvider
