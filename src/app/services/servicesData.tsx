@@ -19,6 +19,7 @@ export interface Service {
   features: string[];
   keywords: string;
   comingSoon?: boolean;
+  href?: string; // Link to detailed page
 }
 
 const servicesData: Service[] = [
@@ -33,7 +34,8 @@ const servicesData: Service[] = [
       'API development',
       'Microservices architecture'
     ],
-    keywords: 'Custom Software, Enterprise Solutions, Business Applications'
+    keywords: 'Custom Software, Enterprise Solutions, Business Applications',
+    href: '/services/development'
   },
   {
     title: 'Mobile App Development',
@@ -46,7 +48,8 @@ const servicesData: Service[] = [
       'Mobile UI/UX design',
       'App store optimization'
     ],
-    keywords: 'Mobile Apps, iOS, Android, Hybrid Apps'
+    keywords: 'Mobile Apps, iOS, Android, Hybrid Apps',
+    href: '/services/development'
   },
   {
     title: 'E-commerce Solutions',
@@ -59,7 +62,8 @@ const servicesData: Service[] = [
       'Order processing systems',
       'Multi-vendor platforms'
     ],
-    keywords: 'E-commerce, Online Store, WooCommerce, Shopify'
+    keywords: 'E-commerce, Online Store, WooCommerce, Shopify',
+    href: '/services/development'
   },
   {
     title: 'Web Design & Development',
@@ -72,7 +76,8 @@ const servicesData: Service[] = [
       'UI/UX optimization',
       'Website maintenance'
     ],
-    keywords: 'Web Design, Frontend Development, WordPress'
+    keywords: 'Web Design, Frontend Development, WordPress',
+    href: '/services/design'
   },
   {
     title: 'Cloud Services',
@@ -85,7 +90,8 @@ const servicesData: Service[] = [
       'Container orchestration',
       'Cloud security'
     ],
-    keywords: 'Cloud Computing, AWS, Azure, Google Cloud'
+    keywords: 'Cloud Computing, AWS, Azure, Google Cloud',
+    href: '/services/hosting'
   },
   {
     title: 'Database Solutions',
@@ -98,7 +104,8 @@ const servicesData: Service[] = [
       'Performance tuning',
       'Backup solutions'
     ],
-    keywords: 'Database, MySQL, MongoDB, PostgreSQL'
+    keywords: 'Database, MySQL, MongoDB, PostgreSQL',
+    href: '/services/hosting'
   },
   {
     title: 'Cyber Security',

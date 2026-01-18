@@ -2,8 +2,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
-import { MdSupport } from 'react-icons/md'; // Added this import
+import Link from 'next/link';
+import { FaWhatsapp, FaEnvelope, FaArrowRight, FaCloud, FaCode, FaPalette } from 'react-icons/fa';
+import { MdSupport } from 'react-icons/md';
 import servicesData from './servicesData';
 import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
 
@@ -75,46 +76,138 @@ export default function ServicesClientView() {
         </div>
       </section>
 
+      {/* Service Categories - Quick Links */}
+      <section className="py-12 px-4 sm:px-8 bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl font-bold text-center text-blue-900 dark:text-blue-300 mb-8">
+            Explore Our Service Categories
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Link 
+              href="/services/hosting"
+              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+            >
+              <FaCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Hosting & Cloud
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Shared, VPS, Dedicated hosting solutions
+              </p>
+              <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                View details <FaArrowRight className="w-3 h-3 ml-1" />
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/domains"
+              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+            >
+              <FaCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Domain Services
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Registration, transfer & management
+              </p>
+              <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                View details <FaArrowRight className="w-3 h-3 ml-1" />
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/development"
+              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+            >
+              <FaCode className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Development
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Web, mobile & custom software solutions
+              </p>
+              <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                View details <FaArrowRight className="w-3 h-3 ml-1" />
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/design"
+              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+            >
+              <FaPalette className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Design Services
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                UI/UX, branding & graphics
+              </p>
+              <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                View details <FaArrowRight className="w-3 h-3 ml-1" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Services Grid */}
       <section aria-labelledby="services-grid-heading" className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <h2 id="services-grid-heading" className="sr-only">Our Service Catalog</h2>
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {servicesData.map((service, index) => (
-            <article 
-              key={`service-${index}`}
-              className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => setSelectedService(service.title)}
-              aria-labelledby={`service-${index}-title`}
-            >
-              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 transition-transform group-hover:scale-110" aria-hidden="true">
-                {service.icon}
-              </div>
-              <h3 id={`service-${index}-title`} className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors">
-                {service.title}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {service.description}
-              </p>
-              <ul className="mb-4 space-y-2">
-                {service.features.map((feature, i) => (
-                  <li key={`feature-${i}`} className="flex items-start">
-                    <span className="text-darkgoldenrod dark:text-yellow-400 mr-2">•</span>
-                    <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex flex-wrap gap-2" aria-label="Service tags">
-                {service.keywords.split(', ').map((keyword, i) => (
-                  <span 
-                    key={`keyword-${i}`}
-                    className="px-3 py-1 bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 rounded-full text-sm"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
+          {servicesData.map((service, index) => {
+            const ServiceWrapper = service.href ? Link : 'article';
+            const wrapperProps = service.href 
+              ? { href: service.href }
+              : { onClick: () => setSelectedService(service.title) };
+            
+            return (
+              <ServiceWrapper
+                key={`service-${index}`}
+                {...wrapperProps}
+                className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all cursor-pointer group block"
+                aria-labelledby={`service-${index}-title`}
+              >
+                <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 transition-transform group-hover:scale-110" aria-hidden="true">
+                  {service.icon}
+                </div>
+                <h3 id={`service-${index}-title`} className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors">
+                  {service.title}
+                  {service.comingSoon && (
+                    <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
+                      Coming Soon
+                    </span>
+                  )}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {service.description}
+                </p>
+                <ul className="mb-4 space-y-2">
+                  {service.features.map((feature, i) => (
+                    <li key={`feature-${i}`} className="flex items-start">
+                      <span className="text-darkgoldenrod dark:text-yellow-400 mr-2">•</span>
+                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap gap-2 mb-4" aria-label="Service tags">
+                  {service.keywords.split(', ').map((keyword, i) => (
+                    <span 
+                      key={`keyword-${i}`}
+                      className="px-3 py-1 bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 rounded-full text-sm"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+                {service.href && (
+                  <div className="flex items-center text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+                    <span className="text-sm font-medium">Learn more</span>
+                    <FaArrowRight className="w-4 h-4 ml-2" />
+                  </div>
+                )}
+              </ServiceWrapper>
+            );
+          })}
         </div>
       </section>
 
