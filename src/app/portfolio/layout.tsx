@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/stws.png',
+        url: 'https://slykertech.co.zw/images/stws.png',
         width: 490,
         height: 112,
         alt: 'Slyker Tech Logo',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: 'Portfolio | Slyker Tech Web Services',
     description: 'View our successful projects',
-    images: ['/images/stws.png'],
+    images: ['https://slykertech.co.zw/images/stws.png'],
   },
   alternates: {
     canonical: 'https://slykertech.co.zw/portfolio'

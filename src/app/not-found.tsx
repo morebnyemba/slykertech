@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: 'https://slykertech.co.zw/404',
     images: [
       {
-        url: '/images/stws.png',
+        url: 'https://slykertech.co.zw/images/stws.png',
         width: 490,
         height: 112,
         alt: 'Slyker Tech Logo',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: '404 - Page Not Found',
     description: 'The page you are looking for could not be found.',
-    images: ['/images/stws.png'],
+    images: ['https://slykertech.co.zw/images/stws.png'],
   },
 };
 

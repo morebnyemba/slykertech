@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = "Slyker Tech Web Services";
 export const BASE_URL = "https://slykertech.co.zw";
-// Align with solutionmerchants: use logo for OG/Twitter previews
-export const DEFAULT_OG_IMAGE = "/images/stws.png";
-export const TWITTER_IMAGE = "/images/stws.png";
-export const LOGO_IMAGE = "/images/stws.png";
+// Align with solutionmerchants: use logo for OG/Twitter previews with absolute URL
+export const DEFAULT_OG_IMAGE = "https://slykertech.co.zw/images/stws.png";
+export const TWITTER_IMAGE = "https://slykertech.co.zw/images/stws.png";
+export const LOGO_IMAGE = "https://slykertech.co.zw/images/stws.png";
 export const FAVICON = "/images/stws.ico";
 
 export const SOCIAL_HANDLES = {
