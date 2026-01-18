@@ -125,7 +125,7 @@ export default function DevelopmentPage() {
 
         {/* Why Choose Us Section */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-12 text-white">
-          <h2 className="text-3xl font-bold mb-8 text-center">Why Choose Slyker Tech Development?</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center">Why Choose Slyker Tech Web Services Development?</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-5xl font-bold mb-2">10+</div>

@@ -25,9 +25,9 @@ export const defaultMetadata: Metadata = {
   description: "Leading digital transformation partner across Africa and beyond. Enterprise cloud solutions, AI integration, custom software development, and modern application services.",
   keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting", "website development", "e-commerce solutions", "africa technology", "digital transformation", "AI integration", "cloud solutions"],
   metadataBase: new URL(BASE_URL),
-  authors: [{ name: "Slyker Tech", url: BASE_URL }],
-  creator: "Slyker Tech",
-  publisher: "Slyker Tech",
+  authors: [{ name: "Slyker Tech Web Services", url: BASE_URL }],
+  creator: "Slyker Tech Web Services",
+  publisher: "Slyker Tech Web Services",
   formatDetection: {
     email: false,
     address: false,

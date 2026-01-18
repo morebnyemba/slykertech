@@ -5,25 +5,62 @@ import { generatePageMetadata } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Partnership Opportunities',
-  description: 'Partner with Slyker Tech as a reseller, agency partner, or technology alliance. Expand your offerings with our enterprise cloud solutions across Africa.',
+  description: 'Partner with Slyker Tech Web Services as a reseller, agency partner, or technology alliance. Expand your offerings with our enterprise cloud solutions across Africa.',
   url: '/partner'
 });
 
 export default function PartnerPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in partnership opportunities..."
+    "Hi Slyker Tech Web Services! I'm interested in partnership opportunities..."
   );
 
   const partnershipTypes = [
     {
-      title: 'Reseller Program',
+      title: 'Reseller Program - Bronze Tier',
       icon: <MdTrendingUp className="w-12 h-12" />,
-      description: 'White-label our services under your brand with competitive margins',
+      description: 'Entry-level white-label services under your brand with competitive margins',
       benefits: [
-        'Up to 30% commission on recurring revenue',
-        'Dedicated account manager and technical support',
-        'Marketing materials and co-branding options',
-        'Access to partner portal and automation tools'
+        'Up to 10% discount on services',
+        '5% commission on recurring revenue',
+        'Support up to 50 clients',
+        'Access to partner portal and API (1000 req/day)',
+        'Marketing materials and co-branding options'
+      ]
+    },
+    {
+      title: 'Reseller Program - Silver Tier',
+      icon: <MdTrendingUp className="w-12 h-12" />,
+      description: 'Enhanced reseller benefits with increased client capacity',
+      benefits: [
+        'Up to 15% discount on services',
+        '7% commission on recurring revenue',
+        'Support up to 100 clients',
+        'Priority technical support',
+        'Custom branding and webhook integration'
+      ]
+    },
+    {
+      title: 'Reseller Program - Gold Tier',
+      icon: <MdTrendingUp className="w-12 h-12" />,
+      description: 'Premium reseller tier with advanced automation tools',
+      benefits: [
+        'Up to 20% discount on services',
+        '10% commission on recurring revenue',
+        'Support up to 200 clients',
+        'Dedicated account manager',
+        'Advanced API access (5000 req/day)'
+      ]
+    },
+    {
+      title: 'Reseller Program - Platinum Tier',
+      icon: <MdTrendingUp className="w-12 h-12" />,
+      description: 'Highest tier with maximum benefits and unlimited client management',
+      benefits: [
+        'Up to 30% discount on services',
+        '15% commission on recurring revenue',
+        'Unlimited clients',
+        'Priority support and SLA guarantees',
+        'Full white-label solution with custom integrations'
       ]
     },
     {
@@ -68,7 +105,7 @@ export default function PartnerPage() {
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Partner with Slyker Tech
+            Why Partner with Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">

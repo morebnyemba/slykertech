@@ -5,13 +5,13 @@ import { generatePageMetadata } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Investment Opportunities',
-  description: 'Invest in Africa\'s digital transformation. Join Slyker Tech in building enterprise cloud solutions and driving technological innovation across the continent.',
+  description: 'Invest in Africa\'s digital transformation. Join Slyker Tech Web Services in building enterprise cloud solutions and driving technological innovation across the continent.',
   url: '/invest'
 });
 
 export default function InvestPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in investment opportunities..."
+    "Hi Slyker Tech Web Services! I'm interested in investment opportunities..."
   );
 
   const focusAreas = [
@@ -53,7 +53,7 @@ export default function InvestPage() {
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Invest in Slyker Tech
+            Why Invest in Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">

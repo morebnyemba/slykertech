@@ -97,7 +97,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <p className="text-lg text-gray-700 dark:text-gray-300">
-                Founded in 2020 by Moreblessing Nyemba, Slyker Tech began as a Zimbabwean-focused web services provider.
+                Founded in 2020 by Moreblessing Nyemba, Slyker Tech Web Services began as a Zimbabwean-focused web services provider.
                 Through pandemic challenges and market evolution, we&apos;ve emerged as a pan-African digital transformation
                 partner.
               </p>
@@ -192,13 +192,13 @@ export default function AboutPage() {
                 <p className="text-darkgoldenrod dark:text-yellow-400 text-lg mb-6">Founder & Lead Architect</p>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Visionary developer with deep expertise in African fintech infrastructure.
-                  Founded Slyker Tech to bridge the digital divide through accessible,
+                  Founded Slyker Tech Web Services to bridge the digital divide through accessible,
                   enterprise-grade solutions tailored for African businesses.
                 </p>
                 <div className="flex gap-4">
                   <div className="p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Slyker Tech is built on my passion for improving lives with technology.
+                      Slyker Tech Web Services is built on my passion for improving lives with technology.
                     </p>
                   </div>
                   <div className="p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">

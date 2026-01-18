@@ -23,7 +23,7 @@ const HomePageClientView = () => {
     const [selectedExtension, setSelectedExtension] = useState('.com');
 
     const handleWhatsAppClick = () => {
-        const message = encodeURIComponent("Hi Slyker Tech! I'm interested in your services.");
+        const message = encodeURIComponent("Hi Slyker Tech Web Services! I'm interested in your services.");
         window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
     };
 
@@ -396,7 +396,7 @@ const HomePageClientView = () => {
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-16">
                             <h2 className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-4">
-                                Why Choose Slyker Tech
+                                Why Choose Slyker Tech Web Services
                             </h2>
                             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                                 Your trusted partner for digital transformation across Africa

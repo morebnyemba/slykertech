@@ -163,7 +163,7 @@ export default function LiveChatWidget() {
             <div className="flex items-center gap-2">
               <FaComments className="w-5 h-5" />
               <div>
-                <h3 className="font-bold">Slyker Tech Live Chat</h3>
+                <h3 className="font-bold">Slyker Tech Web Services Live Chat</h3>
                 <p className="text-xs opacity-90">
                   {isConnected ? 'Connected' : 'Connecting...'}
                 </p>

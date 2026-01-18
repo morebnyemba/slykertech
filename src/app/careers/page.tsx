@@ -5,13 +5,13 @@ import { generatePageMetadata } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Careers',
-  description: 'Join the Slyker Tech team and help drive digital transformation across Africa. Explore career opportunities in software development, cloud infrastructure, and fintech.',
+  description: 'Join the Slyker Tech Web Services team and help drive digital transformation across Africa. Explore career opportunities in software development, cloud infrastructure, and fintech.',
   url: '/careers'
 });
 
 export default function CareersPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in career opportunities..."
+    "Hi Slyker Tech Web Services! I'm interested in career opportunities..."
   );
 
   const benefits = [
@@ -93,7 +93,7 @@ export default function CareersPage() {
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Work at Slyker Tech
+            Why Work at Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow text-center">
@@ -136,7 +136,7 @@ export default function CareersPage() {
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-3xl p-12">
             <blockquote className="text-center">
               <p className="text-2xl text-gray-700 dark:text-gray-300 italic mb-6">
-                &quot;At Slyker Tech, we&apos;re not just building software—we&apos;re empowering Africa&apos;s digital future and creating opportunities for communities across the continent.&quot;
+                &quot;At Slyker Tech Web Services, we&apos;re not just building software—we&apos;re empowering Africa&apos;s digital future and creating opportunities for communities across the continent.&quot;
               </p>
               <footer className="text-darkgoldenrod dark:text-yellow-400 font-semibold">
                 — Moreblessing Nyemba, Founder
@@ -289,7 +289,7 @@ export default function CareersPage() {
                     Final Interview & Offer
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Meet the team, discuss terms, and receive your offer to join Slyker Tech
+                    Meet the team, discuss terms, and receive your offer to join Slyker Tech Web Services
                   </p>
                 </div>
               </li>
@@ -305,7 +305,7 @@ export default function CareersPage() {
             Ready to Join Our Team?
           </h2>
           <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
-            Start your career journey with Slyker Tech and make an impact across Africa
+            Start your career journey with Slyker Tech Web Services and make an impact across Africa
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a

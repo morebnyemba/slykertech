@@ -43,7 +43,7 @@ export default function Header() {
   }, [fetchCart, token]);
 
   const handleWhatsAppClick = () => {
-    const message = encodeURIComponent("Hi Slyker Tech! I'm in need of one of your services.");
+    const message = encodeURIComponent("Hi Slyker Tech Web Services! I'm in need of one of your services.");
     window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
   };
 
@@ -128,7 +128,7 @@ export default function Header() {
           </a>
 
           <a
-            href="mailto:support@slykertech.co.zw?subject=Service Inquiry&body=Hello Slyker Tech,%0D%0A%0D%0AI'm interested in your services. Please contact me with more information.%0D%0A%0D%0ABest regards,"
+            href="mailto:support@slykertech.co.zw?subject=Service Inquiry&body=Hello Slyker Tech Web Services,%0D%0A%0D%0AI'm interested in your services. Please contact me with more information.%0D%0A%0D%0ABest regards,"
             className="flex items-center gap-4 p-4 bg-purple-100 dark:bg-purple-900 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors w-full"
           >
             <div className="bg-purple-600 dark:bg-purple-500 p-2 rounded-full">

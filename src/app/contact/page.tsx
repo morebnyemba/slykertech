@@ -7,7 +7,7 @@ import { MdAccessTime } from 'react-icons/md';
 
 export default function ContactPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'd like to get in touch about..."
+    "Hi Slyker Tech Web Services! I'd like to get in touch about..."
   );
 
   return (
@@ -129,7 +129,7 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
           <div className="rounded-2xl overflow-hidden shadow-xl">
             <iframe
-              title="Slyker Tech Location"
+              title="Slyker Tech Web Services Location"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d192122.28528871023!2d31.044403200000005!3d-17.832345599999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1931a17094880b63%3A0x1f01f408f5ce677b!2sSlyker%20Tech%20Web%20Services(STWS)!5e1!3m2!1sen!2szw!4v1746835401341!5m2!1sen!2szw"
               width="100%"
               height="400"

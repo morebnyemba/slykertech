@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
   return (
     <>
       <Head>
-        <title>Comprehensive Privacy Policy | Slyker Tech</title>
+        <title>Comprehensive Privacy Policy | Slyker Tech Web Services</title>
         <meta name="description" content="Detailed yet beautifully presented privacy policy compliant with global standards" />
       </Head>
 

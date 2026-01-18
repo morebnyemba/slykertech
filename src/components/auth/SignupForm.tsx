@@ -74,7 +74,7 @@ export default function SignupForm() {
               Create Account
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Join Slyker Tech today
+              Join Slyker Tech Web Services today
             </p>
           </div>
 

@@ -5,7 +5,7 @@ import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
     title: 'Digital Transformation Across Africa & Beyond',
-    description: 'Slyker Tech delivers enterprise-grade cloud solutions, AI integration, and custom software development across Africa and globally. From Cape Town to Cairo, we power business growth with cutting-edge technology.',
+    description: 'Slyker Tech Web Services delivers enterprise-grade cloud solutions, AI integration, and custom software development across Africa and globally. From Cape Town to Cairo, we power business growth with cutting-edge technology.',
     url: '/',
     images: [LOGO_IMAGE]
 });
