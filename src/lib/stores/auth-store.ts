@@ -29,7 +29,9 @@ interface AuthState {
     password: string;
     first_name: string;
     last_name: string;
-    mobile_number: string;
+    mobile_number?: string;
+    company_name?: string;
+    user_type?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   setUser: (user: User | null) => void;
