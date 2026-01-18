@@ -159,10 +159,10 @@ export default function Header() {
       </div>
 
       {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 sm:py-2 md:py-2.5 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center flex-shrink-0">
-          <div className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12">
+          <div className="relative w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20">
             <Image
               src="/images/stws.png"
               alt="Slyker Tech Web Services Logo"
