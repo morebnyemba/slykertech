@@ -4,6 +4,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
+import { generatePageMetadata } from '@/lib/seo-config';
+
+// Server metadata - exported before client component
+export async function generateMetadata() {
+  return generatePageMetadata({
+    title: 'Privacy Policy',
+    description: 'Learn how Slyker Tech protects your personal data and complies with global privacy standards.',
+    url: '/privacy-policy',
+  });
+}
 
 export default function PrivacyPolicy() {
   const [activeTab, setActiveTab] = useState('data-collection');

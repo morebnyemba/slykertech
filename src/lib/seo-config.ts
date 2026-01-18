@@ -105,8 +105,8 @@ export const generatePageMetadata = (meta: {
       width: 490,
       height: 112,
       alt: formatTitle(meta.title),
-      type: 'image/png'
-    })) || (defaultMetadata.openGraph?.images as any[])
+      type: 'image/png' as const
+    })) || defaultMetadata.openGraph?.images
   },
   twitter: {
     ...defaultMetadata.twitter,

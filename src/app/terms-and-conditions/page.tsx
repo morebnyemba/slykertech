@@ -3,10 +3,9 @@ import Link from 'next/link';
 
 export async function generateMetadata() {
   return generatePageMetadata({
-    title: 'Customer-Friendly Terms',
-    description: 'Fair terms that protect both you and our ability to improve services',
+    title: 'Terms and Conditions',
+    description: 'Fair terms of service that protect both you and our ability to improve services.',
     url: '/terms-and-conditions',
-    keywords: ['terms of service', 'user agreement', 'service terms'],
   });
 }
 

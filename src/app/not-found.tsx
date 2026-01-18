@@ -1,5 +1,31 @@
 import Link from 'next/link';
 import { FaHome, FaTools, FaExclamationTriangle } from 'react-icons/fa';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found | Slyker Tech',
+  description: 'The page you are looking for could not be found. Visit our homepage or contact support.',
+  openGraph: {
+    title: '404 - Page Not Found',
+    description: 'The page you are looking for could not be found.',
+    type: 'website',
+    url: 'https://slykertech.co.zw/404',
+    images: [
+      {
+        url: '/images/stws.png',
+        width: 490,
+        height: 112,
+        alt: 'Slyker Tech Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: '404 - Page Not Found',
+    description: 'The page you are looking for could not be found.',
+    images: ['/images/stws.png'],
+  },
+};
 
 export default function NotFound() {
   return (
