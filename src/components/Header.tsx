@@ -16,6 +16,14 @@ export default function Header() {
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
   const { isAuthenticated, user, logout, token } = useAuthStore();
   const { fetchCart, getItemCount } = useCartStore();
   const router = useRouter();
@@ -403,31 +411,84 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-        menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+        menuOpen ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
       }`}>
-        <nav className="flex flex-col items-stretch bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-2">
+        <nav className="flex flex-col items-stretch bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-2 overflow-y-auto max-h-[calc(70vh-140px)]">
           <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
 
-          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Company</div>
-          {companyLinks.map((link) => (
-            <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
-          ))}
+          {/* Company Section */}
+          <button
+            onClick={() => toggleSection('company')}
+            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+          >
+            Company
+            <span className={`transform transition-transform ${expandedSections['company'] ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSections['company'] && (
+            <>
+              {companyLinks.map((link) => (
+                <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
+              ))}
+            </>
+          )}
 
-          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Products</div>
-          {productLinks.map((link) => (
-            <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
-          ))}
+          {/* Products Section */}
+          <button
+            onClick={() => toggleSection('products')}
+            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+          >
+            Products
+            <span className={`transform transition-transform ${expandedSections['products'] ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSections['products'] && (
+            <>
+              {productLinks.map((link) => (
+                <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
+              ))}
+            </>
+          )}
 
-          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Services</div>
-          {serviceCategories.map((service) => (
-            <MobileNavLink key={service.name} href={service.href} label={service.name} onClick={() => setMenuOpen(false)} />
-          ))}
+          {/* Services Section */}
+          <button
+            onClick={() => toggleSection('services')}
+            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+          >
+            Services
+            <span className={`transform transition-transform ${expandedSections['services'] ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSections['services'] && (
+            <>
+              {serviceCategories.map((service) => (
+                <MobileNavLink key={service.name} href={service.href} label={service.name} onClick={() => setMenuOpen(false)} />
+              ))}
+            </>
+          )}
 
-          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Contact</div>
-          <MobileNavLink href="/contact" label="Contact Page" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="tel:+263787211325" label="Call +263 78 721 1325" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="mailto:support@slykertech.co.zw" label="Email Support" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="https://wa.me/263787211325" label="WhatsApp Chat" onClick={() => setMenuOpen(false)} />
+          {/* Contact Section */}
+          <button
+            onClick={() => toggleSection('contact')}
+            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+          >
+            Contact
+            <span className={`transform transition-transform ${expandedSections['contact'] ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {expandedSections['contact'] && (
+            <>
+              <MobileNavLink href="/contact" label="Contact Page" onClick={() => setMenuOpen(false)} />
+              <MobileNavLink href="tel:+263787211325" label="Call +263 78 721 1325" onClick={() => setMenuOpen(false)} />
+              <MobileNavLink href="mailto:support@slykertech.co.zw" label="Email Support" onClick={() => setMenuOpen(false)} />
+              <MobileNavLink href="https://wa.me/263787211325" label="WhatsApp Chat" onClick={() => setMenuOpen(false)} />
+            </>
+          )}
+          
           
           {isAuthenticated ? (
             <>
