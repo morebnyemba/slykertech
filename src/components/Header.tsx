@@ -53,21 +53,21 @@ export default function Header() {
   ];
 
   const companyLinks = [
-    { name: 'About Us', href: '/about' },
-    { name: 'Invest', href: '/invest' },
-    { name: 'Partner', href: '/partner' },
-    { name: 'Our Portfolio', href: '/portfolio' },
-    { name: 'Support', href: '/support' },
-    { name: 'Join Us', href: '/careers' }
+    { name: 'About Us', href: '/about', description: 'Mission, vision, and leadership' },
+    { name: 'Invest', href: '/invest', description: 'Opportunities and investor relations' },
+    { name: 'Partner', href: '/partner', description: 'Alliances, resellers, and agencies' },
+    { name: 'Our Portfolio', href: '/portfolio', description: 'Selected work and case studies' },
+    { name: 'Support', href: '/support', description: 'Help center and guides' },
+    { name: 'Join Us', href: '/careers', description: 'Careers and open roles' }
   ];
 
   const productLinks = [
-    { name: 'Managed WordPress', href: '/products/managed-wordpress' },
-    { name: 'Site Builder', href: '/products/site-builder' },
-    { name: 'Email & Collaboration Suite', href: '/products/email-suite' },
-    { name: 'SSL & Security Suite', href: '/products/security-suite' },
-    { name: 'CDN & Edge Caching', href: '/products/cdn' },
-    { name: 'Backups & Disaster Recovery', href: '/products/backups' }
+    { name: 'Managed WordPress', href: '/products/managed-wordpress', description: 'Optimized WP hosting with updates' },
+    { name: 'Site Builder', href: '/products/site-builder', description: 'Launch fast with drag-and-drop' },
+    { name: 'Email & Collaboration Suite', href: '/products/email-suite', description: 'Business email, calendar, docs' },
+    { name: 'SSL & Security Suite', href: '/products/security-suite', description: 'TLS, WAF, malware protection' },
+    { name: 'CDN & Edge Caching', href: '/products/cdn', description: 'Global acceleration and caching' },
+    { name: 'Backups & Disaster Recovery', href: '/products/backups', description: 'Snapshots, restores, continuity' }
   ];
 
   const ContactModal = () => (
@@ -249,15 +249,18 @@ export default function Header() {
             </button>
 
             {showCompanyDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                {companyLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
-                  >
-                    {link.name}
-                  </Link>
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {companyLinks.map((link, idx) => (
+                  <div key={link.name}>
+                    <Link
+                      href={link.href}
+                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                    >
+                      <div className="font-medium">{link.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{link.description}</div>
+                    </Link>
+                    {idx < companyLinks.length - 1 && <div className="border-t border-gray-100 dark:border-gray-700 mx-4" />}
+                  </div>
                 ))}
               </div>
             )}
@@ -276,15 +279,18 @@ export default function Header() {
             </button>
 
             {showProductsDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                {productLinks.map((product) => (
-                  <Link
-                    key={product.name}
-                    href={product.href}
-                    className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
-                  >
-                    {product.name}
-                  </Link>
+              <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {productLinks.map((product, idx) => (
+                  <div key={product.name}>
+                    <Link
+                      href={product.href}
+                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                    >
+                      <div className="font-medium">{product.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{product.description}</div>
+                    </Link>
+                    {idx < productLinks.length - 1 && <div className="border-t border-gray-100 dark:border-gray-700 mx-4" />}
+                  </div>
                 ))}
               </div>
             )}
@@ -303,23 +309,44 @@ export default function Header() {
             </button>
             
             {showServicesDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                {serviceCategories.map((category) => (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    className="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{category.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{category.description}</div>
-                  </Link>
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {serviceCategories.map((category, idx) => (
+                  <div key={category.name}>
+                    <Link
+                      href={category.href}
+                      className="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{category.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{category.description}</div>
+                    </Link>
+                    {idx < serviceCategories.length - 1 && <div className="border-t border-gray-100 dark:border-gray-700 mx-4" />}
+                  </div>
                 ))}
               </div>
             )}
           </div>
           
-          <NavLink href="/portfolio" label="Portfolio" />
-          <NavLink href="/contact" label="Contact" />
+          {/* Contact Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowContactModal(true)}
+            onMouseLeave={() => setShowContactModal(false)}
+          >
+            <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
+              Contact
+              <FaChevronDown className="w-3 h-3" />
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </button>
+
+            {showContactModal && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                <Link href="/contact" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Contact Page</Link>
+                <a href="tel:+263787211325" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Call +263 78 721 1325</a>
+                <a href="mailto:support@slykertech.co.zw" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Email Support</a>
+                <a href="https://wa.me/263787211325" target="_blank" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">WhatsApp Chat</a>
+              </div>
+            )}
+          </div>
 
           {/* Theme Toggle for Desktop */}
           <ThemeToggle />
@@ -395,8 +422,11 @@ export default function Header() {
             <MobileNavLink key={service.name} href={service.href} label={service.name} onClick={() => setMenuOpen(false)} />
           ))}
 
-          <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
+          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Contact</div>
+          <MobileNavLink href="/contact" label="Contact Page" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="tel:+263787211325" label="Call +263 78 721 1325" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="mailto:support@slykertech.co.zw" label="Email Support" onClick={() => setMenuOpen(false)} />
+          <MobileNavLink href="https://wa.me/263787211325" label="WhatsApp Chat" onClick={() => setMenuOpen(false)} />
           
           {isAuthenticated ? (
             <>
