@@ -2,14 +2,17 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = "Slyker Tech Web Services";
 export const BASE_URL = "https://slykertech.co.zw";
-export const DEFAULT_OG_IMAGE = "/images/stws.png";
+export const DEFAULT_OG_IMAGE = "/images/og-preview.png";
+export const TWITTER_IMAGE = "/images/og-preview-twitter.png";
+export const LOGO_IMAGE = "/images/stws.png";
 export const FAVICON = "/images/stws.ico";
 
 export const SOCIAL_HANDLES = {
   twitter: "@SlykerTech",
   facebook: "SlykerTech",
   linkedin: "company/slykertech",
-  instagram: "slykertech"
+  instagram: "slykertech",
+  whatsapp: "+263787211325"
 };
 
 // Helper function to format titles
@@ -19,7 +22,7 @@ const formatTitle = (pageTitle?: string) =>
 export const defaultMetadata: Metadata = {
   title: SITE_NAME,
   description: "Professional web hosting, domain services, web development, and design solutions. Trusted global provider of digital services.",
-  keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting"],
+  keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting", "website development", "e-commerce solutions"],
   metadataBase: new URL(BASE_URL),
   authors: [{ name: "Slyker Tech", url: BASE_URL }],
   creator: "Slyker Tech",
@@ -29,9 +32,25 @@ export const defaultMetadata: Metadata = {
     address: false,
     telephone: false,
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   icons: {
     icon: FAVICON,
-    apple: "/images/stws.png",
+    apple: LOGO_IMAGE,
   },
   alternates: {
     canonical: BASE_URL
@@ -43,13 +62,24 @@ export const defaultMetadata: Metadata = {
     title: SITE_NAME,
     description: "Your complete digital partner for web services, hosting, domains, and development",
     url: BASE_URL,
-    images: [{
-      url: DEFAULT_OG_IMAGE,
-      width: 1200,
-      height: 630,
-      alt: SITE_NAME,
-      type: 'image/png'
-    }]
+    emails: ['support@slykertech.co.zw'],
+    phoneNumbers: ['+263787211325'],
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+        type: 'image/png'
+      },
+      {
+        url: LOGO_IMAGE,
+        width: 512,
+        height: 512,
+        alt: `${SITE_NAME} Logo`,
+        type: 'image/png'
+      }
+    ]
   },
   twitter: {
     card: 'summary_large_image',
@@ -57,7 +87,7 @@ export const defaultMetadata: Metadata = {
     creator: SOCIAL_HANDLES.twitter,
     title: SITE_NAME,
     description: "Professional web services and digital solutions",
-    images: [DEFAULT_OG_IMAGE]
+    images: [TWITTER_IMAGE]
   }
 };
 
@@ -72,20 +102,23 @@ export const generatePageMetadata = (meta: {
   description: meta.description || defaultMetadata.description,
   openGraph: {
     ...defaultMetadata.openGraph,
+    type: 'website',
     title: formatTitle(meta.title),
     description: meta.description || defaultMetadata.description,
-    url: meta.url || BASE_URL,
+    url: meta.url ? `${BASE_URL}${meta.url}` : BASE_URL,
     images: meta.images?.map(img => ({
       url: img,
       width: 1200,
       height: 630,
-      alt: formatTitle(meta.title)
-    })) || defaultMetadata.openGraph?.images
+      alt: formatTitle(meta.title),
+      type: 'image/png'
+    })) || (defaultMetadata.openGraph?.images as any[])
   },
   twitter: {
     ...defaultMetadata.twitter,
+    card: 'summary_large_image',
     title: formatTitle(meta.title),
     description: meta.description || defaultMetadata.description,
-    images: meta.images || defaultMetadata.twitter?.images
+    images: meta.images || [TWITTER_IMAGE]
   }
 });

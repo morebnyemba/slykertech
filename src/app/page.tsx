@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
-import HomePageClientView from './HomePageClientView'; // Corrected import path
-import { generatePageMetadata } from '@/lib/seo-config';
+import HomePageClientView from './HomePageClientView';
+import { generatePageMetadata, DEFAULT_OG_IMAGE } from '@/lib/seo-config';
 import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
-    title: 'Grow Your African Business Online with Expert Web Services & Digital Solutions',
-    description: 'Slyker Tech provides cutting-edge digital transformation services including cloud solutions, AI integration, and custom software development for enterprises.',
-    url: 'https://slykertech.co.zw'
+    title: 'Grow Your African Business Online',
+    description: 'Slyker Tech provides cutting-edge digital transformation services including cloud solutions, AI integration, and custom software development for enterprises worldwide.',
+    url: '/',
+    images: [DEFAULT_OG_IMAGE]
 });
 
 export default function HomePage() {

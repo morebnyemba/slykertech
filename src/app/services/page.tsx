@@ -1,14 +1,15 @@
 // app/services/page.tsx
 import { Metadata } from 'next';
 import ServicesClientView from './ServicesClientView';
-import { generatePageMetadata } from '@/lib/seo-config';
+import { generatePageMetadata, DEFAULT_OG_IMAGE } from '@/lib/seo-config';
 import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
 
 export async function generateMetadata(): Promise<Metadata> {
   return generatePageMetadata({
     title: 'Our Services',
-    description: 'Explore our comprehensive digital services for your business needs',
-    url: '/services'
+    description: 'Professional web hosting, domain registration, web development, design services, and custom digital solutions for your business',
+    url: '/services',
+    images: [DEFAULT_OG_IMAGE]
   });
 }
 

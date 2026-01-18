@@ -7,14 +7,15 @@ import { FiMail, FiMessageSquare, FiGithub, FiCode, FiLayers } from 'react-icons
 
 export const metadata: Metadata = {
   title: 'Portfolio | Slyker Tech Web Services',
-  description: 'View our portfolio of web development, design, and digital solutions projects.',
-  keywords: ['portfolio', 'projects', 'web development', 'case studies'],
+  description: 'View our portfolio of successful web development projects, design work, and digital solutions delivered to clients worldwide.',
+  keywords: ['portfolio', 'projects', 'case studies', 'web development', 'design'],
   openGraph: {
     title: 'Portfolio | Slyker Tech Web Services',
-    description: 'Explore our completed projects and digital solutions',
+    description: 'Explore our professional projects and digital solutions portfolio',
     url: 'https://slykertech.co.zw/portfolio',
+    type: 'website',
     images: [{
-      url: '/images/stws.png',
+      url: '/images/og-preview.png',
       width: 1200,
       height: 630,
       alt: 'Slyker Tech Portfolio'
@@ -23,8 +24,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Portfolio | Slyker Tech Web Services',
-    description: 'View our completed projects',
-    images: ['/images/stws.png']
+    description: 'View our successful projects',
+    images: ['/images/og-preview-twitter.png']
   }
 };
 
