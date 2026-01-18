@@ -7,7 +7,8 @@ import {
     FaGoogle, FaAmazon, FaShieldAlt, FaMobileAlt, FaCode, FaDesktop,
     FaServer, FaUserShield, FaNetworkWired, FaPython, FaPhp,
     FaLaravel, FaAndroid, FaApple, FaDocker, FaAws,
-    FaDatabase, FaReact, FaNodeJs, FaRegStar, FaRegComments
+    FaDatabase, FaReact, FaNodeJs, FaRegStar, FaRegComments,
+    FaCcVisa, FaCcMastercard, FaCreditCard, FaBitcoin
 } from 'react-icons/fa';
 import {
     MdSecurity, MdSupport, MdOutlineEngineering,
@@ -300,7 +301,7 @@ const HomePageClientView = () => {
 
                         {/* Subheading with subtle animation */}
                         <p className="mt-8 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto animate-fade-in-up">
-                            Empowering enterprises with full-stack digital transformation services across cloud, AI, and modern application development.
+                            Powering digital transformation across Africa and beyond. From Cape Town to Cairo, Lagos to Nairobi, we deliver enterprise-grade cloud solutions, AI integration, and custom software development that drives business growth globally.
                         </p>
 
                         {/* CTA Buttons with hover effects */}
@@ -310,13 +311,13 @@ const HomePageClientView = () => {
                                 className="flex items-center justify-center gap-3 px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl animate-pulse-slow"
                             >
                                 <FaWhatsapp className="w-5 h-5" />
-                                Get Started Now
+                                Start Your Journey
                             </button>
                             <Link
-                                href="/services"
+                                href="/contact"
                                 className="px-8 py-4 rounded-lg border-2 border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 font-semibold transition-colors backdrop-blur-sm"
                             >
-                                Explore Our Services
+                                Talk to an Expert
                             </Link>
                         </div>
 
@@ -698,6 +699,78 @@ const HomePageClientView = () => {
                                     <Icon className="w-24 h-24 mx-auto text-blue-600 dark:text-blue-400" />
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Payment Methods Section */}
+                <section className="relative py-16 bg-white dark:bg-gray-950 overflow-hidden">
+                    <div className="absolute inset-0 opacity-5 dark:opacity-[0.02]">
+                        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                            <pattern id="payment-pattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                                <circle cx="40" cy="40" r="1.5" className="fill-blue-500" />
+                            </pattern>
+                            <rect width="100%" height="100%" fill="url(#payment-pattern)" />
+                        </svg>
+                    </div>
+                    
+                    <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
+                        <div className="text-center mb-12">
+                            <h3 className="text-3xl font-bold text-blue-900 dark:text-blue-300 mb-4">
+                                Flexible Payment Options
+                            </h3>
+                            <p className="text-lg text-gray-600 dark:text-gray-400">
+                                We accept all major payment methods for your convenience
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {/* Card Payments */}
+                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                                <div className="flex justify-center gap-4 mb-6">
+                                    <FaCcVisa className="text-5xl text-blue-600 dark:text-blue-400" />
+                                    <FaCcMastercard className="text-5xl text-orange-500 dark:text-orange-400" />
+                                    <FaCreditCard className="text-5xl text-gray-600 dark:text-gray-400" />
+                                </div>
+                                <h4 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-2">
+                                    Credit & Debit Cards
+                                </h4>
+                                <p className="text-center text-gray-600 dark:text-gray-400">
+                                    Visa, Mastercard, and all major cards accepted
+                                </p>
+                            </div>
+
+                            {/* Mobile Payments */}
+                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                                <div className="flex justify-center mb-6">
+                                    <FaMobileAlt className="text-6xl text-green-600 dark:text-green-400" />
+                                </div>
+                                <h4 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-2">
+                                    Mobile Money
+                                </h4>
+                                <p className="text-center text-gray-600 dark:text-gray-400">
+                                    EcoCash, M-Pesa, and other mobile payment platforms
+                                </p>
+                            </div>
+
+                            {/* Cryptocurrency */}
+                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                                <div className="flex justify-center mb-6">
+                                    <FaBitcoin className="text-6xl text-orange-500 dark:text-orange-400" />
+                                </div>
+                                <h4 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-2">
+                                    Cryptocurrency
+                                </h4>
+                                <p className="text-center text-gray-600 dark:text-gray-400">
+                                    Bitcoin and other digital currencies accepted
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-12 text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                🔒 All transactions are secured with industry-standard encryption
+                            </p>
                         </div>
                     </div>
                 </section>

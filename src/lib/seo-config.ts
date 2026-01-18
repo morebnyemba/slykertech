@@ -22,8 +22,8 @@ const formatTitle = (pageTitle?: string) =>
 
 export const defaultMetadata: Metadata = {
   title: SITE_NAME,
-  description: "Professional web hosting, domain services, web development, and design solutions. Trusted global provider of digital services.",
-  keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting", "website development", "e-commerce solutions"],
+  description: "Leading digital transformation partner across Africa and beyond. Enterprise cloud solutions, AI integration, custom software development, and modern application services.",
+  keywords: ["web hosting", "domain registration", "web development", "web design", "digital services", "cloud hosting", "website development", "e-commerce solutions", "africa technology", "digital transformation", "AI integration", "cloud solutions"],
   metadataBase: new URL(BASE_URL),
   authors: [{ name: "Slyker Tech", url: BASE_URL }],
   creator: "Slyker Tech",
@@ -61,7 +61,7 @@ export const defaultMetadata: Metadata = {
     locale: 'en_US',
     siteName: SITE_NAME,
     title: SITE_NAME,
-    description: "Your complete digital partner for web services, hosting, domains, and development",
+    description: "Powering digital transformation across Africa and beyond with enterprise cloud solutions, AI integration, and custom software development",
     url: BASE_URL,
     emails: ['support@slykertech.co.zw'],
     phoneNumbers: ['+263787211325'],
@@ -80,7 +80,7 @@ export const defaultMetadata: Metadata = {
     site: SOCIAL_HANDLES.twitter,
     creator: SOCIAL_HANDLES.twitter,
     title: SITE_NAME,
-    description: "Professional web services and digital solutions",
+    description: "Digital transformation services across Africa and beyond",
     images: [TWITTER_IMAGE]
   }
 };
