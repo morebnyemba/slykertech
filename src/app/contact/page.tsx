@@ -1,33 +1,9 @@
 // app/contact/page.tsx
 'use client';
-
-import { Metadata } from 'next';
 import { FaWhatsapp, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa';
 import { MdAccessTime } from 'react-icons/md';
 
-export const metadata: Metadata = {
-  title: 'Contact Us | Slyker Tech Web Services',
-  description: 'Get in touch with Slyker Tech for all your web development, hosting, and digital service needs. WhatsApp, email, or phone support available.',
-  keywords: ['contact', 'support', 'web services', 'reach out', 'customer service'],
-  openGraph: {
-    title: 'Contact Us | Slyker Tech Web Services',
-    description: 'Reach out to our expert team for professional web services',
-    url: 'https://slykertech.co.zw/contact',
-    type: 'website',
-    images: [{
-      url: '/images/og-preview.png',
-      width: 1200,
-      height: 630,
-      alt: 'Contact Slyker Tech'
-    }]
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Contact Us | Slyker Tech Web Services',
-    description: 'Get professional support from our team',
-    images: ['/images/og-preview-twitter.png']
-  }
-};
+// Metadata is defined in route segment layout.tsx to avoid exporting from a Client Component
 
 export default function ContactPage() {
   const whatsappMessage = encodeURIComponent(

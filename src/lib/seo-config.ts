@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = "Slyker Tech Web Services";
 export const BASE_URL = "https://slykertech.co.zw";
-export const DEFAULT_OG_IMAGE = "/images/og-preview.png";
-export const TWITTER_IMAGE = "/images/og-preview-twitter.png";
+// Align with solutionmerchants: use logo for OG/Twitter previews
+export const DEFAULT_OG_IMAGE = "/images/stws.png";
+export const TWITTER_IMAGE = "/images/stws.png";
 export const LOGO_IMAGE = "/images/stws.png";
 export const FAVICON = "/images/stws.ico";
 
@@ -66,16 +67,9 @@ export const defaultMetadata: Metadata = {
     phoneNumbers: ['+263787211325'],
     images: [
       {
-        url: DEFAULT_OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-        type: 'image/png'
-      },
-      {
         url: LOGO_IMAGE,
-        width: 512,
-        height: 512,
+        width: 490,
+        height: 112,
         alt: `${SITE_NAME} Logo`,
         type: 'image/png'
       }
@@ -108,17 +102,21 @@ export const generatePageMetadata = (meta: {
     url: meta.url ? `${BASE_URL}${meta.url}` : BASE_URL,
     images: meta.images?.map(img => ({
       url: img,
-      width: 1200,
-      height: 630,
+      width: 490,
+      height: 112,
       alt: formatTitle(meta.title),
       type: 'image/png'
     })) || (defaultMetadata.openGraph?.images as any[])
   },
   twitter: {
     ...defaultMetadata.twitter,
-    card: 'summary_large_image',
+    // Solutionmerchants uses summary for most pages; mirror that
+    card: 'summary',
     title: formatTitle(meta.title),
     description: meta.description || defaultMetadata.description,
     images: meta.images || [TWITTER_IMAGE]
+  },
+  alternates: {
+    canonical: meta.url ? `${BASE_URL}${meta.url}` : BASE_URL
   }
 });
