@@ -38,6 +38,8 @@ class InvestmentSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 class InvestmentCreateSerializer(serializers.ModelSerializer):
+    start_date = serializers.DateTimeField(required=False)
+    
     class Meta:
         model = Investment
         fields = ['package', 'amount', 'start_date']

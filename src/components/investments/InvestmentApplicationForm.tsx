@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaTimes } from 'react-icons/fa';
 
@@ -29,12 +29,12 @@ export default function InvestmentApplicationForm({ package: pkg, onClose }: Inv
   const [message, setMessage] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('access_token');
       setIsAuthenticated(!!token);
     }
-  });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,8 +88,7 @@ export default function InvestmentApplicationForm({ package: pkg, onClose }: Inv
         },
         body: JSON.stringify({
           package: pkg.id,
-          amount: parseFloat(amount),
-          start_date: new Date().toISOString()
+          amount: parseFloat(amount)
         })
       });
 
