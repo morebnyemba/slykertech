@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Development Services | Slyker Tech',
+  title: 'Development Services | Slyker Tech Web Services',
   description: 'Professional web, mobile, desktop, and hybrid application development services.',
 };
 

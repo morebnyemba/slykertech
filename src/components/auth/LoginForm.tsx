@@ -43,7 +43,7 @@ export default function LoginForm() {
               Welcome Back
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign in to your Slyker Tech account
+              Sign in to your Slyker Tech Web Services account
             </p>
           </div>
 

@@ -1,17 +1,58 @@
-import type { Metadata } from 'next';
-import { FaUsers, FaHeart, FaRocket, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
-import { MdWork, MdTrendingUp, MdHealthAndSafety } from 'react-icons/md';
-import { generatePageMetadata } from '@/lib/seo-config';
+'use client';
 
-export const metadata: Metadata = generatePageMetadata({
-  title: 'Careers',
-  description: 'Join the Slyker Tech team and help drive digital transformation across Africa. Explore career opportunities in software development, cloud infrastructure, and fintech.',
-  url: '/careers'
-});
+import { useState, useEffect } from 'react';
+import { FaUsers, FaHeart, FaRocket, FaWhatsapp, FaEnvelope, FaFilter } from 'react-icons/fa';
+import { MdWork, MdTrendingUp, MdHealthAndSafety } from 'react-icons/md';
+
+interface JobPosting {
+  id: number;
+  title: string;
+  description: string;
+  employment_type: string;
+  location: string;
+  salary_range?: string;
+  requirements: string;
+  responsibilities: string;
+  posted_date: string;
+  deadline: string;
+  is_active: boolean;
+  application_count: number;
+}
 
 export default function CareersPage() {
+  const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+  
+  const fetchJobs = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${API_URL}/jobs/postings/?is_active=true`);
+      const data = await response.json();
+      setJobs(data.results || data);
+    } catch {
+      // Error fetching jobs
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const filteredJobs = jobs.filter(job => {
+    const typeMatch = selectedType === 'all' || job.employment_type === selectedType;
+    const locationMatch = selectedLocation === 'all' || job.location.toLowerCase().includes(selectedLocation.toLowerCase());
+    return typeMatch && locationMatch;
+  });
+  
+  const employmentTypes = Array.from(new Set(jobs.map(j => j.employment_type)));
+  const locations = Array.from(new Set(jobs.map(j => j.location)));
+  
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in career opportunities..."
+    "Hi Slyker Tech Web Services! I'm interested in career opportunities..."
   );
 
   const benefits = [
@@ -37,44 +78,6 @@ export default function CareersPage() {
     }
   ];
 
-  const openPositions = [
-    {
-      title: 'Senior Full-Stack Developer',
-      location: 'Remote (Africa)',
-      type: 'Full-time',
-      description: 'Build enterprise cloud solutions using React, Node.js, and modern infrastructure. 5+ years experience required.',
-      skills: ['React', 'Node.js', 'TypeScript', 'Docker', 'AWS/DigitalOcean']
-    },
-    {
-      title: 'DevOps Engineer',
-      location: 'Remote (Africa)',
-      type: 'Full-time',
-      description: 'Manage cloud infrastructure, CI/CD pipelines, and ensure 99.9% uptime for client services.',
-      skills: ['Kubernetes', 'Docker', 'CI/CD', 'Linux', 'Monitoring']
-    },
-    {
-      title: 'Fintech Integration Specialist',
-      location: 'Harare / Remote',
-      type: 'Full-time',
-      description: 'Integrate payment gateways, mobile money solutions, and financial APIs across African markets.',
-      skills: ['API Integration', 'Payment Systems', 'Mobile Money', 'Security']
-    },
-    {
-      title: 'UI/UX Designer',
-      location: 'Remote (Africa)',
-      type: 'Contract',
-      description: 'Design intuitive interfaces for web and mobile applications serving African users.',
-      skills: ['Figma', 'User Research', 'Prototyping', 'Responsive Design']
-    },
-    {
-      title: 'Technical Support Engineer',
-      location: 'Harare',
-      type: 'Full-time',
-      description: 'Provide technical support to clients across Africa via WhatsApp, email, and client portal.',
-      skills: ['Customer Support', 'Technical Troubleshooting', 'Communication']
-    }
-  ];
-
   return (
     <div className="relative z-10">
       {/* Hero Section */}
@@ -93,7 +96,7 @@ export default function CareersPage() {
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Work at Slyker Tech
+            Why Work at Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow text-center">
@@ -136,7 +139,7 @@ export default function CareersPage() {
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-3xl p-12">
             <blockquote className="text-center">
               <p className="text-2xl text-gray-700 dark:text-gray-300 italic mb-6">
-                &quot;At Slyker Tech, we&apos;re not just building software—we&apos;re empowering Africa&apos;s digital future and creating opportunities for communities across the continent.&quot;
+                &quot;At Slyker Tech Web Services, we&apos;re not just building software—we&apos;re empowering Africa&apos;s digital future and creating opportunities for communities across the continent.&quot;
               </p>
               <footer className="text-darkgoldenrod dark:text-yellow-400 font-semibold">
                 — Moreblessing Nyemba, Founder
@@ -180,56 +183,92 @@ export default function CareersPage() {
       {/* Open Positions */}
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
+          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-8">
             Open Positions
           </h2>
-          <div className="space-y-6">
-            {openPositions.map((position, index) => (
-              <div
-                key={index}
-                className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+          
+          {/* Filters */}
+          <div className="mb-8 flex flex-wrap gap-4 justify-center">
+            <div className="flex items-center gap-2">
+              <FaFilter className="text-darkgoldenrod dark:text-yellow-400" />
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-4 mb-3">
-                      <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300">
-                        {position.title}
-                      </h3>
-                      <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-300 rounded-full text-sm font-medium">
-                        {position.type}
-                      </span>
-                    </div>
-                    <p className="text-gray-500 dark:text-gray-500 mb-4">
-                      📍 {position.location}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      {position.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {position.skills.map((skill, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 bg-darkgoldenrod/10 dark:bg-yellow-400/10 text-darkgoldenrod dark:text-yellow-400 rounded-lg text-sm"
-                        >
-                          {skill}
+                <option value="all">All Types</option>
+                {employmentTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="all">All Locations</option>
+              {locations.map(loc => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+          
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">Loading positions...</p>
+            </div>
+          ) : filteredJobs.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">No open positions at the moment. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {filteredJobs.map((position) => (
+                <div
+                  key={position.id}
+                  className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-4 mb-3">
+                        <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300">
+                          {position.title}
+                        </h3>
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-300 rounded-full text-sm font-medium">
+                          {position.employment_type}
                         </span>
-                      ))}
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-500 mb-4">
+                        📍 {position.location}
+                        {position.salary_range && ` | 💰 ${position.salary_range}`}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        {position.description}
+                      </p>
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Requirements:</h4>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+                          {position.requirements}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="lg:w-auto">
-                    <a
-                      href={`https://wa.me/263787211325?text=${encodeURIComponent(`Hi! I'm interested in the ${position.title} position...`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors whitespace-nowrap"
-                    >
-                      Apply Now
-                    </a>
+                    <div className="lg:w-auto">
+                      <a
+                        href={`/careers/${position.id}`}
+                        className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors whitespace-nowrap mb-2"
+                      >
+                        View Details & Apply
+                      </a>
+                      <p className="text-sm text-gray-500 dark:text-gray-500 text-center">
+                        {position.application_count} applicants
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -289,7 +328,7 @@ export default function CareersPage() {
                     Final Interview & Offer
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Meet the team, discuss terms, and receive your offer to join Slyker Tech
+                    Meet the team, discuss terms, and receive your offer to join Slyker Tech Web Services
                   </p>
                 </div>
               </li>
@@ -305,7 +344,7 @@ export default function CareersPage() {
             Ready to Join Our Team?
           </h2>
           <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
-            Start your career journey with Slyker Tech and make an impact across Africa
+            Start your career journey with Slyker Tech Web Services and make an impact across Africa
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a

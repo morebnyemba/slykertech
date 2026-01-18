@@ -5,13 +5,13 @@ import { generatePageMetadata } from '@/lib/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Support & Help Center',
-  description: 'Get help with Slyker Tech services. Access FAQs, documentation, submit support tickets, and contact our technical support team across Africa.',
+  description: 'Get help with Slyker Tech Web Services. Access FAQs, documentation, submit support tickets, and contact our technical support team across Africa.',
   url: '/support'
 });
 
 export default function SupportPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I need support with..."
+    "Hi Slyker Tech Web Services! I need support with..."
   );
 
   const faqs = [

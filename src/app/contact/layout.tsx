@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Contact Us | Slyker Tech Web Services',
   description:
-    'Get in touch with Slyker Tech for all your web development, hosting, and digital service needs. WhatsApp, email, or phone support available.',
+    'Get in touch with Slyker Tech Web Services for all your web development, hosting, and digital service needs. WhatsApp, email, or phone support available.',
   keywords: ['contact', 'support', 'web services', 'reach out', 'customer service'],
   openGraph: {
     title: 'Contact Us | Slyker Tech Web Services',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         url: 'https://slykertech.co.zw/images/stws.png',
         width: 490,
         height: 112,
-        alt: 'Slyker Tech Logo',
+        alt: 'Slyker Tech Web Services Logo',
       },
     ],
   },

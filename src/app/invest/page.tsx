@@ -1,17 +1,59 @@
-import type { Metadata } from 'next';
-import { FaChartLine, FaHandshake, FaGlobeAfrica, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
-import { MdTrendingUp, MdSecurity, MdCloud } from 'react-icons/md';
-import { generatePageMetadata } from '@/lib/seo-config';
+'use client';
 
-export const metadata: Metadata = generatePageMetadata({
-  title: 'Investment Opportunities',
-  description: 'Invest in Africa\'s digital transformation. Join Slyker Tech in building enterprise cloud solutions and driving technological innovation across the continent.',
-  url: '/invest'
-});
+import { useState, useEffect } from 'react';
+import { FaChartLine, FaHandshake, FaGlobeAfrica, FaWhatsapp, FaEnvelope, FaCalculator } from 'react-icons/fa';
+import { MdTrendingUp, MdSecurity, MdCloud } from 'react-icons/md';
+import InvestmentApplicationForm from '@/components/investments/InvestmentApplicationForm';
+
+interface InvestmentPackage {
+  id: number;
+  name: string;
+  description: string;
+  minimum_amount: string;
+  expected_return: string;
+  duration_months: number;
+  is_active: boolean;
+  investment_count: number;
+}
 
 export default function InvestPage() {
+  const [packages, setPackages] = useState<InvestmentPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPackage, setSelectedPackage] = useState<InvestmentPackage | null>(null);
+  const [calculatorAmount, setCalculatorAmount] = useState('10000');
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+  
+  const fetchPackages = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${API_URL}/investments/packages/`);
+      const data = await response.json();
+      setPackages(data.results || data);
+    } catch {
+      // Error fetching investment packages
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const calculateReturn = (amount: number, returnRate: number, months: number) => {
+    const principal = amount;
+    const rate = returnRate / 100;
+    const returns = principal * rate;
+    return {
+      principal,
+      returns,
+      total: principal + returns,
+      monthlyReturn: returns / months
+    };
+  };
+  
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in investment opportunities..."
+    "Hi Slyker Tech Web Services! I'm interested in investment opportunities..."
   );
 
   const focusAreas = [
@@ -53,7 +95,7 @@ export default function InvestPage() {
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Invest in Slyker Tech
+            Why Invest in Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
@@ -128,6 +170,149 @@ export default function InvestPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Investment Packages */}
+      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-4">
+            Investment Packages
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+            Choose from our range of investment packages designed to match different investment goals and risk profiles
+          </p>
+          
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">Loading packages...</p>
+            </div>
+          ) : packages.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">No active investment packages at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-darkgoldenrod dark:hover:border-yellow-400"
+                >
+                  <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300 mb-4">
+                    {pkg.name}
+                  </h3>
+                  <div className="text-4xl font-extrabold text-darkgoldenrod dark:text-yellow-400 mb-4">
+                    {pkg.expected_return}%
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {pkg.description}
+                  </p>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Minimum:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-300">
+                        ${parseFloat(pkg.minimum_amount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Duration:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-300">
+                        {pkg.duration_months} months
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Active Investments:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-300">
+                        {pkg.investment_count}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedPackage(pkg);
+                      setCalculatorAmount(pkg.minimum_amount);
+                    }}
+                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors mb-2"
+                  >
+                    Calculate Returns
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedPackage(pkg);
+                      setShowApplicationForm(true);
+                    }}
+                    className="w-full px-6 py-3 bg-darkgoldenrod hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-500 text-white rounded-lg font-semibold transition-colors"
+                  >
+                    Invest Now
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Calculator */}
+          {selectedPackage && !showApplicationForm && (
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 shadow-lg">
+              <div className="flex items-center gap-3 mb-6">
+                <FaCalculator className="text-darkgoldenrod dark:text-yellow-400 text-2xl" />
+                <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300">
+                  Investment Calculator - {selectedPackage.name}
+                </h3>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
+                  Investment Amount ($)
+                </label>
+                <input
+                  type="number"
+                  value={calculatorAmount}
+                  onChange={(e) => setCalculatorAmount(e.target.value)}
+                  min={selectedPackage.minimum_amount}
+                  step="1000"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-lg font-semibold"
+                />
+              </div>
+              
+              {(() => {
+                const calc = calculateReturn(
+                  parseFloat(calculatorAmount) || 0,
+                  parseFloat(selectedPackage.expected_return),
+                  selectedPackage.duration_months
+                );
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Principal</p>
+                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
+                        ${calc.principal.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Returns</p>
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        +${calc.returns.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Value</p>
+                      <p className="text-2xl font-bold text-darkgoldenrod dark:text-yellow-400">
+                        ${calc.total.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Monthly Avg</p>
+                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        ${calc.monthlyReturn.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </section>
 
@@ -211,6 +396,17 @@ export default function InvestPage() {
           </div>
         </div>
       </section>
+      
+      {/* Investment Application Form Modal */}
+      {showApplicationForm && selectedPackage && (
+        <InvestmentApplicationForm
+          package={selectedPackage}
+          onClose={() => {
+            setShowApplicationForm(false);
+            setSelectedPackage(null);
+          }}
+        />
+      )}
     </div>
   );
 }

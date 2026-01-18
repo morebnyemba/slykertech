@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         url: 'https://slykertech.co.zw/images/stws.png',
         width: 490,
         height: 112,
-        alt: 'Slyker Tech Logo',
+        alt: 'Slyker Tech Web Services Logo',
       },
     ],
   },

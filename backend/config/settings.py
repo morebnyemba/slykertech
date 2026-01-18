@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'channels',
+    'django_filters',
     # Local apps
     'accounts',
     'clients',
@@ -74,6 +75,8 @@ INSTALLED_APPS = [
     'notifications',
     'reseller',
     'wallet',
+    'jobs',
+    'investments',
 ]
 
 MIDDLEWARE = [

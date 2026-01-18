@@ -5,7 +5,7 @@ import { generatePageMetadata } from '@/lib/seo-config';
 export async function generateMetadata(): Promise<Metadata> {
   return generatePageMetadata({
     title: 'Login',
-    description: 'Sign in to your Slyker Tech account',
+    description: 'Sign in to your Slyker Tech Web Services account',
     url: '/login',
   });
 }

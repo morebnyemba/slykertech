@@ -11,7 +11,7 @@ export const metadata: Metadata = generatePageMetadata({
 
 export default function DesignServicesPage() {
   const whatsappMessage = encodeURIComponent(
-    "Hi Slyker Tech! I'm interested in design services..."
+    "Hi Slyker Tech Web Services! I'm interested in design services..."
   );
 
   const services = [

@@ -3,7 +3,7 @@ import { FaHome, FaTools, FaExclamationTriangle } from 'react-icons/fa';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '404 - Page Not Found | Slyker Tech',
+  title: '404 - Page Not Found | Slyker Tech Web Services',
   description: 'The page you are looking for could not be found. Visit our homepage or contact support.',
   openGraph: {
     title: '404 - Page Not Found',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         url: 'https://slykertech.co.zw/images/stws.png',
         width: 490,
         height: 112,
-        alt: 'Slyker Tech Logo',
+        alt: 'Slyker Tech Web Services Logo',
       },
     ],
   },

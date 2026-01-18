@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Domain Services | Slyker Tech',
+  title: 'Domain Services | Slyker Tech Web Services',
   description: 'Domain registration and transfer services with competitive pricing and free WHOIS privacy.',
 };
 
