@@ -12,6 +12,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
@@ -329,8 +330,8 @@ export default function Header() {
           {/* Contact Dropdown */}
           <div 
             className="relative"
-            onMouseEnter={() => setShowContactModal(true)}
-            onMouseLeave={() => setShowContactModal(false)}
+            onMouseEnter={() => setShowContactDropdown(true)}
+            onMouseLeave={() => setShowContactDropdown(false)}
           >
             <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
               Contact
@@ -338,7 +339,7 @@ export default function Header() {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </button>
 
-            {showContactModal && (
+            {showContactDropdown && (
               <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
                 <Link href="/contact" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Contact Page</Link>
                 <a href="tel:+263787211325" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Call +263 78 721 1325</a>
