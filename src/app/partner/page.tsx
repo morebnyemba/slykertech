@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { FaHandshake, FaUsers, FaGlobeAfrica, FaWhatsapp, FaEnvelope } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaHandshake, FaUsers, FaWhatsapp, FaEnvelope, FaArrowRight } from 'react-icons/fa';
 import { MdDevices, MdIntegrationInstructions, MdTrendingUp } from 'react-icons/md';
 import { generatePageMetadata } from '@/lib/seo-config';
 
@@ -16,74 +17,43 @@ export default function PartnerPage() {
 
   const partnershipTypes = [
     {
-      title: 'Reseller Program - Bronze Tier',
-      icon: <MdTrendingUp className="w-12 h-12" />,
-      description: 'Entry-level white-label services under your brand with competitive margins',
+      title: 'Reseller Program',
+      icon: <MdTrendingUp className="w-16 h-16" />,
+      description: 'White-label our services under your brand with competitive margins and tiered benefits',
       benefits: [
-        'Up to 10% discount on services',
-        '5% commission on recurring revenue',
-        'Support up to 50 clients',
-        'Access to partner portal and API (1000 req/day)',
-        'Marketing materials and co-branding options'
-      ]
-    },
-    {
-      title: 'Reseller Program - Silver Tier',
-      icon: <MdTrendingUp className="w-12 h-12" />,
-      description: 'Enhanced reseller benefits with increased client capacity',
-      benefits: [
-        'Up to 15% discount on services',
-        '7% commission on recurring revenue',
-        'Support up to 100 clients',
-        'Priority technical support',
-        'Custom branding and webhook integration'
-      ]
-    },
-    {
-      title: 'Reseller Program - Gold Tier',
-      icon: <MdTrendingUp className="w-12 h-12" />,
-      description: 'Premium reseller tier with advanced automation tools',
-      benefits: [
-        'Up to 20% discount on services',
-        '10% commission on recurring revenue',
-        'Support up to 200 clients',
-        'Dedicated account manager',
-        'Advanced API access (5000 req/day)'
-      ]
-    },
-    {
-      title: 'Reseller Program - Platinum Tier',
-      icon: <MdTrendingUp className="w-12 h-12" />,
-      description: 'Highest tier with maximum benefits and unlimited client management',
-      benefits: [
-        'Up to 30% discount on services',
-        '15% commission on recurring revenue',
-        'Unlimited clients',
-        'Priority support and SLA guarantees',
-        'Full white-label solution with custom integrations'
-      ]
+        '4 tier levels (Bronze, Silver, Gold, Platinum)',
+        'Up to 30% commission on recurring revenue',
+        'Dedicated partner portal and API access',
+        'Full white-label capabilities'
+      ],
+      href: '/partner/reseller',
+      badge: 'Most Popular'
     },
     {
       title: 'Agency Partners',
-      icon: <FaUsers className="w-12 h-12" />,
+      icon: <FaUsers className="w-16 h-16" />,
       description: 'Collaborate on client projects and expand your service offerings',
       benefits: [
         'Referral bonuses for qualified leads',
         'Joint project opportunities',
-        'Technical resources and development support',
+        'Technical resources and support',
         'Priority support for agency clients'
-      ]
+      ],
+      href: '/partner/agency',
+      badge: null
     },
     {
       title: 'Technology Alliances',
-      icon: <MdIntegrationInstructions className="w-12 h-12" />,
+      icon: <MdIntegrationInstructions className="w-16 h-16" />,
       description: 'Integrate your solutions with our platform for mutual growth',
       benefits: [
-        'API access and technical documentation',
-        'Co-marketing and joint go-to-market strategies',
-        'Revenue sharing on integrated solutions',
-        'Technical collaboration and support'
-      ]
+        'API access and documentation',
+        'Co-marketing opportunities',
+        'Revenue sharing on integrations',
+        'Technical collaboration'
+      ],
+      href: '/partner/technology',
+      badge: null
     }
   ];
 
@@ -96,97 +66,114 @@ export default function PartnerPage() {
             Partner for <span className="text-darkgoldenrod dark:text-yellow-400">Mutual Success</span>
           </h1>
           <p className="mt-8 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
-            Join our growing network of resellers, agencies, and technology partners driving digital transformation across Africa and beyond
+            Join our growing network of partners driving digital transformation across Africa and beyond
           </p>
         </div>
       </section>
 
-      {/* Why Partner Section */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Why Partner with Slyker Tech Web Services
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
-              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
-                <FaGlobeAfrica className="w-12 h-12" />
-              </div>
-              <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
-                Africa-Wide Reach
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Established presence across 8+ African countries with proven expertise in local markets and regulatory requirements
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
-              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
-                <MdDevices className="w-12 h-12" />
-              </div>
-              <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
-                Comprehensive Solutions
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Full suite of cloud hosting, fintech, and development services with enterprise-grade reliability and support
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
-              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
-                <FaHandshake className="w-12 h-12" />
-              </div>
-              <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
-                Proven Track Record
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                50+ active enterprise clients, 100+ successful deployments, and 99.9% uptime SLA across all services
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Partnership Types */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-darkgoldenrod dark:text-yellow-400 mb-12">
-            Partnership Programs
+      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-4">
+            Choose Your Partnership Type
           </h2>
-          <div className="space-y-8">
+          <p className="text-center text-lg text-gray-600 dark:text-gray-400 mb-16 max-w-3xl mx-auto">
+            Select the partnership model that best fits your business goals and expertise
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {partnershipTypes.map((type, index) => (
-              <div
+              <Link
                 key={index}
-                className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                href={type.href}
+                className="group relative p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-darkgoldenrod dark:hover:border-yellow-400"
               >
-                <div className="flex flex-col md:flex-row items-start gap-6">
-                  <div className="text-darkgoldenrod dark:text-yellow-400">
-                    {type.icon}
+                {type.badge && (
+                  <div className="absolute -top-3 -right-3">
+                    <span className="px-4 py-1 bg-darkgoldenrod dark:bg-yellow-400 text-white dark:text-gray-900 rounded-full text-sm font-semibold">
+                      {type.badge}
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-3">
-                      {type.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      {type.description}
-                    </p>
-                    <div className="space-y-3">
-                      {type.benefits.map((benefit, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <span className="text-darkgoldenrod dark:text-yellow-400 mt-1">✓</span>
-                          <span className="text-gray-600 dark:text-gray-400">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                )}
+                
+                <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
+                  {type.icon}
                 </div>
-              </div>
+                
+                <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300 mb-4 text-center">
+                  {type.title}
+                </h3>
+                
+                <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
+                  {type.description}
+                </p>
+                
+                <ul className="space-y-3 mb-8">
+                  {type.benefits.map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-darkgoldenrod dark:text-yellow-400 mt-1">✓</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-4 transition-all">
+                  <span>Learn More</span>
+                  <FaArrowRight className="w-4 h-4" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Partner Success Stories */}
+      {/* Why Partner Section */}
+      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
+            Why Partner with Slyker Tech Web Services
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 bg-white dark:bg-gray-800 rounded-2xl text-center">
+              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
+                <MdDevices className="w-12 h-12" />
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
+                Africa-Wide Reach
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Established presence across 8+ African countries with proven expertise in local markets
+              </p>
+            </div>
+
+            <div className="p-8 bg-white dark:bg-gray-800 rounded-2xl text-center">
+              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
+                <FaHandshake className="w-12 h-12" />
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
+                Comprehensive Solutions
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Full suite of cloud hosting, fintech, and development services with enterprise-grade reliability
+              </p>
+            </div>
+
+            <div className="p-8 bg-white dark:bg-gray-800 rounded-2xl text-center">
+              <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
+                <FaUsers className="w-12 h-12" />
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
+                Proven Track Record
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                50+ active enterprise clients, 100+ successful deployments, and 99.9% uptime SLA
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Partner Stats */}
       <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-3xl p-12">
@@ -217,79 +204,14 @@ export default function PartnerPage() {
         </div>
       </section>
 
-      {/* Partner Requirements */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
-            Getting Started
-          </h2>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm">
-            <ol className="space-y-6">
-              <li className="flex gap-4">
-                <span className="flex-shrink-0 w-10 h-10 bg-darkgoldenrod dark:bg-yellow-400 text-white dark:text-gray-900 rounded-full flex items-center justify-center font-bold">
-                  1
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                    Initial Contact
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Reach out via WhatsApp or email to discuss partnership opportunities and requirements
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-4">
-                <span className="flex-shrink-0 w-10 h-10 bg-darkgoldenrod dark:bg-yellow-400 text-white dark:text-gray-900 rounded-full flex items-center justify-center font-bold">
-                  2
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                    Partnership Agreement
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Review and sign our partnership agreement outlining terms, responsibilities, and revenue sharing
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-4">
-                <span className="flex-shrink-0 w-10 h-10 bg-darkgoldenrod dark:bg-yellow-400 text-white dark:text-gray-900 rounded-full flex items-center justify-center font-bold">
-                  3
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                    Onboarding & Training
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Complete our partner onboarding program and receive access to resources, tools, and support
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-4">
-                <span className="flex-shrink-0 w-10 h-10 bg-darkgoldenrod dark:bg-yellow-400 text-white dark:text-gray-900 rounded-full flex items-center justify-center font-bold">
-                  4
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                    Launch & Grow
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Start selling, referring, or integrating our solutions with ongoing support from our team
-                  </p>
-                </div>
-              </li>
-            </ol>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Let&apos;s Build Something Great Together
+            Ready to Get Started?
           </h2>
           <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
-            Join our partner ecosystem and unlock new revenue opportunities across Africa
+            Let's discuss how we can work together to achieve mutual success
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a
@@ -302,7 +224,7 @@ export default function PartnerPage() {
               WhatsApp Us: +263 78 721 1325
             </a>
             <a
-              href="mailto:support@slykertech.co.zw"
+              href="mailto:partners@slykertech.co.zw"
               className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white hover:bg-gray-100 text-blue-900 rounded-lg font-semibold transition-colors shadow-lg"
             >
               <FaEnvelope className="w-5 h-5" />
