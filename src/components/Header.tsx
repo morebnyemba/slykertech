@@ -419,10 +419,10 @@ export default function Header() {
           {/* Company Section */}
           <button
             onClick={() => toggleSection('company')}
-            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+            className={`w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase flex items-center justify-between transition-colors ${expandedSections['company'] ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'} hover:text-blue-700 dark:hover:text-blue-200`}
           >
             Company
-            <span className={`transform transition-transform ${expandedSections['company'] ? 'rotate-180' : ''}`}>
+            <span className={`transform transition-transform ${expandedSections['company'] ? 'rotate-180 text-blue-600 dark:text-blue-300' : ''}`}>
               ▼
             </span>
           </button>
@@ -437,10 +437,10 @@ export default function Header() {
           {/* Products Section */}
           <button
             onClick={() => toggleSection('products')}
-            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+            className={`w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase flex items-center justify-between transition-colors ${expandedSections['products'] ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'} hover:text-blue-700 dark:hover:text-blue-200`}
           >
             Products
-            <span className={`transform transition-transform ${expandedSections['products'] ? 'rotate-180' : ''}`}>
+            <span className={`transform transition-transform ${expandedSections['products'] ? 'rotate-180 text-blue-600 dark:text-blue-300' : ''}`}>
               ▼
             </span>
           </button>
@@ -455,10 +455,10 @@ export default function Header() {
           {/* Services Section */}
           <button
             onClick={() => toggleSection('services')}
-            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+            className={`w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase flex items-center justify-between transition-colors ${expandedSections['services'] ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'} hover:text-blue-700 dark:hover:text-blue-200`}
           >
             Services
-            <span className={`transform transition-transform ${expandedSections['services'] ? 'rotate-180' : ''}`}>
+            <span className={`transform transition-transform ${expandedSections['services'] ? 'rotate-180 text-blue-600 dark:text-blue-300' : ''}`}>
               ▼
             </span>
           </button>
@@ -473,10 +473,10 @@ export default function Header() {
           {/* Contact Section */}
           <button
             onClick={() => toggleSection('contact')}
-            className="w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-between"
+            className={`w-full text-left px-4 pt-2 pb-1 text-xs font-semibold uppercase flex items-center justify-between transition-colors ${expandedSections['contact'] ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'} hover:text-blue-700 dark:hover:text-blue-200`}
           >
             Contact
-            <span className={`transform transition-transform ${expandedSections['contact'] ? 'rotate-180' : ''}`}>
+            <span className={`transform transition-transform ${expandedSections['contact'] ? 'rotate-180 text-blue-600 dark:text-blue-300' : ''}`}>
               ▼
             </span>
           </button>
@@ -505,8 +505,22 @@ export default function Header() {
             </>
           ) : (
             <>
-              <MobileNavLink href="/login" label="Login" onClick={() => setMenuOpen(false)} />
-              <MobileNavLink href="/signup" label="Sign Up" onClick={() => setMenuOpen(false)} />
+              <div className="flex flex-col gap-2 px-4 pt-3 pb-4 border-t border-gray-100 dark:border-gray-800">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full text-center text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-md py-3 transition-colors duration-200"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full text-center text-base font-semibold text-white bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md py-3 transition-colors duration-200"
+                >
+                  Sign Up
+                </Link>
+              </div>
             </>
           )}
         </nav>
