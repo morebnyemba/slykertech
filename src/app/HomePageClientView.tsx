@@ -7,7 +7,7 @@ import {
     FaPalette, FaCloud, FaShieldAlt,
     FaServer, FaUserShield,
     FaRegStar, FaCcVisa, FaCcMastercard, FaCreditCard, FaBitcoin,
-    FaArrowRight, FaCheckCircle
+    FaArrowRight, FaCheckCircle, FaSearch, FaGlobe
 } from 'react-icons/fa';
 import { apiService } from '@/lib/api-service';
 
@@ -19,10 +19,29 @@ const HomePageClientView = () => {
         yearsExperience: 4
     });
 
+    const [domainSearch, setDomainSearch] = useState('');
+    const [selectedExtension, setSelectedExtension] = useState('.com');
+
     const handleWhatsAppClick = () => {
         const message = encodeURIComponent("Hi Slyker Tech! I'm interested in your services.");
         window.open(`https://wa.me/263787211325?text=${message}`, '_blank');
     };
+
+    const handleDomainSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const fullDomain = `${domainSearch}${selectedExtension}`;
+        // Navigate to domains page with search query
+        window.location.href = `/services/domains?search=${encodeURIComponent(fullDomain)}`;
+    };
+
+    const popularExtensions = [
+        { ext: '.com', price: '$12.99' },
+        { ext: '.co.zw', price: '$25.00' },
+        { ext: '.net', price: '$14.99' },
+        { ext: '.org', price: '$13.99' },
+        { ext: '.io', price: '$39.99' },
+        { ext: '.tech', price: '$29.99' }
+    ];
 
     // Fetch dynamic data from backend
     useEffect(() => {
@@ -193,6 +212,100 @@ const HomePageClientView = () => {
                     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
                         <div className="w-6 h-10 border-2 border-blue-600 dark:border-blue-400 rounded-full flex justify-center">
                             <div className="w-1 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 animate-scroll-indicator"></div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Domain Search Section */}
+                <section className="relative py-16 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 overflow-hidden">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="absolute inset-0 bg-[url('https://bgvault.tech/wave.svg')] bg-[length:100px_100px]"></div>
+                    </div>
+
+                    <div className="relative max-w-6xl mx-auto">
+                        <div className="text-center mb-10">
+                            <div className="inline-flex items-center gap-2 mb-4">
+                                <FaGlobe className="w-8 h-8 text-white" />
+                                <h2 className="text-3xl md:text-4xl font-bold text-white">
+                                    Find Your Perfect Domain
+                                </h2>
+                            </div>
+                            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+                                Start your online journey with a memorable domain name
+                            </p>
+                        </div>
+
+                        {/* Search Form */}
+                        <form onSubmit={handleDomainSearch} className="max-w-4xl mx-auto mb-8">
+                            <div className="flex flex-col md:flex-row gap-3 bg-white dark:bg-gray-900 rounded-2xl p-3 shadow-2xl">
+                                <div className="flex-1 flex items-center gap-2 px-4">
+                                    <FaSearch className="text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        value={domainSearch}
+                                        onChange={(e) => setDomainSearch(e.target.value)}
+                                        placeholder="Enter your domain name..."
+                                        className="flex-1 py-3 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                                        required
+                                    />
+                                </div>
+                                <select
+                                    value={selectedExtension}
+                                    onChange={(e) => setSelectedExtension(e.target.value)}
+                                    className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border-none outline-none cursor-pointer font-medium"
+                                >
+                                    {popularExtensions.map((item) => (
+                                        <option key={item.ext} value={item.ext}>
+                                            {item.ext}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="submit"
+                                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+                                >
+                                    Search
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Popular Extensions */}
+                        <div className="max-w-4xl mx-auto">
+                            <p className="text-center text-blue-100 mb-4 text-sm font-medium">
+                                Popular Extensions
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {popularExtensions.map((item) => (
+                                    <button
+                                        key={item.ext}
+                                        onClick={() => setSelectedExtension(item.ext)}
+                                        className={`p-4 bg-white/10 backdrop-blur-sm rounded-xl border-2 transition-all hover:bg-white/20 hover:scale-105 ${
+                                            selectedExtension === item.ext
+                                                ? 'border-white bg-white/20'
+                                                : 'border-white/30'
+                                        }`}
+                                    >
+                                        <div className="text-white font-bold text-lg mb-1">
+                                            {item.ext}
+                                        </div>
+                                        <div className="text-blue-100 text-sm">
+                                            {item.price}/yr
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Quick Link */}
+                        <div className="text-center mt-8">
+                            <Link
+                                href="/services/domains"
+                                className="inline-flex items-center gap-2 text-white hover:text-blue-100 transition-colors font-medium"
+                            >
+                                View all domain options
+                                <FaArrowRight className="w-4 h-4" />
+                            </Link>
                         </div>
                     </div>
                 </section>
