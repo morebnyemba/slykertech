@@ -13,6 +13,8 @@ export default function Header() {
   const [, setScrolled] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const [showProductsDropdown, setShowProductsDropdown] = useState(false);
   const { isAuthenticated, user, logout, token } = useAuthStore();
   const { fetchCart, getItemCount } = useCartStore();
   const router = useRouter();
@@ -48,6 +50,24 @@ export default function Header() {
     { name: 'Domain Services', href: '/services/domains', description: 'Registration & Transfer' },
     { name: 'Development', href: '/services/development', description: 'Web, Mobile, Desktop' },
     { name: 'Design Services', href: '/services/design', description: 'UI/UX, Graphics' },
+  ];
+
+  const companyLinks = [
+    { name: 'About Us', href: '/about' },
+    { name: 'Invest', href: '/invest' },
+    { name: 'Partner', href: '/partner' },
+    { name: 'Our Portfolio', href: '/portfolio' },
+    { name: 'Support', href: '/support' },
+    { name: 'Join Us', href: '/careers' }
+  ];
+
+  const productLinks = [
+    { name: 'Managed WordPress', href: '/products/managed-wordpress' },
+    { name: 'Site Builder', href: '/products/site-builder' },
+    { name: 'Email & Collaboration Suite', href: '/products/email-suite' },
+    { name: 'SSL & Security Suite', href: '/products/security-suite' },
+    { name: 'CDN & Edge Caching', href: '/products/cdn' },
+    { name: 'Backups & Disaster Recovery', href: '/products/backups' }
   ];
 
   const ContactModal = () => (
@@ -215,8 +235,61 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden sm:flex items-center space-x-4 lg:space-x-8">
           <NavLink href="/" label="Home" />
-          <NavLink href="/about" label="About" />
-          
+
+          {/* Company Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowCompanyDropdown(true)}
+            onMouseLeave={() => setShowCompanyDropdown(false)}
+          >
+            <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
+              Company
+              <FaChevronDown className="w-3 h-3" />
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </button>
+
+            {showCompanyDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {companyLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Products Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowProductsDropdown(true)}
+            onMouseLeave={() => setShowProductsDropdown(false)}
+          >
+            <button className="relative text-gray-800 dark:text-gray-200 font-medium hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-300 group flex items-center gap-1">
+              Products
+              <FaChevronDown className="w-3 h-3" />
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </button>
+
+            {showProductsDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                {productLinks.map((product) => (
+                  <Link
+                    key={product.name}
+                    href={product.href}
+                    className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                  >
+                    {product.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Services Dropdown */}
           <div 
             className="relative"
@@ -306,10 +379,22 @@ export default function Header() {
       }`}>
         <nav className="flex flex-col items-stretch bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-2">
           <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/about" label="About" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/services/hosting" label="Hosting" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/services/domains" label="Domains" onClick={() => setMenuOpen(false)} />
-          <MobileNavLink href="/services/development" label="Development" onClick={() => setMenuOpen(false)} />
+
+          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Company</div>
+          {companyLinks.map((link) => (
+            <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
+          ))}
+
+          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Products</div>
+          {productLinks.map((link) => (
+            <MobileNavLink key={link.name} href={link.href} label={link.name} onClick={() => setMenuOpen(false)} />
+          ))}
+
+          <div className="px-4 pt-2 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Services</div>
+          {serviceCategories.map((service) => (
+            <MobileNavLink key={service.name} href={service.href} label={service.name} onClick={() => setMenuOpen(false)} />
+          ))}
+
           <MobileNavLink href="/portfolio" label="Portfolio" onClick={() => setMenuOpen(false)} />
           <MobileNavLink href="/contact" label="Contact" onClick={() => setMenuOpen(false)} />
           
