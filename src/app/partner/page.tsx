@@ -205,13 +205,13 @@ export default function PartnerPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
+      <section className="py-24 px-4 sm:px-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 dark:from-blue-800 dark:via-blue-900 dark:to-gray-900">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
-            Let's discuss how we can work together to achieve mutual success
+            Let&apos;s discuss how we can work together to achieve mutual success
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a
@@ -225,7 +225,7 @@ export default function PartnerPage() {
             </a>
             <a
               href="mailto:partners@slykertech.co.zw"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white hover:bg-gray-100 text-blue-900 rounded-lg font-semibold transition-colors shadow-lg"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-darkgoldenrod hover:bg-yellow-600 dark:bg-yellow-400 dark:hover:bg-yellow-500 text-white dark:text-gray-900 rounded-lg font-semibold transition-colors shadow-lg"
             >
               <FaEnvelope className="w-5 h-5" />
               Email Partnership Team
