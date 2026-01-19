@@ -105,6 +105,9 @@ def cleanup_stale_types():
         
         # Query all custom types in the public schema that match Django naming pattern
         # Django typically creates types with format: appname_modelname
+        # Examples: accounts_user, investments_investmentpackage, billing_invoice
+        # The pattern '%_%' matches any string with at least one underscore (all Django tables)
+        # Additional safety checks: composite types only, exclude pg_ prefix, verify table doesn't exist
         cursor.execute("""
             SELECT t.typname
             FROM pg_type t
