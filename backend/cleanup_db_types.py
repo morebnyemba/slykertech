@@ -25,7 +25,7 @@ def cleanup_stale_types():
     Cleanup Criteria:
     - Type exists in pg_type catalog
     - Corresponding table does NOT exist in information_schema.tables
-    - Only types in TYPE_NAMES_TO_CLEANUP list are checked
+    - Type name follows Django naming pattern (app_model format)
     
     Returns:
         bool: True if cleanup completed successfully (or no cleanup needed),
@@ -34,14 +34,6 @@ def cleanup_stale_types():
     Raises:
         No exceptions are raised; all errors are caught and logged.
     """
-    
-    # List of type names to check and clean up
-    # Each entry should be the expected table name for the type
-    # Note: For custom user models, the type name matches the table name
-    TYPE_NAMES_TO_CLEANUP = [
-        'accounts_user',  # Custom user model table/type name
-        # Add other custom type names here if needed
-    ]
     
     # Get database connection parameters from environment
     db_name = os.environ.get('DB_NAME', 'slykertech')
@@ -111,24 +103,30 @@ def cleanup_stale_types():
         
         cleanup_performed = False
         
-        # Check and clean each type name
-        for type_name in TYPE_NAMES_TO_CLEANUP:
-            # Check if type exists (using EXISTS for better performance)
-            cursor.execute("""
-                SELECT EXISTS (
-                    SELECT 1 FROM pg_type t
-                    JOIN pg_namespace n ON t.typnamespace = n.oid
-                    WHERE t.typname = %s AND n.nspname = 'public'
-                )
-            """, (type_name,))
+        # Query all custom types in the public schema that match Django naming pattern
+        # Django typically creates types with format: appname_modelname
+        cursor.execute("""
+            SELECT t.typname
+            FROM pg_type t
+            JOIN pg_namespace n ON t.typnamespace = n.oid
+            WHERE n.nspname = 'public'
+            AND t.typtype = 'c'  -- composite type (used for tables)
+            AND t.typname LIKE '%_%'  -- contains underscore (Django pattern)
+            AND t.typname NOT LIKE 'pg_%'  -- exclude PostgreSQL internal types
+            ORDER BY t.typname
+        """)
+        
+        stale_types = cursor.fetchall()
+        
+        if not stale_types:
+            print("✅ No custom types found. Database is clean.")
+        else:
+            print(f"Found {len(stale_types)} custom type(s) to check...")
             
-            type_exists = cursor.fetchone()[0]
-            
-            if type_exists:
-                print(f"Found stale '{type_name}' type. Attempting cleanup...")
-                
+            # Check each type to see if it's stale
+            for (type_name,) in stale_types:
                 # Check if the corresponding table exists
-                # Note: This assumes table name matches type name (true for Django user models)
+                # Django table names match the type names
                 cursor.execute("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
@@ -141,7 +139,7 @@ def cleanup_stale_types():
                 
                 if not table_exists:
                     # Safe to drop the type since the table doesn't exist
-                    print(f"Table '{type_name}' does not exist. Dropping stale type...")
+                    print(f"Found stale '{type_name}' type. Attempting cleanup...")
                     try:
                         cursor.execute(sql.SQL("DROP TYPE IF EXISTS {} CASCADE").format(
                             sql.Identifier(type_name)
@@ -152,11 +150,11 @@ def cleanup_stale_types():
                         print(f"⚠️  Warning: Could not drop type '{type_name}': {e}")
                         print("This may be normal if the type is in use")
                 else:
-                    print(f"⚠️  Table '{type_name}' exists. Skipping type cleanup.")
-                    print("This is expected if migrations have already been applied.")
-        
-        if not cleanup_performed:
-            print("✅ No stale types found. Database is clean.")
+                    # Table exists, this is normal - type is in use
+                    pass  # Don't print for every table, reduces noise
+            
+            if not cleanup_performed:
+                print("✅ No stale types found. Database is clean.")
         
         cursor.close()
         conn.close()
