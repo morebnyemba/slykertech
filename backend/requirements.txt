@@ -9,7 +9,7 @@ requests==2.32.3
 drf-yasg==1.21.8
 celery==5.4.0
 redis==5.2.1
-cryptography==45.0.0
+cryptography==46.0.3
 heyoo==0.1.2
 paynow==1.0.8
 daphne==4.2.1
@@ -18,3 +18,4 @@ channels==4.0.0
 channels-redis==4.1.0
 django-jazzmin==3.0.1
 whitenoise==6.8.2
+django-filter==24.3
