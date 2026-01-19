@@ -6,8 +6,10 @@ When starting the backend service, you may encounter this error during database 
 
 ```
 psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "pg_type_typname_nsp_index"
-DETAIL: Key (typname, typnamespace)=(accounts_user, 2200) already exists.
+DETAIL: Key (typname, typnamespace)=(investments_investmentpackage, 2200) already exists.
 ```
+
+Or similar errors with other model types like `accounts_user`, `services_service`, etc.
 
 ## What Causes This Error
 
@@ -24,8 +26,9 @@ The system now includes an automatic cleanup mechanism:
 
 1. **Cleanup Script** (`backend/cleanup_db_types.py`): 
    - Runs before every migration
-   - Detects stale PostgreSQL types
-   - Safely removes them if no data would be lost
+   - Automatically detects ALL stale PostgreSQL types (not just hardcoded ones)
+   - Queries all custom types matching Django's naming pattern (appname_modelname)
+   - Safely removes types that don't have corresponding tables
    - Logs all actions for transparency
 
 2. **Docker Entrypoint** (`backend/docker-entrypoint.sh`):
@@ -60,13 +63,18 @@ If the cleanup doesn't work, reset the entire database:
 For advanced users, connect to PostgreSQL and run:
 
 ```sql
--- Check for the problematic type
-SELECT typname, nspname 
+-- Check for ALL problematic types
+SELECT t.typname, n.nspname 
 FROM pg_type t 
 JOIN pg_namespace n ON t.typnamespace = n.oid 
-WHERE typname = 'accounts_user' AND nspname = 'public';
+WHERE t.typtype = 'c' AND n.nspname = 'public'
+AND NOT EXISTS (
+    SELECT FROM information_schema.tables 
+    WHERE table_schema = 'public' AND table_name = t.typname
+);
 
--- If the accounts_user table doesn't exist, drop the type
+-- Drop stale types (replace 'type_name' with actual stale type)
+DROP TYPE IF EXISTS investments_investmentpackage CASCADE;
 DROP TYPE IF EXISTS accounts_user CASCADE;
 
 -- Then retry migrations
@@ -84,18 +92,18 @@ DROP TYPE IF EXISTS accounts_user CASCADE;
 ### What is `pg_type_typname_nsp_index`?
 
 This is PostgreSQL's internal unique index that ensures each type name is unique within a namespace. The error means:
-- Type name: `accounts_user`
+- Type name: e.g., `investments_investmentpackage` or `accounts_user`
 - Namespace: `2200` (typically the `public` schema)
 - Already exists in the catalog
 
-### Why Does This Happen with Custom User Models?
+### Why Does This Happen with Django Models?
 
-Django's custom user model creates PostgreSQL types for:
-- The model itself
-- Enum fields (like `user_type`)
+Django creates PostgreSQL composite types for:
+- Each model/table in the database
+- Enum fields (like `user_type`, `status`)
 - Custom field types
 
-If migrations are interrupted, these types can remain in `pg_type` even if the table creation failed, causing conflicts on retry.
+If migrations are interrupted, these types can remain in `pg_type` even if the table creation failed, causing conflicts on retry. The cleanup script now automatically detects and removes ANY stale types, not just specific ones.
 
 ## Related Documentation
 
