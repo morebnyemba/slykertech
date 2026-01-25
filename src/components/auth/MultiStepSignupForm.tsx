@@ -54,15 +54,6 @@ export default function MultiStepSignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  // Check for referral code in URL
-  useEffect(() => {
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      setFormData(prev => ({ ...prev, referral_code: refCode }));
-      validateReferralCode(refCode);
-    }
-  }, [searchParams]);
-
   const validateReferralCode = async (code: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -82,6 +73,15 @@ export default function MultiStepSignupForm() {
       setReferrerName(null);
     }
   };
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referral_code: refCode }));
+      validateReferralCode(refCode);
+    }
+  }, [searchParams]);
 
   // Validation functions
   const validateEmail = (email: string): string => {

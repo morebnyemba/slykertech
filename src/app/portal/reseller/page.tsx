@@ -448,10 +448,9 @@ function AddClientModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
     setSubmitting(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const token = localStorage.getItem('access_token');
-
-      // Note: This would need a proper endpoint to create clients
+      // TODO: Implement proper endpoint to create clients
+      // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      // const token = localStorage.getItem('access_token');
       // For now, just close the modal
       onClose();
       onSuccess();

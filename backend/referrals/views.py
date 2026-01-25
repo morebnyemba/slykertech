@@ -143,12 +143,17 @@ class ReferralViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         code = serializer.validated_data['referral_code']
-        profile = ReferralProfile.objects.get(referral_code=code)
-        
-        return Response({
-            'valid': True,
-            'referrer_name': profile.user.full_name or profile.user.email.split('@')[0]
-        })
+        try:
+            profile = ReferralProfile.objects.get(referral_code=code, is_active=True)
+            return Response({
+                'valid': True,
+                'referrer_name': profile.user.full_name or profile.user.email.split('@')[0]
+            })
+        except ReferralProfile.DoesNotExist:
+            return Response({
+                'valid': False,
+                'referrer_name': None
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 class ReferralRewardViewSet(viewsets.ReadOnlyModelViewSet):
