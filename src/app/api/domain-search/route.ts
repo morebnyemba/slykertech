@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { DomainSearchRequest } from '@/types/domain';
 
 // Backend API URL
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // Rate limiting configuration
 const RATE_LIMIT_MAX_DOMAINS = 10;
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       max_workers: 5
     };
     
-    const response = await fetch(`${BACKEND_API_URL}/api/services/whois/check/`, {
+    const response = await fetch(`${BACKEND_API_URL}/services/whois/check/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       if (response.status === 404) {
         return NextResponse.json(
           {
-            error: 'WHOIS service endpoint not configured. Please set up the Django REST API endpoint at /api/whois/check/',
+            error: 'WHOIS service endpoint not configured. Please set up the Django REST API endpoint at /api/services/whois/check/',
           },
           { status: 503 }
         );
