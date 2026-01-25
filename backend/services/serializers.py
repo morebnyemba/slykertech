@@ -19,7 +19,7 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'requires_provisioning', 'provisioning_type',
                   'parent_service', 'is_addon', 'addon_services',
                   'is_active', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'addon_services', 'created_at', 'updated_at']
     
     def get_addon_services(self, obj):
         """Get a list of addon services for this service"""
