@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaCheckCircle, FaLock } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaCheckCircle, FaLock, FaUserPlus, FaSignInAlt } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
@@ -50,6 +51,53 @@ export default function CheckoutPage() {
       router.push('/cart');
     }
   }, [cart, itemCount, router]);
+
+  // If user is not authenticated, show login/signup prompt
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen py-12">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaLock className="text-blue-600 text-2xl" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Sign In Required
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-8">
+              Please sign in or create an account to proceed with checkout. Your cart items will be saved.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/login?redirect=/checkout"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                <FaSignInAlt />
+                Sign In
+              </Link>
+              <Link
+                href="/signup?redirect=/checkout"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
+              >
+                <FaUserPlus />
+                Create Account
+              </Link>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <Link
+                href="/cart"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm"
+              >
+                ← Back to Cart
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBillingInfo({

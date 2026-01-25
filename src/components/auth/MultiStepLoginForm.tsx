@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaCheck, FaArrowRight } from 'react-icons/fa';
@@ -13,6 +13,8 @@ const STEPS = [
 
 export default function MultiStepLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
   const { login, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -59,7 +61,8 @@ export default function MultiStepLoginForm() {
     const result = await login(email, password);
 
     if (result.success) {
-      router.push('/dashboard');
+      // Redirect to the specified URL or dashboard
+      router.push(redirectUrl);
     } else {
       setError(result.error || 'Login failed');
     }
@@ -270,7 +273,10 @@ export default function MultiStepLoginForm() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+              <Link 
+                href={redirectUrl !== '/dashboard' ? `/signup?redirect=${encodeURIComponent(redirectUrl)}` : '/signup'} 
+                className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
                 Sign up
               </Link>
             </p>
