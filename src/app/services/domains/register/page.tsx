@@ -181,7 +181,7 @@ function RegisterPageContent() {
 
     try {
       const cartItem = {
-        service: domainProduct.id,
+        domain_product: domainProduct.id,
         service_metadata: {
           action: 'registration',
           domain_name: domainName,
