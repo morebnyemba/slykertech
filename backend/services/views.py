@@ -261,12 +261,20 @@ def whois_check(request):
             'name': 'WHOIS Domain Check API',
             'version': '1.0.0',
             'description': 'Check domain availability using WHOIS servers',
+            'features': {
+                'parallel_processing': True,
+                'result_caching': True,
+                'cache_ttl': '1 hour',
+                'max_workers': 5
+            },
             'endpoints': {
                 'POST': {
                     'path': '/api/whois/check/',
                     'description': 'Check domain availability',
                     'requestBody': {
-                        'domains': ['example.com', 'test.org']
+                        'domains': ['example.com', 'test.org'],
+                        'parallel': True,
+                        'max_workers': 5
                     },
                     'response': {
                         'results': [
@@ -276,7 +284,8 @@ def whois_check(request):
                                 'tld': 'string',
                                 'whoisServer': 'string',
                                 'message': 'string (optional)',
-                                'error': 'string (optional)'
+                                'error': 'string (optional)',
+                                'cached': 'boolean'
                             }
                         ]
                     }
@@ -287,6 +296,8 @@ def whois_check(request):
     # POST method
     try:
         domains = request.data.get('domains', [])
+        parallel = request.data.get('parallel', True)
+        max_workers = request.data.get('max_workers', 5)
         
         if not domains or not isinstance(domains, list):
             return Response(
@@ -300,9 +311,13 @@ def whois_check(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Query domains using WHOIS service
-        logger.info(f"WHOIS check requested for domains: {domains}")
-        results = whois_service.query_multiple_domains(domains)
+        # Query domains using WHOIS service with parallel processing
+        logger.info(f"WHOIS check requested for domains: {domains} (parallel={parallel})")
+        results = whois_service.query_multiple_domains(
+            domains, 
+            parallel=parallel, 
+            max_workers=max_workers
+        )
         
         return Response({'results': results})
         
@@ -312,5 +327,42 @@ def whois_check(request):
             {'error': 'Internal server error'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([permissions.IsAdminUser])
+def whois_cache(request):
+    """
+    WHOIS cache management endpoint (admin only)
+    GET: Get cache statistics
+    DELETE: Clear cache
+    """
+    if request.method == 'GET':
+        try:
+            stats = whois_service.get_cache_stats()
+            return Response({
+                'cache_stats': stats,
+                'message': 'Cache statistics retrieved successfully'
+            })
+        except Exception as e:
+            logger.error(f"Error getting cache stats: {e}", exc_info=True)
+            return Response(
+                {'error': 'Failed to retrieve cache stats'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    elif request.method == 'DELETE':
+        try:
+            whois_service.clear_cache()
+            return Response({
+                'message': 'Cache cleared successfully'
+            })
+        except Exception as e:
+            logger.error(f"Error clearing cache: {e}", exc_info=True)
+            return Response(
+                {'error': 'Failed to clear cache'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 

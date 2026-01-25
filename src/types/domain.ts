@@ -35,6 +35,7 @@ export interface DomainSearchResult {
   whoisServer: string;
   message?: string;
   error?: string;
+  cached?: boolean;
 }
 
 /**
@@ -54,6 +55,7 @@ export interface WhoisServiceResponse {
   whoisServer: string;
   message?: string;
   error?: string;
+  cached?: boolean;
 }
 
 /**

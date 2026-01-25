@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (ServiceViewSet, ServiceSubscriptionViewSet, DNSRecordViewSet,
                    ProjectTrackerViewSet, ProjectMilestoneViewSet, ProjectTaskViewSet,
                    ProjectCommentViewSet, HostingProductViewSet, DomainProductViewSet,
-                   ServiceAddonViewSet, DomainRegistrationViewSet, whois_check)
+                   ServiceAddonViewSet, DomainRegistrationViewSet, whois_check, whois_cache)
 
 router = DefaultRouter()
 router.register(r'services', ServiceViewSet, basename='service')
@@ -20,5 +20,6 @@ router.register(r'domain-registrations', DomainRegistrationViewSet, basename='do
 
 urlpatterns = [
     path('whois/check/', whois_check, name='whois-check'),
+    path('whois/cache/', whois_cache, name='whois-cache'),
     path('', include(router.urls)),
 ]

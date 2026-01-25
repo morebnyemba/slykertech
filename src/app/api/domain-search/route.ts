@@ -69,18 +69,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Python WHOIS service
-    // Since we don't have a Django REST API endpoint yet, we'll call the service directly
-    // In a production setup, you'd create a Django REST endpoint
+    // Call Python WHOIS service with parallel processing support
+    const requestBody: any = {
+      domains: sanitizedDomains,
+      parallel: true,
+      max_workers: 5
+    };
     
-    // For now, we'll use a simple fetch to a hypothetical endpoint
-    // This assumes you'll create a Django REST API endpoint at /api/whois/check/
-    const response = await fetch(`${BACKEND_API_URL}/api/whois/check/`, {
+    const response = await fetch(`${BACKEND_API_URL}/api/services/whois/check/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ domains: sanitizedDomains }),
+      body: JSON.stringify(requestBody),
       signal: AbortSignal.timeout(RATE_LIMIT_TIMEOUT),
     });
 

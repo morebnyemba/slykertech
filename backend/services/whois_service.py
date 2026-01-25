@@ -9,6 +9,9 @@ import requests
 from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta
+from threading import Lock
 
 from ..config.whois_config import whois_config
 
@@ -18,18 +21,27 @@ logger = logging.getLogger(__name__)
 class WhoisService:
     """Service for querying WHOIS servers"""
     
-    def __init__(self, timeout: int = 10, max_retries: int = 2):
+    def __init__(self, timeout: int = 10, max_retries: int = 2, cache_ttl: int = 3600, enable_cache: bool = True):
         """
         Initialize WHOIS service
         
         Args:
             timeout: Query timeout in seconds (default: 10)
             max_retries: Maximum number of retry attempts (default: 2)
+            cache_ttl: Cache time-to-live in seconds (default: 3600 = 1 hour)
+            enable_cache: Enable result caching (default: True)
         """
         self.timeout = timeout
         self.max_retries = max_retries
+        self.cache_ttl = cache_ttl
+        self.enable_cache = enable_cache
+        
+        # Initialize cache
+        self._cache: Dict[str, Tuple[Dict, datetime]] = {}
+        self._cache_lock = Lock()
+        
+        # Configure HTTP session for connection pooling
         self.session = requests.Session()
-        # Configure session for connection pooling
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=10,
             pool_maxsize=20,
@@ -37,6 +49,72 @@ class WhoisService:
         )
         self.session.mount('http://', adapter)
         self.session.mount('https://', adapter)
+    
+    def _get_from_cache(self, domain: str) -> Optional[Dict]:
+        """
+        Get cached result for a domain
+        
+        Args:
+            domain: Domain name (normalized)
+        
+        Returns:
+            Cached result dictionary or None if not found/expired
+        """
+        if not self.enable_cache:
+            return None
+        
+        with self._cache_lock:
+            if domain in self._cache:
+                result, timestamp = self._cache[domain]
+                if datetime.now() - timestamp < timedelta(seconds=self.cache_ttl):
+                    logger.debug(f"Cache hit for {domain}")
+                    return result.copy()
+                else:
+                    # Remove expired entry
+                    del self._cache[domain]
+                    logger.debug(f"Cache expired for {domain}")
+        return None
+    
+    def _save_to_cache(self, domain: str, result: Dict) -> None:
+        """
+        Save result to cache
+        
+        Args:
+            domain: Domain name (normalized)
+            result: Result dictionary to cache
+        """
+        if not self.enable_cache:
+            return
+        
+        with self._cache_lock:
+            self._cache[domain] = (result.copy(), datetime.now())
+            logger.debug(f"Cached result for {domain}")
+    
+    def clear_cache(self) -> None:
+        """Clear all cached results"""
+        with self._cache_lock:
+            self._cache.clear()
+            logger.info("Cache cleared")
+    
+    def get_cache_stats(self) -> Dict:
+        """
+        Get cache statistics
+        
+        Returns:
+            Dictionary with cache size and oldest entry age
+        """
+        with self._cache_lock:
+            cache_size = len(self._cache)
+            oldest_age = None
+            if cache_size > 0:
+                oldest_timestamp = min(ts for _, ts in self._cache.values())
+                oldest_age = (datetime.now() - oldest_timestamp).total_seconds()
+            return {
+                'size': cache_size,
+                'oldest_age_seconds': oldest_age,
+                'ttl_seconds': self.cache_ttl,
+                'enabled': self.enable_cache
+            }
     
     def extract_tld(self, domain: str) -> str:
         """
@@ -199,6 +277,12 @@ class WhoisService:
             # Normalize domain
             domain = self.normalize_domain(domain)
             
+            # Check cache first
+            cached_result = self._get_from_cache(domain)
+            if cached_result is not None:
+                cached_result['cached'] = True
+                return cached_result
+            
             # Extract TLD
             tld = self.extract_tld(domain)
             
@@ -274,13 +358,19 @@ class WhoisService:
             # Check availability
             is_available = self.check_availability(whois_response, available_pattern)
             
-            return {
+            result = {
                 'domain': domain,
                 'available': is_available,
                 'tld': tld,
                 'whoisServer': server,
-                'message': 'Domain is available' if is_available else 'Domain is registered'
+                'message': 'Domain is available' if is_available else 'Domain is registered',
+                'cached': False
             }
+            
+            # Cache the result
+            self._save_to_cache(domain, result)
+            
+            return result
             
         except ValueError as e:
             return {
@@ -300,25 +390,69 @@ class WhoisService:
                 'error': f'Internal error: {str(e)}'
             }
     
-    def query_multiple_domains(self, domains: list) -> list:
+    def query_multiple_domains(self, domains: list, parallel: bool = True, max_workers: int = 5) -> list:
         """
         Query multiple domains for availability
         
-        Note: Currently processes domains sequentially. For better performance
-        with large batches, consider implementing parallel processing using
-        concurrent.futures.ThreadPoolExecutor or asyncio.
-        
         Args:
             domains: List of domain names to query
+            parallel: Use parallel processing (default: True)
+            max_workers: Maximum number of parallel workers (default: 5)
         
         Returns:
             List of query result dictionaries
         """
+        if not parallel or len(domains) == 1:
+            # Sequential processing for single domain or when parallel is disabled
+            results = []
+            for domain in domains:
+                result = self.query_domain(domain)
+                results.append(result)
+            return results
+        
+        # Parallel processing with ThreadPoolExecutor
         results = []
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(domains))) as executor:
+            # Submit all domain queries
+            future_to_domain = {
+                executor.submit(self.query_domain, domain): domain 
+                for domain in domains
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_domain):
+                domain = future_to_domain[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    logger.error(f"Error querying domain {domain} in parallel: {e}")
+                    results.append({
+                        'domain': domain,
+                        'available': False,
+                        'tld': '',
+                        'whoisServer': 'unknown',
+                        'error': f'Query failed: {str(e)}'
+                    })
+        
+        # Sort results to match input order
+        domain_to_result = {r['domain']: r for r in results}
+        ordered_results = []
         for domain in domains:
-            result = self.query_domain(domain)
-            results.append(result)
-        return results
+            normalized = self.normalize_domain(domain)
+            if normalized in domain_to_result:
+                ordered_results.append(domain_to_result[normalized])
+            else:
+                # Fallback for domains that weren't processed
+                ordered_results.append({
+                    'domain': domain,
+                    'available': False,
+                    'tld': '',
+                    'whoisServer': 'unknown',
+                    'error': 'Domain not processed'
+                })
+        
+        return ordered_results
     
     def __del__(self):
         """Clean up resources"""
