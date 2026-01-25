@@ -95,7 +95,7 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
     if (results.length === 0) return;
 
     const headers = ['Domain', 'TLD', 'Available', 'WHOIS Server', 'Message'];
-    const rows = filteredResults.map(r => [
+    const rows = results.map(r => [
       r.domain,
       r.tld,
       r.available ? 'Yes' : 'No',

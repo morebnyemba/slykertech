@@ -10,7 +10,7 @@ from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
 import logging
 
-from backend.config.whois_config import whois_config
+from ..config.whois_config import whois_config
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,7 @@ class WhoisService:
             socket.timeout: If query times out
             socket.error: If socket connection fails
         """
+        sock = None
         try:
             # Create socket connection
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,12 +110,11 @@ class WhoisService:
                     break
                 response += chunk
             
-            sock.close()
-            
             # Decode response
             try:
                 return response.decode('utf-8')
             except UnicodeDecodeError:
+                # Fallback to latin-1 for legacy servers
                 return response.decode('latin-1')
                 
         except socket.timeout:
@@ -126,6 +126,13 @@ class WhoisService:
         except Exception as e:
             logger.error(f"Unexpected error querying {domain} on {server}: {e}")
             raise
+        finally:
+            # Ensure socket is closed
+            if sock:
+                try:
+                    sock.close()
+                except:
+                    pass
     
     def query_http_whois(self, domain: str, uri: str) -> str:
         """
@@ -296,6 +303,10 @@ class WhoisService:
     def query_multiple_domains(self, domains: list) -> list:
         """
         Query multiple domains for availability
+        
+        Note: Currently processes domains sequentially. For better performance
+        with large batches, consider implementing parallel processing using
+        concurrent.futures.ThreadPoolExecutor or asyncio.
         
         Args:
             domains: List of domain names to query
