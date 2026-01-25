@@ -120,7 +120,25 @@ export const useAuthStore = create<AuthState>()(
 
           if (!response.ok) {
             set({ isLoading: false });
-            return { success: false, error: data.detail || data.error || 'Registration failed' };
+            // Handle Django validation errors which come as field: [errors] format
+            let errorMessage = 'Registration failed';
+            if (data.detail) {
+              errorMessage = data.detail;
+            } else if (data.error) {
+              errorMessage = data.error;
+            } else if (typeof data === 'object') {
+              // Parse field-level errors
+              const errors = Object.entries(data)
+                .map(([field, messages]) => {
+                  if (Array.isArray(messages)) {
+                    return `${field}: ${messages.join(', ')}`;
+                  }
+                  return `${field}: ${messages}`;
+                })
+                .join('. ');
+              if (errors) errorMessage = errors;
+            }
+            return { success: false, error: errorMessage };
           }
 
           // Auto-login after registration if token is provided

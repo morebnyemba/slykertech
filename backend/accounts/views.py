@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
@@ -54,13 +54,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserRegistrationViewSet(viewsets.GenericViewSet):
+class UserRegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     """ViewSet for user registration"""
     
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
     
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         """Register a new user"""
         serializer = self.get_serializer(data=request.data)
         
