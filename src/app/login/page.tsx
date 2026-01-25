@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import LoginForm from '@/components/auth/LoginForm';
+import MultiStepLoginForm from '@/components/auth/MultiStepLoginForm';
 import { generatePageMetadata } from '@/lib/seo-config';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,5 +11,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <MultiStepLoginForm />;
 }

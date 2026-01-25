@@ -1,13 +1,38 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaBriefcase 
+  FaCheck, FaBuilding, FaBriefcase, FaGift, FaChevronDown
 } from 'react-icons/fa';
+
+// Country codes with flags
+const COUNTRY_CODES = [
+  { code: '+263', country: 'Zimbabwe', flag: '🇿🇼' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+  { code: '+255', country: 'Tanzania', flag: '🇹🇿' },
+  { code: '+256', country: 'Uganda', flag: '🇺🇬' },
+  { code: '+260', country: 'Zambia', flag: '🇿🇲' },
+  { code: '+267', country: 'Botswana', flag: '🇧🇼' },
+  { code: '+258', country: 'Mozambique', flag: '🇲🇿' },
+  { code: '+265', country: 'Malawi', flag: '🇲🇼' },
+  { code: '+264', country: 'Namibia', flag: '🇳🇦' },
+  { code: '+268', country: 'Eswatini', flag: '🇸🇿' },
+  { code: '+266', country: 'Lesotho', flag: '🇱🇸' },
+  { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+];
 
 interface FormData {
   email: string;
@@ -15,9 +40,12 @@ interface FormData {
   confirmPassword: string;
   first_name: string;
   last_name: string;
+  country_code: string;
+  phone_number: string;
   mobile_number: string;
   company_name: string;
   user_type: 'client' | 'staff';
+  referral_code: string;
 }
 
 interface ValidationErrors {
@@ -33,22 +61,57 @@ const STEPS = [
 
 export default function MultiStepSignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
     confirmPassword: '',
     first_name: '',
     last_name: '',
+    country_code: '+263',
+    phone_number: '',
     mobile_number: '',
     company_name: '',
     user_type: 'client',
+    referral_code: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  const validateReferralCode = async (code: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${API_URL}/referrals/referrals/validate_code/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referral_code: code })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setReferrerName(data.referrer_name);
+      } else {
+        setReferrerName(null);
+      }
+    } catch {
+      setReferrerName(null);
+    }
+  };
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referral_code: refCode }));
+      validateReferralCode(refCode);
+    }
+  }, [searchParams]);
 
   // Validation functions
   const validateEmail = (email: string): string => {
@@ -69,9 +132,10 @@ export default function MultiStepSignupForm() {
   };
 
   const validatePhone = (phone: string): string => {
-    if (!phone) return ''; // Optional field
-    const phoneRegex = /^\+?[0-9]{10,15}$/;
-    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid phone number';
+    if (!phone) return 'Mobile number is required';
+    // Just validate the phone number part (without country code)
+    const phoneRegex = /^[0-9]{6,14}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid phone number (digits only)';
     return '';
   };
 
@@ -80,6 +144,11 @@ export default function MultiStepSignupForm() {
     if (name.length < 2) return `${fieldName} must be at least 2 characters`;
     if (!/^[a-zA-Z\s'-]+$/.test(name)) return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`;
     return '';
+  };
+
+  // Get selected country
+  const getSelectedCountry = () => {
+    return COUNTRY_CODES.find(c => c.code === formData.country_code) || COUNTRY_CODES[0];
   };
 
   // Validate current step
@@ -95,9 +164,9 @@ export default function MultiStepSignupForm() {
 
     if (step === 2) {
       const emailError = validateEmail(formData.email);
-      const phoneError = validatePhone(formData.mobile_number);
+      const phoneError = validatePhone(formData.phone_number);
       if (emailError) newErrors.email = emailError;
-      if (phoneError) newErrors.mobile_number = phoneError;
+      if (phoneError) newErrors.phone_number = phoneError;
     }
 
     if (step === 3) {
@@ -152,14 +221,18 @@ export default function MultiStepSignupForm() {
       return;
     }
 
+    // Build full mobile number with country code
+    const fullMobileNumber = `${formData.country_code}${formData.phone_number}`;
+
     const result = await register({
       email: formData.email,
       password: formData.password,
       first_name: formData.first_name,
       last_name: formData.last_name,
-      mobile_number: formData.mobile_number,
+      mobile_number: fullMobileNumber,
       company_name: formData.company_name,
       user_type: formData.user_type,
+      referral_code: formData.referral_code || undefined,
     });
 
     if (result.success) {
@@ -190,6 +263,25 @@ export default function MultiStepSignupForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
       <div className="max-w-2xl w-full">
+        {/* Referral Banner */}
+        {referrerName && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200 dark:border-green-800 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
+                <FaGift className="text-green-600 dark:text-green-300 w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-800 dark:text-green-200">
+                  You were referred by {referrerName}!
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Sign up to receive your welcome bonus
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -322,25 +414,68 @@ export default function MultiStepSignupForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="mobile_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Mobile Number
+                  <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mobile Number *
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaPhone className="text-gray-400" />
+                  <div className="flex gap-2">
+                    {/* Country Code Dropdown */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                        className={`flex items-center gap-2 px-3 py-3 border rounded-lg bg-white dark:bg-gray-700 min-w-[120px] ${
+                          errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                      >
+                        <span className="text-lg">{getSelectedCountry().flag}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{formData.country_code}</span>
+                        <FaChevronDown className="text-gray-400 text-xs" />
+                      </button>
+                      
+                      {showCountryDropdown && (
+                        <div className="absolute z-50 mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {COUNTRY_CODES.map((country) => (
+                            <button
+                              key={country.code}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, country_code: country.code }));
+                                setShowCountryDropdown(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left ${
+                                formData.country_code === country.code ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                              }`}
+                            >
+                              <span className="text-lg">{country.flag}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{country.country}</span>
+                              <span className="text-sm text-gray-500 ml-auto">{country.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <input
-                      id="mobile_number"
-                      name="mobile_number"
-                      type="tel"
-                      value={formData.mobile_number}
-                      onChange={handleChange}
-                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        errors.mobile_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="+263 78 721 1325"
-                    />
+                    
+                    {/* Phone Number Input */}
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FaPhone className="text-gray-400" />
+                      </div>
+                      <input
+                        id="phone_number"
+                        name="phone_number"
+                        type="tel"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                          errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="78 721 1325"
+                      />
+                    </div>
                   </div>
+                  {errors.phone_number && (
+                    <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>
+                  )}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Used for WhatsApp notifications and support
                   </p>
@@ -499,6 +634,44 @@ export default function MultiStepSignupForm() {
                       <option value="staff">Staff</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Referral Code */}
+                <div>
+                  <label htmlFor="referral_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Referral Code (Optional)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaGift className="text-gray-400" />
+                    </div>
+                    <input
+                      id="referral_code"
+                      name="referral_code"
+                      type="text"
+                      value={formData.referral_code}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (e.target.value.length === 8) {
+                          validateReferralCode(e.target.value);
+                        } else {
+                          setReferrerName(null);
+                        }
+                      }}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="ABCD1234"
+                    />
+                  </div>
+                  {referrerName && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      ✓ Referred by {referrerName}
+                    </p>
+                  )}
+                  {formData.referral_code && !referrerName && formData.referral_code.length === 8 && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      Invalid referral code
+                    </p>
+                  )}
                 </div>
 
                 {/* Terms Agreement */}
