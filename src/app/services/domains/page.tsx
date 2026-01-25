@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { FaGlobe, FaSearch, FaShieldAlt, FaLock, FaCheck, FaArrowRight } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useCartStore } from '@/lib/stores/cart-store';
-import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
 
 interface DomainProduct {
@@ -41,14 +39,7 @@ export default function DomainsPage() {
   const [searchResults, setSearchResults] = useState<WhoisSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [actionType, setActionType] = useState<'registration' | 'transfer'>('registration');
-  const [domainName, setDomainName] = useState('');
-  const [eppCode, setEppCode] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [selectedTLD, setSelectedTLD] = useState<DomainProduct | null>(null);
   const [supportedTLDs, setSupportedTLDs] = useState<string[]>([]);
-  
-  const { addItem } = useCartStore();
-  const { token } = useAuthStore();
 
   useEffect(() => {
     fetchDomainProducts();
@@ -121,46 +112,6 @@ export default function DomainsPage() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleAddToCart = async (product: DomainProduct) => {
-    if (!domainName.trim()) {
-      alert('Please enter a domain name');
-      return;
-    }
-
-    if (actionType === 'transfer' && !eppCode.trim()) {
-      alert('EPP/Auth code is required for domain transfers');
-      return;
-    }
-
-    const price = actionType === 'registration' 
-      ? parseFloat(product.registration_price_1yr)
-      : parseFloat(product.transfer_price);
-
-    const cartItem = {
-      service: product.id,
-      service_metadata: {
-        action: actionType,
-        domain_name: `${domainName}${product.tld}`,
-        ...(actionType === 'transfer' && { epp_code: eppCode }),
-      },
-      quantity: 1,
-      unit_price: price,
-      billing_cycle: 'annual',
-    };
-
-    const result = await addItem(cartItem, token || undefined);
-    
-    if (result.success) {
-      alert('Domain added to cart successfully!');
-      setShowModal(false);
-      setDomainName('');
-      setEppCode('');
-      setSelectedTLD(null);
-    } else {
-      alert(`Failed to add to cart: ${result.error}`);
     }
   };
 
@@ -243,54 +194,67 @@ export default function DomainsPage() {
                 Domain Availability Results
               </h3>
               <div className="space-y-2">
-                {searchResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <span className="font-mono text-lg font-medium text-gray-900 dark:text-white">
-                        {result.domain}
-                      </span>
-                      {result.cached && (
-                        <span className="ml-2 text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">
-                          Cached
+                {searchResults.map((result, idx) => {
+                  // Find matching product for pricing
+                  const tld = '.' + result.domain.split('.').slice(1).join('.');
+                  const matchingProduct = domainProducts.find(p => p.tld.toLowerCase() === tld.toLowerCase());
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <span className="font-mono text-lg font-medium text-gray-900 dark:text-white">
+                          {result.domain}
                         </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {result.error ? (
-                        <span className="text-sm text-red-600">{result.error}</span>
-                      ) : result.available ? (
-                        <>
-                          <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                            <FaCheck className="text-green-600" />
-                            Available
+                        {result.cached && (
+                          <span className="ml-2 text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">
+                            Cached
                           </span>
-                          <button
-                            onClick={() => router.push(`/services/domains?search=${result.domain}`)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                          >
-                            Register
-                          </button>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            Already Registered
-                          </span>
-                          <Link
-                            href={`/services/domains/transfer?domain=${encodeURIComponent(result.domain)}`}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                          >
-                            Is it yours? Transfer now
-                            <FaArrowRight size={10} />
-                          </Link>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {result.error ? (
+                          <span className="text-sm text-red-600">{result.error}</span>
+                        ) : result.available ? (
+                          <>
+                            <div className="text-right mr-2">
+                              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
+                                <FaCheck className="text-green-600" />
+                                Available
+                              </span>
+                              {matchingProduct && (
+                                <span className="text-lg font-bold text-blue-600">
+                                  ${parseFloat(matchingProduct.registration_price_1yr).toFixed(2)}/yr
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => router.push(`/services/domains/register?domain=${encodeURIComponent(result.domain)}`)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                            >
+                              Register
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              Already Registered
+                            </span>
+                            <Link
+                              href={`/services/domains/transfer?domain=${encodeURIComponent(result.domain)}`}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                            >
+                              Is it yours? Transfer now
+                              <FaArrowRight size={10} />
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -392,129 +356,87 @@ export default function DomainsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden mb-16">
             <div className="p-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                {actionType === 'registration' ? 'Registration' : 'Transfer'} Pricing
+                Domain Pricing - All Available TLDs
               </h2>
               
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {domainProducts.map((domain) => (
-                  <div
-                    key={domain.id}
-                    className={`border rounded-lg p-6 ${
-                      domain.is_featured
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {domain.tld}
-                      </span>
-                      {domain.is_featured && (
-                        <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="mb-4">
-                      <span className="text-3xl font-bold text-blue-600">
-                        \${actionType === 'registration' 
-                          ? parseFloat(domain.registration_price_1yr).toFixed(2)
-                          : parseFloat(domain.transfer_price).toFixed(2)}
-                      </span>
-                      <span className="text-gray-600 dark:text-gray-400">/year</span>
-                    </div>
-
-                    {domain.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {domain.description}
-                      </p>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        setSelectedTLD(domain);
-                        setShowModal(true);
-                        setDomainName('');
-                      }}
-                      className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      {actionType === 'registration' ? 'Register' : 'Transfer'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Domain Configuration Modal */}
-        {showModal && selectedTLD && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                {actionType === 'registration' ? 'Register Domain' : 'Transfer Domain'}
-              </h3>
-
-              {/* Domain Name Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Domain Name
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={domainName}
-                    onChange={(e) => setDomainName(e.target.value)}
-                    placeholder="example"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                  <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 font-medium">
-                    {selectedTLD.tld}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Enter domain without TLD (e.g., example, not example.com)
-                </p>
-              </div>
-
-              {/* EPP Code for Transfer */}
-              {actionType === 'transfer' && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    EPP/Auth Code *
-                  </label>
-                  <input
-                    type="text"
-                    value={eppCode}
-                    onChange={(e) => setEppCode(e.target.value)}
-                    placeholder="Enter EPP/Auth code"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Required for domain transfers. Contact your current registrar to obtain it.
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setDomainName('');
-                    setEppCode('');
-                    setSelectedTLD(null);
-                  }}
-                  className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleAddToCart(selectedTLD)}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Add to Cart
-                </button>
+              {/* Pricing Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">TLD</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Register (1yr)</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Register (2yr)</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Renewal</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Transfer</th>
+                      <th className="text-center px-4 py-3 font-semibold text-gray-900 dark:text-white">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {domainProducts.map((domain) => (
+                      <tr 
+                        key={domain.id} 
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                          domain.is_featured ? 'bg-blue-50 dark:bg-blue-900/10' : ''
+                        }`}
+                      >
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-gray-900 dark:text-white">
+                              {domain.tld}
+                            </span>
+                            {domain.is_featured && (
+                              <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
+                                Popular
+                              </span>
+                            )}
+                          </div>
+                          {domain.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {domain.description}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-lg font-bold text-blue-600">
+                            ${parseFloat(domain.registration_price_1yr).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-gray-900 dark:text-white">
+                            {domain.registration_price_2yr 
+                              ? `$${parseFloat(domain.registration_price_2yr).toFixed(2)}`
+                              : '-'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-gray-900 dark:text-white">
+                            ${parseFloat(domain.renewal_price).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="text-gray-900 dark:text-white">
+                            ${parseFloat(domain.transfer_price).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <button
+                            onClick={() => {
+                              if (actionType === 'registration') {
+                                router.push(`/services/domains/register?domain=example${domain.tld}`);
+                              } else {
+                                router.push(`/services/domains/transfer?domain=example${domain.tld}`);
+                              }
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            {actionType === 'registration' ? 'Register' : 'Transfer'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
