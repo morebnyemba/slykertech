@@ -3,12 +3,12 @@
     "com": {
       "server": "whois.verisign-grs.com",
       "uri": "socket://whois.verisign-grs.com:43",
-      "available": "No match for domain"
+      "available": "No match for"
     },
     "net": {
       "server": "whois.verisign-grs.com",
       "uri": "socket://whois.verisign-grs.com:43",
-      "available": "No match for domain"
+      "available": "No match for"
     },
     "org": {
       "server": "whois.pir.org",
@@ -284,6 +284,266 @@
       "server": "whois.nic.cl",
       "uri": "socket://whois.nic.cl:43",
       "available": "no existe"
+    },
+    "zw": {
+      "server": "whois.zispa.org.zw",
+      "uri": "http://whois.co.zw/",
+      "available": "Domain not found"
+    },
+    "co.zw": {
+      "server": "whois.zispa.org.zw",
+      "uri": "http://whois.co.zw/",
+      "available": "Domain not found"
+    },
+    "org.zw": {
+      "server": "whois.zispa.org.zw",
+      "uri": "http://whois.co.zw/",
+      "available": "Domain not found"
+    },
+    "ac.zw": {
+      "server": "whois.zispa.org.zw",
+      "uri": "http://whois.co.zw/",
+      "available": "Domain not found"
+    },
+    "ke": {
+      "server": "whois.kenic.or.ke",
+      "uri": "socket://whois.kenic.or.ke:43",
+      "available": "NOT FOUND"
+    },
+    "co.ke": {
+      "server": "whois.kenic.or.ke",
+      "uri": "socket://whois.kenic.or.ke:43",
+      "available": "NOT FOUND"
+    },
+    "or.ke": {
+      "server": "whois.kenic.or.ke",
+      "uri": "socket://whois.kenic.or.ke:43",
+      "available": "NOT FOUND"
+    },
+    "ne.ke": {
+      "server": "whois.kenic.or.ke",
+      "uri": "socket://whois.kenic.or.ke:43",
+      "available": "NOT FOUND"
+    },
+    "ac.ke": {
+      "server": "whois.kenic.or.ke",
+      "uri": "socket://whois.kenic.or.ke:43",
+      "available": "NOT FOUND"
+    },
+    "ng": {
+      "server": "whois.nic.net.ng",
+      "uri": "socket://whois.nic.net.ng:43",
+      "available": "NOT FOUND"
+    },
+    "com.ng": {
+      "server": "whois.nic.net.ng",
+      "uri": "socket://whois.nic.net.ng:43",
+      "available": "NOT FOUND"
+    },
+    "org.ng": {
+      "server": "whois.nic.net.ng",
+      "uri": "socket://whois.nic.net.ng:43",
+      "available": "NOT FOUND"
+    },
+    "net.ng": {
+      "server": "whois.nic.net.ng",
+      "uri": "socket://whois.nic.net.ng:43",
+      "available": "NOT FOUND"
+    },
+    "co.za": {
+      "server": "whois.co.za",
+      "uri": "socket://whois.co.za:43",
+      "available": "Available"
+    },
+    "org.za": {
+      "server": "whois.co.za",
+      "uri": "socket://whois.co.za:43",
+      "available": "Available"
+    },
+    "net.za": {
+      "server": "whois.co.za",
+      "uri": "socket://whois.co.za:43",
+      "available": "Available"
+    },
+    "web.za": {
+      "server": "whois.co.za",
+      "uri": "socket://whois.co.za:43",
+      "available": "Available"
+    },
+    "gh": {
+      "server": "whois.nic.gh",
+      "uri": "socket://whois.nic.gh:43",
+      "available": "NOT FOUND"
+    },
+    "com.gh": {
+      "server": "whois.nic.gh",
+      "uri": "socket://whois.nic.gh:43",
+      "available": "NOT FOUND"
+    },
+    "org.gh": {
+      "server": "whois.nic.gh",
+      "uri": "socket://whois.nic.gh:43",
+      "available": "NOT FOUND"
+    },
+    "ug": {
+      "server": "whois.co.ug",
+      "uri": "socket://whois.co.ug:43",
+      "available": "No entries found"
+    },
+    "co.ug": {
+      "server": "whois.co.ug",
+      "uri": "socket://whois.co.ug:43",
+      "available": "No entries found"
+    },
+    "tz": {
+      "server": "whois.tznic.or.tz",
+      "uri": "socket://whois.tznic.or.tz:43",
+      "available": "NOT FOUND"
+    },
+    "co.tz": {
+      "server": "whois.tznic.or.tz",
+      "uri": "socket://whois.tznic.or.tz:43",
+      "available": "NOT FOUND"
+    },
+    "or.tz": {
+      "server": "whois.tznic.or.tz",
+      "uri": "socket://whois.tznic.or.tz:43",
+      "available": "NOT FOUND"
+    },
+    "bw": {
+      "server": "whois.nic.net.bw",
+      "uri": "socket://whois.nic.net.bw:43",
+      "available": "NOT FOUND"
+    },
+    "co.bw": {
+      "server": "whois.nic.net.bw",
+      "uri": "socket://whois.nic.net.bw:43",
+      "available": "NOT FOUND"
+    },
+    "na": {
+      "server": "whois.na-nic.com.na",
+      "uri": "socket://whois.na-nic.com.na:43",
+      "available": "NOT FOUND"
+    },
+    "com.na": {
+      "server": "whois.na-nic.com.na",
+      "uri": "socket://whois.na-nic.com.na:43",
+      "available": "NOT FOUND"
+    },
+    "org.na": {
+      "server": "whois.na-nic.com.na",
+      "uri": "socket://whois.na-nic.com.na:43",
+      "available": "NOT FOUND"
+    },
+    "mu": {
+      "server": "whois.nic.mu",
+      "uri": "socket://whois.nic.mu:43",
+      "available": "NOT FOUND"
+    },
+    "com.mu": {
+      "server": "whois.nic.mu",
+      "uri": "socket://whois.nic.mu:43",
+      "available": "NOT FOUND"
+    },
+    "org.mu": {
+      "server": "whois.nic.mu",
+      "uri": "socket://whois.nic.mu:43",
+      "available": "NOT FOUND"
+    },
+    "et": {
+      "server": "whois.ethiotelecom.et",
+      "uri": "http://www.et/",
+      "available": "Domain not found"
+    },
+    "co.uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "org.uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "me.uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "ltd.uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "plc.uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "com.au": {
+      "server": "whois.auda.org.au",
+      "uri": "socket://whois.auda.org.au:43",
+      "available": "NOT FOUND"
+    },
+    "net.au": {
+      "server": "whois.auda.org.au",
+      "uri": "socket://whois.auda.org.au:43",
+      "available": "NOT FOUND"
+    },
+    "org.au": {
+      "server": "whois.auda.org.au",
+      "uri": "socket://whois.auda.org.au:43",
+      "available": "NOT FOUND"
+    },
+    "id.au": {
+      "server": "whois.auda.org.au",
+      "uri": "socket://whois.auda.org.au:43",
+      "available": "NOT FOUND"
+    },
+    "co.nz": {
+      "server": "whois.srs.net.nz",
+      "uri": "socket://whois.srs.net.nz:43",
+      "available": "query_status: 220 Available"
+    },
+    "net.nz": {
+      "server": "whois.srs.net.nz",
+      "uri": "socket://whois.srs.net.nz:43",
+      "available": "query_status: 220 Available"
+    },
+    "org.nz": {
+      "server": "whois.srs.net.nz",
+      "uri": "socket://whois.srs.net.nz:43",
+      "available": "query_status: 220 Available"
+    },
+    "com.br": {
+      "server": "whois.registro.br",
+      "uri": "socket://whois.registro.br:43",
+      "available": "No match for"
+    },
+    "net.br": {
+      "server": "whois.registro.br",
+      "uri": "socket://whois.registro.br:43",
+      "available": "No match for"
+    },
+    "org.br": {
+      "server": "whois.registro.br",
+      "uri": "socket://whois.registro.br:43",
+      "available": "No match for"
+    },
+    "com.mx": {
+      "server": "whois.mx",
+      "uri": "socket://whois.mx:43",
+      "available": "Not found"
+    },
+    "org.mx": {
+      "server": "whois.mx",
+      "uri": "socket://whois.mx:43",
+      "available": "Not found"
+    },
+    "gob.mx": {
+      "server": "whois.mx",
+      "uri": "socket://whois.mx:43",
+      "available": "Not found"
     }
   }
 }
