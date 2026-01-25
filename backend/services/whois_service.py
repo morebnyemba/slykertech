@@ -134,6 +134,8 @@ class WhoisService:
         
         # Check for second-level TLDs first (e.g., co.zw, co.za, co.ke, org.uk)
         # These require at least 3 parts: name.second.tld
+        # For deeply nested subdomains like 'sub.example.co.zw' (4+ parts),
+        # this still works correctly since we always check the last two parts
         if len(parts) >= 3:
             second_level_tld = f"{parts[-2]}.{parts[-1]}"
             # Check if this second-level TLD exists in our config
