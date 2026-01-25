@@ -5,8 +5,8 @@
  * Provides domain availability search with WHOIS lookup
  */
 
-import React, { useState } from 'react';
-import { Search, Loader2, CheckCircle2, XCircle, Copy, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Loader2, CheckCircle2, XCircle, Copy, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   parseMultipleDomains,
@@ -20,6 +20,9 @@ interface DomainSearchProps {
 
 type FilterType = 'all' | 'available' | 'unavailable';
 
+// Number of TLDs to show before "Show All" is clicked
+const VISIBLE_TLDS_COUNT = 30;
+
 export default function DomainSearch({ className = '' }: DomainSearchProps) {
   const [searchInput, setSearchInput] = useState('');
   const [results, setResults] = useState<DomainSearchResult[]>([]);
@@ -27,6 +30,29 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
+  const [supportedTlds, setSupportedTlds] = useState<string[]>([]);
+  const [showAllTlds, setShowAllTlds] = useState(false);
+
+  // Helper function to add TLD example to search input
+  const addTldToSearch = (tld: string) => {
+    setSearchInput(prev => prev ? `${prev}, example.${tld}` : `example.${tld}`);
+  };
+
+  // Fetch supported TLDs on component mount
+  useEffect(() => {
+    const fetchTlds = async () => {
+      try {
+        const response = await fetch('/api/whois-tlds');
+        if (response.ok) {
+          const data = await response.json();
+          setSupportedTlds(data.tlds || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch TLDs:', err);
+      }
+    };
+    fetchTlds();
+  }, []);
 
   const handleSearch = async () => {
     // Clear previous results and errors
@@ -135,6 +161,44 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
           Check domain availability across multiple TLDs using WHOIS servers
         </p>
       </div>
+
+      {/* Supported TLDs Section */}
+      {supportedTlds.length > 0 && (
+        <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold">Supported TLDs ({supportedTlds.length})</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAllTlds(!showAllTlds)}
+              className="text-xs"
+            >
+              {showAllTlds ? (
+                <>Show Less <ChevronUp className="ml-1" size={14} /></>
+              ) : (
+                <>Show All <ChevronDown className="ml-1" size={14} /></>
+              )}
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {(showAllTlds ? supportedTlds : supportedTlds.slice(0, VISIBLE_TLDS_COUNT)).map((tld) => (
+              <span
+                key={tld}
+                className="px-2 py-0.5 bg-background border rounded text-xs font-mono cursor-pointer hover:bg-primary/10 transition-colors"
+                onClick={() => addTldToSearch(tld)}
+                title={`Click to add example.${tld} to search`}
+              >
+                .{tld}
+              </span>
+            ))}
+            {!showAllTlds && supportedTlds.length > VISIBLE_TLDS_COUNT && (
+              <span className="px-2 py-0.5 text-xs text-muted-foreground">
+                +{supportedTlds.length - VISIBLE_TLDS_COUNT} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search Input */}
       <div className="mb-6">

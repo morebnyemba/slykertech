@@ -240,14 +240,25 @@ class WhoisService:
             requests.RequestException: If HTTP request fails
         """
         try:
-            # Some WHOIS HTTP APIs use query parameters
-            # This is a simple implementation; may need customization per provider
-            response = self.session.get(
-                uri,
-                params={'domain': domain},
-                timeout=self.timeout,
-                headers={'User-Agent': 'SlykerTech-WHOIS/1.0'}
-            )
+            # Check if URI ends with a query parameter expecting a value (e.g., ?s= or ?search= or &domain=)
+            # Pattern matches: ?key= or &key= at the end of the URI
+            append_domain_pattern = re.compile(r'[\?&][a-zA-Z_][a-zA-Z0-9_]*=$')
+            if append_domain_pattern.search(uri):
+                # URI expects domain appended directly (e.g., ?s=example.co.zw)
+                full_url = uri + domain
+                response = self.session.get(
+                    full_url,
+                    timeout=self.timeout,
+                    headers={'User-Agent': 'SlykerTech-WHOIS/1.0'}
+                )
+            else:
+                # Standard approach: use query parameters
+                response = self.session.get(
+                    uri,
+                    params={'domain': domain},
+                    timeout=self.timeout,
+                    headers={'User-Agent': 'SlykerTech-WHOIS/1.0'}
+                )
             response.raise_for_status()
             return response.text
         except requests.RequestException as e:
