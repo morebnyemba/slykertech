@@ -6,8 +6,33 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaBriefcase, FaGift 
+  FaCheck, FaBuilding, FaBriefcase, FaGift, FaChevronDown
 } from 'react-icons/fa';
+
+// Country codes with flags
+const COUNTRY_CODES = [
+  { code: '+263', country: 'Zimbabwe', flag: '🇿🇼' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+  { code: '+255', country: 'Tanzania', flag: '🇹🇿' },
+  { code: '+256', country: 'Uganda', flag: '🇺🇬' },
+  { code: '+260', country: 'Zambia', flag: '🇿🇲' },
+  { code: '+267', country: 'Botswana', flag: '🇧🇼' },
+  { code: '+258', country: 'Mozambique', flag: '🇲🇿' },
+  { code: '+265', country: 'Malawi', flag: '🇲🇼' },
+  { code: '+264', country: 'Namibia', flag: '🇳🇦' },
+  { code: '+268', country: 'Eswatini', flag: '🇸🇿' },
+  { code: '+266', country: 'Lesotho', flag: '🇱🇸' },
+  { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+];
 
 interface FormData {
   email: string;
@@ -15,6 +40,8 @@ interface FormData {
   confirmPassword: string;
   first_name: string;
   last_name: string;
+  country_code: string;
+  phone_number: string;
   mobile_number: string;
   company_name: string;
   user_type: 'client' | 'staff';
@@ -38,12 +65,15 @@ export default function MultiStepSignupForm() {
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
     confirmPassword: '',
     first_name: '',
     last_name: '',
+    country_code: '+263',
+    phone_number: '',
     mobile_number: '',
     company_name: '',
     user_type: 'client',
@@ -103,8 +133,9 @@ export default function MultiStepSignupForm() {
 
   const validatePhone = (phone: string): string => {
     if (!phone) return 'Mobile number is required';
-    const phoneRegex = /^\+?[0-9]{10,15}$/;
-    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid phone number';
+    // Just validate the phone number part (without country code)
+    const phoneRegex = /^[0-9]{6,14}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid phone number (digits only)';
     return '';
   };
 
@@ -113,6 +144,11 @@ export default function MultiStepSignupForm() {
     if (name.length < 2) return `${fieldName} must be at least 2 characters`;
     if (!/^[a-zA-Z\s'-]+$/.test(name)) return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`;
     return '';
+  };
+
+  // Get selected country
+  const getSelectedCountry = () => {
+    return COUNTRY_CODES.find(c => c.code === formData.country_code) || COUNTRY_CODES[0];
   };
 
   // Validate current step
@@ -128,9 +164,9 @@ export default function MultiStepSignupForm() {
 
     if (step === 2) {
       const emailError = validateEmail(formData.email);
-      const phoneError = validatePhone(formData.mobile_number);
+      const phoneError = validatePhone(formData.phone_number);
       if (emailError) newErrors.email = emailError;
-      if (phoneError) newErrors.mobile_number = phoneError;
+      if (phoneError) newErrors.phone_number = phoneError;
     }
 
     if (step === 3) {
@@ -185,12 +221,15 @@ export default function MultiStepSignupForm() {
       return;
     }
 
+    // Build full mobile number with country code
+    const fullMobileNumber = `${formData.country_code}${formData.phone_number}`;
+
     const result = await register({
       email: formData.email,
       password: formData.password,
       first_name: formData.first_name,
       last_name: formData.last_name,
-      mobile_number: formData.mobile_number,
+      mobile_number: fullMobileNumber,
       company_name: formData.company_name,
       user_type: formData.user_type,
       referral_code: formData.referral_code || undefined,
@@ -375,25 +414,68 @@ export default function MultiStepSignupForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="mobile_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Mobile Number *
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaPhone className="text-gray-400" />
+                  <div className="flex gap-2">
+                    {/* Country Code Dropdown */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                        className={`flex items-center gap-2 px-3 py-3 border rounded-lg bg-white dark:bg-gray-700 min-w-[120px] ${
+                          errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                      >
+                        <span className="text-lg">{getSelectedCountry().flag}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{formData.country_code}</span>
+                        <FaChevronDown className="text-gray-400 text-xs" />
+                      </button>
+                      
+                      {showCountryDropdown && (
+                        <div className="absolute z-50 mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {COUNTRY_CODES.map((country) => (
+                            <button
+                              key={country.code}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, country_code: country.code }));
+                                setShowCountryDropdown(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left ${
+                                formData.country_code === country.code ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                              }`}
+                            >
+                              <span className="text-lg">{country.flag}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{country.country}</span>
+                              <span className="text-sm text-gray-500 ml-auto">{country.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <input
-                      id="mobile_number"
-                      name="mobile_number"
-                      type="tel"
-                      value={formData.mobile_number}
-                      onChange={handleChange}
-                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        errors.mobile_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="+263 78 721 1325"
-                    />
+                    
+                    {/* Phone Number Input */}
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FaPhone className="text-gray-400" />
+                      </div>
+                      <input
+                        id="phone_number"
+                        name="phone_number"
+                        type="tel"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                          errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="78 721 1325"
+                      />
+                    </div>
                   </div>
+                  {errors.phone_number && (
+                    <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>
+                  )}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Used for WhatsApp notifications and support
                   </p>
