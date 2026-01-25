@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaGlobe, FaSearch, FaShieldAlt, FaLock, FaCheck } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
@@ -20,23 +21,52 @@ interface DomainProduct {
   is_active: boolean;
 }
 
+interface WhoisSearchResult {
+  domain: string;
+  available: boolean;
+  tld: string;
+  whoisServer: string;
+  message?: string;
+  error?: string;
+  cached?: boolean;
+}
+
 export default function DomainsPage() {
+  const router = useRouter();
   const [domainProducts, setDomainProducts] = useState<DomainProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<WhoisSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const [actionType, setActionType] = useState<'registration' | 'transfer'>('registration');
   const [domainName, setDomainName] = useState('');
   const [eppCode, setEppCode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedTLD, setSelectedTLD] = useState<DomainProduct | null>(null);
+  const [supportedTLDs, setSupportedTLDs] = useState<string[]>([]);
   
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
 
   useEffect(() => {
     fetchDomainProducts();
+    fetchSupportedTLDs();
   }, []);
+
+  const fetchSupportedTLDs = async () => {
+    try {
+      const response = await fetch('/api/whois-tlds');
+      if (response.ok) {
+        const data = await response.json();
+        setSupportedTLDs(data.tlds || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch supported TLDs:', err);
+      // Use a default list if fetch fails
+      setSupportedTLDs(['com', 'net', 'org', 'io', 'co']);
+    }
+  };
 
   const fetchDomainProducts = async () => {
     try {
@@ -55,10 +85,41 @@ export default function DomainsPage() {
     }
   };
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      alert(`Checking availability for: ${searchQuery}`);
-      // In production, this would check domain availability via API
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      alert('Please enter a domain name');
+      return;
+    }
+
+    setSearching(true);
+    setSearchResults([]);
+    setError(null);
+
+    try {
+      // Check if domain has TLD, if not, check popular TLDs
+      const domainsToCheck = searchQuery.includes('.') 
+        ? [searchQuery.trim()]
+        : ['.com', '.net', '.org', '.io', '.co'].map(tld => `${searchQuery.trim()}${tld}`);
+
+      const response = await fetch('/api/domain-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ domains: domainsToCheck }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Search failed');
+      }
+
+      const data = await response.json();
+      setSearchResults(data.results || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -131,24 +192,132 @@ export default function DomainsPage() {
           </p>
 
           {/* Domain Search */}
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto mb-6">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for your domain name..."
+                placeholder="Search for your domain name (e.g., mysite or mysite.com)..."
                 className="flex-1 px-6 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyPress={(e) => e.key === 'Enter' && !searching && handleSearch()}
+                disabled={searching}
               />
               <button
                 onClick={handleSearch}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center gap-2"
+                disabled={searching}
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FaSearch />
-                Search
+                {searching ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <FaSearch />
+                    Search
+                  </>
+                )}
               </button>
             </div>
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center">
+              <button
+                onClick={() => router.push('/services/domains/check')}
+                className="text-blue-600 hover:text-blue-700 underline"
+              >
+                Advanced Search
+              </button>
+              {' '}| {supportedTLDs.length} TLDs supported via WHOIS
+            </div>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="max-w-4xl mx-auto mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Domain Availability Results
+              </h3>
+              <div className="space-y-2">
+                {searchResults.map((result, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <span className="font-mono text-lg font-medium text-gray-900 dark:text-white">
+                        {result.domain}
+                      </span>
+                      {result.cached && (
+                        <span className="ml-2 text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">
+                          Cached
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {result.error ? (
+                        <span className="text-sm text-red-600">{result.error}</span>
+                      ) : result.available ? (
+                        <>
+                          <span className="text-sm text-green-600 font-medium flex items-center gap-1">
+                            <FaCheck className="text-green-600" />
+                            Available
+                          </span>
+                          <button
+                            onClick={() => router.push(`/services/domains?search=${result.domain}`)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            Register
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Already Registered
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Supported TLDs Info */}
+        <div className="mb-16 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {supportedTLDs.length}+ TLDs Available via WHOIS
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Check domain availability across popular TLDs instantly
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto">
+            {supportedTLDs.slice(0, 30).map(tld => (
+              <span
+                key={tld}
+                className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium shadow-sm"
+              >
+                .{tld}
+              </span>
+            ))}
+            {supportedTLDs.length > 30 && (
+              <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-medium">
+                +{supportedTLDs.length - 30} more
+              </span>
+            )}
+          </div>
+          <div className="text-center mt-4">
+            <button
+              onClick={() => router.push('/services/domains/check')}
+              className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+            >
+              View all {supportedTLDs.length} supported TLDs →
+            </button>
           </div>
         </div>
 
@@ -157,7 +326,7 @@ export default function DomainsPage() {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <FaGlobe className="w-12 h-12 text-blue-600 mx-auto mb-4" />
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Wide Selection</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{domainProducts.length}+ TLDs available</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{supportedTLDs.length} TLDs via WHOIS</p>
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
             <FaShieldAlt className="w-12 h-12 text-blue-600 mx-auto mb-4" />
