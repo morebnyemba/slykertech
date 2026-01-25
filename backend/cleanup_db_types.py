@@ -90,6 +90,8 @@ def get_pending_migration_models(cursor, backend_path):
                 # These create intermediary tables named: app_model_fieldname
                 # Pattern: migrations.AddField(model_name='Model', name='field', 
                 #          field=models.ManyToManyField(...))
+                # Note: Some migrations may use RunPython instead for safe creation,
+                # but this pattern catches standard Django-generated migrations
                 addfield_pattern = r"migrations\.AddField\s*\(\s*model_name\s*=\s*['\"](\w+)['\"].*?name\s*=\s*['\"](\w+)['\"].*?ManyToManyField"
                 m2m_fields = re.findall(addfield_pattern, content, re.DOTALL)
                 
