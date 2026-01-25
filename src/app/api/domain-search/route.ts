@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { DomainSearchRequest, DomainSearchResponse } from '@/types/domain';
+import type { DomainSearchRequest } from '@/types/domain';
 
 // Backend API URL
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call Python WHOIS service with parallel processing support
-    const requestBody: any = {
+    const requestBody: { domains: string[]; parallel: boolean; max_workers: number } = {
       domains: sanitizedDomains,
       parallel: true,
       max_workers: 5
