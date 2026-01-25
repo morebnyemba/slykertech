@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaBriefcase 
+  FaCheck, FaBuilding, FaBriefcase, FaGift 
 } from 'react-icons/fa';
 
 interface FormData {
@@ -18,6 +18,7 @@ interface FormData {
   mobile_number: string;
   company_name: string;
   user_type: 'client' | 'staff';
+  referral_code: string;
 }
 
 interface ValidationErrors {
@@ -33,8 +34,10 @@ const STEPS = [
 
 export default function MultiStepSignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -44,11 +47,41 @@ export default function MultiStepSignupForm() {
     mobile_number: '',
     company_name: '',
     user_type: 'client',
+    referral_code: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setFormData(prev => ({ ...prev, referral_code: refCode }));
+      validateReferralCode(refCode);
+    }
+  }, [searchParams]);
+
+  const validateReferralCode = async (code: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${API_URL}/referrals/referrals/validate_code/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referral_code: code })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setReferrerName(data.referrer_name);
+      } else {
+        setReferrerName(null);
+      }
+    } catch {
+      setReferrerName(null);
+    }
+  };
 
   // Validation functions
   const validateEmail = (email: string): string => {
@@ -160,6 +193,7 @@ export default function MultiStepSignupForm() {
       mobile_number: formData.mobile_number,
       company_name: formData.company_name,
       user_type: formData.user_type,
+      referral_code: formData.referral_code || undefined,
     });
 
     if (result.success) {
@@ -190,6 +224,25 @@ export default function MultiStepSignupForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
       <div className="max-w-2xl w-full">
+        {/* Referral Banner */}
+        {referrerName && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200 dark:border-green-800 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
+                <FaGift className="text-green-600 dark:text-green-300 w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-800 dark:text-green-200">
+                  You were referred by {referrerName}!
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Sign up to receive your welcome bonus
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -499,6 +552,44 @@ export default function MultiStepSignupForm() {
                       <option value="staff">Staff</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Referral Code */}
+                <div>
+                  <label htmlFor="referral_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Referral Code (Optional)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaGift className="text-gray-400" />
+                    </div>
+                    <input
+                      id="referral_code"
+                      name="referral_code"
+                      type="text"
+                      value={formData.referral_code}
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (e.target.value.length === 8) {
+                          validateReferralCode(e.target.value);
+                        } else {
+                          setReferrerName(null);
+                        }
+                      }}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="ABCD1234"
+                    />
+                  </div>
+                  {referrerName && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      ✓ Referred by {referrerName}
+                    </p>
+                  )}
+                  {formData.referral_code && !referrerName && formData.referral_code.length === 8 && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      Invalid referral code
+                    </p>
+                  )}
                 </div>
 
                 {/* Terms Agreement */}
