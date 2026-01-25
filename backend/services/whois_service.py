@@ -276,8 +276,33 @@ class WhoisService:
         Returns:
             True if domain is available, False otherwise
         """
-        # Case-insensitive search for availability pattern
-        return bool(re.search(available_pattern, whois_response, re.IGNORECASE))
+        # First, try the configured pattern (case-insensitive)
+        if re.search(available_pattern, whois_response, re.IGNORECASE):
+            return True
+        
+        # Fallback: Check common "domain available" patterns that WHOIS servers return
+        # These patterns indicate the domain is NOT registered (i.e., available)
+        common_available_patterns = [
+            r'NOT\s*FOUND',
+            r'No\s+match',
+            r'No\s+data\s+found',
+            r'No\s+entries\s+found',
+            r'No\s+object\s+found',
+            r'Domain\s+not\s+found',
+            r'Object\s+not\s+found',
+            r'Status:\s*free',
+            r'Status:\s*available',
+            r'is\s+free',
+            r'is\s+available',
+            r'AVAILABLE',
+            r'No\s+information',
+        ]
+        
+        for pattern in common_available_patterns:
+            if re.search(pattern, whois_response, re.IGNORECASE):
+                return True
+        
+        return False
     
     def query_domain(self, domain: str) -> Dict:
         """
