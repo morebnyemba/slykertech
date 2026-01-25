@@ -102,7 +102,7 @@ export default function MultiStepSignupForm() {
   };
 
   const validatePhone = (phone: string): string => {
-    if (!phone) return ''; // Optional field
+    if (!phone) return 'Mobile number is required';
     const phoneRegex = /^\+?[0-9]{10,15}$/;
     if (!phoneRegex.test(phone.replace(/\s/g, ''))) return 'Please enter a valid phone number';
     return '';
@@ -376,7 +376,7 @@ export default function MultiStepSignupForm() {
 
                 <div>
                   <label htmlFor="mobile_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Mobile Number
+                    Mobile Number *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

@@ -32,9 +32,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},
-            'mobile_number': {'required': False, 'allow_blank': True},
-            'phone': {'required': False, 'allow_blank': True},
-            'company_name': {'required': False, 'allow_blank': True},
+            'mobile_number': {'required': True},
         }
     
     def validate(self, attrs):
