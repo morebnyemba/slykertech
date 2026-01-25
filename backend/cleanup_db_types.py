@@ -76,7 +76,8 @@ def get_pending_migration_models(cursor, backend_path):
                     content = f.read()
                 
                 # Find all CreateModel operations
-                # Pattern: migrations.CreateModel(name='ModelName',
+                # Pattern handles various formatting: migrations.CreateModel(name='ModelName',
+                # or migrations.CreateModel(name="ModelName", with varying whitespace
                 create_model_pattern = r"migrations\.CreateModel\s*\(\s*name\s*=\s*['\"](\w+)['\"]"
                 models = re.findall(create_model_pattern, content)
                 
@@ -85,12 +86,21 @@ def get_pending_migration_models(cursor, backend_path):
                     table_name = f"{app_name}_{model_name.lower()}"
                     pending_tables.add(table_name)
                     
+            except IOError as e:
+                # Log file read errors for debugging but continue processing
+                print(f"⚠️  Warning: Could not read migration file '{migration_file}': {e}")
+                continue
             except Exception as e:
-                # Skip files that can't be read
+                # Log unexpected errors for debugging but continue processing
+                print(f"⚠️  Warning: Error parsing migration file '{migration_file}': {e}")
                 continue
                 
+    except psycopg2.Error as e:
+        print(f"⚠️  Warning: Database error while checking migrations: {e}")
+    except IOError as e:
+        print(f"⚠️  Warning: File system error while checking migrations: {e}")
     except Exception as e:
-        print(f"⚠️  Warning: Could not check pending migrations: {e}")
+        print(f"⚠️  Warning: Unexpected error checking pending migrations: {e}")
         
     return pending_tables
 
