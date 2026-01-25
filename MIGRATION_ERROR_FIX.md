@@ -29,6 +29,10 @@ The system now includes an automatic cleanup mechanism:
    - Automatically detects ALL stale PostgreSQL types (not just hardcoded ones)
    - Queries all custom types matching Django's naming pattern (appname_modelname)
    - Safely removes types that don't have corresponding tables
+   - **NEW**: Detects and removes tables/types from incomplete migrations by:
+     - Checking the `django_migrations` table for applied migrations
+     - Parsing pending migration files for `CreateModel` operations
+     - Dropping tables and types that exist but whose creation migrations haven't been recorded
    - Logs all actions for transparency
 
 2. **Docker Entrypoint** (`backend/docker-entrypoint.sh`):
@@ -103,7 +107,22 @@ Django creates PostgreSQL composite types for:
 - Enum fields (like `user_type`, `status`)
 - Custom field types
 
-If migrations are interrupted, these types can remain in `pg_type` even if the table creation failed, causing conflicts on retry. The cleanup script now automatically detects and removes ANY stale types, not just specific ones.
+If migrations are interrupted, these types can remain in `pg_type` even if the table creation failed, causing conflicts on retry.
+
+### How The Cleanup Script Detects Stale Types
+
+The cleanup script (`backend/cleanup_db_types.py`) uses a two-pronged approach:
+
+1. **Orphaned Types**: Types whose corresponding tables don't exist
+2. **Incomplete Migration Detection**: Types whose tables exist but whose creation migration hasn't been recorded in `django_migrations`
+
+For the second case, the script:
+1. Reads the `django_migrations` table to find applied migrations
+2. Parses all migration files to find `CreateModel` operations
+3. For pending migrations (not in `django_migrations`), extracts the models they create
+4. If a table exists for a model that should be created by a pending migration, both the table and type are dropped
+
+This ensures clean slate for migrations even when partial database state exists from interrupted migrations.
 
 ## Related Documentation
 
