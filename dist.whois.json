@@ -1,0 +1,289 @@
+{
+  "whois_servers": {
+    "com": {
+      "server": "whois.verisign-grs.com",
+      "uri": "socket://whois.verisign-grs.com:43",
+      "available": "No match for domain"
+    },
+    "net": {
+      "server": "whois.verisign-grs.com",
+      "uri": "socket://whois.verisign-grs.com:43",
+      "available": "No match for domain"
+    },
+    "org": {
+      "server": "whois.pir.org",
+      "uri": "socket://whois.pir.org:43",
+      "available": "NOT FOUND"
+    },
+    "io": {
+      "server": "whois.nic.io",
+      "uri": "socket://whois.nic.io:43",
+      "available": "NOT FOUND"
+    },
+    "co": {
+      "server": "whois.nic.co",
+      "uri": "socket://whois.nic.co:43",
+      "available": "Not found"
+    },
+    "uk": {
+      "server": "whois.nic.uk",
+      "uri": "socket://whois.nic.uk:43",
+      "available": "No match for"
+    },
+    "de": {
+      "server": "whois.denic.de",
+      "uri": "socket://whois.denic.de:43",
+      "available": "Status: free"
+    },
+    "fr": {
+      "server": "whois.nic.fr",
+      "uri": "socket://whois.nic.fr:43",
+      "available": "No entries found"
+    },
+    "it": {
+      "server": "whois.nic.it",
+      "uri": "socket://whois.nic.it:43",
+      "available": "Status: AVAILABLE"
+    },
+    "nl": {
+      "server": "whois.domain-registry.nl",
+      "uri": "socket://whois.domain-registry.nl:43",
+      "available": "is free"
+    },
+    "au": {
+      "server": "whois.auda.org.au",
+      "uri": "socket://whois.auda.org.au:43",
+      "available": "NOT FOUND"
+    },
+    "ca": {
+      "server": "whois.cira.ca",
+      "uri": "socket://whois.cira.ca:43",
+      "available": "Domain status: available"
+    },
+    "eu": {
+      "server": "whois.eu",
+      "uri": "socket://whois.eu:43",
+      "available": "Status: AVAILABLE"
+    },
+    "info": {
+      "server": "whois.afilias.net",
+      "uri": "socket://whois.afilias.net:43",
+      "available": "NOT FOUND"
+    },
+    "biz": {
+      "server": "whois.biz",
+      "uri": "socket://whois.biz:43",
+      "available": "Not found"
+    },
+    "me": {
+      "server": "whois.nic.me",
+      "uri": "socket://whois.nic.me:43",
+      "available": "NOT FOUND"
+    },
+    "tv": {
+      "server": "whois.nic.tv",
+      "uri": "socket://whois.nic.tv:43",
+      "available": "No match"
+    },
+    "us": {
+      "server": "whois.nic.us",
+      "uri": "socket://whois.nic.us:43",
+      "available": "Not found"
+    },
+    "cc": {
+      "server": "ccwhois.verisign-grs.com",
+      "uri": "socket://ccwhois.verisign-grs.com:43",
+      "available": "No match for"
+    },
+    "ws": {
+      "server": "whois.website.ws",
+      "uri": "socket://whois.website.ws:43",
+      "available": "No match"
+    },
+    "mobi": {
+      "server": "whois.dotmobiregistry.net",
+      "uri": "socket://whois.dotmobiregistry.net:43",
+      "available": "NOT FOUND"
+    },
+    "name": {
+      "server": "whois.nic.name",
+      "uri": "socket://whois.nic.name:43",
+      "available": "No match"
+    },
+    "asia": {
+      "server": "whois.nic.asia",
+      "uri": "socket://whois.nic.asia:43",
+      "available": "NOT FOUND"
+    },
+    "tel": {
+      "server": "whois.nic.tel",
+      "uri": "socket://whois.nic.tel:43",
+      "available": "Not found"
+    },
+    "in": {
+      "server": "whois.registry.in",
+      "uri": "socket://whois.registry.in:43",
+      "available": "NOT FOUND"
+    },
+    "cn": {
+      "server": "whois.cnnic.cn",
+      "uri": "socket://whois.cnnic.cn:43",
+      "available": "No matching query"
+    },
+    "ru": {
+      "server": "whois.tcinet.ru",
+      "uri": "socket://whois.tcinet.ru:43",
+      "available": "No entries found"
+    },
+    "br": {
+      "server": "whois.registro.br",
+      "uri": "socket://whois.registro.br:43",
+      "available": "No match for"
+    },
+    "za": {
+      "server": "whois.registry.net.za",
+      "uri": "socket://whois.registry.net.za:43",
+      "available": "Available"
+    },
+    "se": {
+      "server": "whois.iis.se",
+      "uri": "socket://whois.iis.se:43",
+      "available": "not found"
+    },
+    "no": {
+      "server": "whois.norid.no",
+      "uri": "socket://whois.norid.no:43",
+      "available": "no matches"
+    },
+    "dk": {
+      "server": "whois.dk-hostmaster.dk",
+      "uri": "socket://whois.dk-hostmaster.dk:43",
+      "available": "No entries found"
+    },
+    "be": {
+      "server": "whois.dns.be",
+      "uri": "socket://whois.dns.be:43",
+      "available": "Status: AVAILABLE"
+    },
+    "at": {
+      "server": "whois.nic.at",
+      "uri": "socket://whois.nic.at:43",
+      "available": "nothing found"
+    },
+    "ch": {
+      "server": "whois.nic.ch",
+      "uri": "socket://whois.nic.ch:43",
+      "available": "We do not have an entry"
+    },
+    "li": {
+      "server": "whois.nic.li",
+      "uri": "socket://whois.nic.li:43",
+      "available": "We do not have an entry"
+    },
+    "es": {
+      "server": "whois.nic.es",
+      "uri": "socket://whois.nic.es:43",
+      "available": "No entries found"
+    },
+    "pt": {
+      "server": "whois.dns.pt",
+      "uri": "socket://whois.dns.pt:43",
+      "available": "No entries found"
+    },
+    "pl": {
+      "server": "whois.dns.pl",
+      "uri": "socket://whois.dns.pl:43",
+      "available": "No information available"
+    },
+    "cz": {
+      "server": "whois.nic.cz",
+      "uri": "socket://whois.nic.cz:43",
+      "available": "No entries found"
+    },
+    "sk": {
+      "server": "whois.sk-nic.sk",
+      "uri": "socket://whois.sk-nic.sk:43",
+      "available": "Not found"
+    },
+    "ro": {
+      "server": "whois.rotld.ro",
+      "uri": "socket://whois.rotld.ro:43",
+      "available": "No entries found"
+    },
+    "hu": {
+      "server": "whois.nic.hu",
+      "uri": "socket://whois.nic.hu:43",
+      "available": "No match"
+    },
+    "gr": {
+      "server": "whois.nic.gr",
+      "uri": "socket://whois.nic.gr:43",
+      "available": "Not found"
+    },
+    "bg": {
+      "server": "whois.register.bg",
+      "uri": "socket://whois.register.bg:43",
+      "available": "does not exist"
+    },
+    "jp": {
+      "server": "whois.jprs.jp",
+      "uri": "socket://whois.jprs.jp:43",
+      "available": "No match"
+    },
+    "kr": {
+      "server": "whois.kr",
+      "uri": "socket://whois.kr:43",
+      "available": "above domain name is not registered"
+    },
+    "sg": {
+      "server": "whois.sgnic.sg",
+      "uri": "socket://whois.sgnic.sg:43",
+      "available": "Domain Not Found"
+    },
+    "hk": {
+      "server": "whois.hkirc.hk",
+      "uri": "socket://whois.hkirc.hk:43",
+      "available": "The domain has not been registered"
+    },
+    "nz": {
+      "server": "whois.srs.net.nz",
+      "uri": "socket://whois.srs.net.nz:43",
+      "available": "query_status: 220 Available"
+    },
+    "tw": {
+      "server": "whois.twnic.net.tw",
+      "uri": "socket://whois.twnic.net.tw:43",
+      "available": "No Found"
+    },
+    "my": {
+      "server": "whois.mynic.my",
+      "uri": "socket://whois.mynic.my:43",
+      "available": "does not exist"
+    },
+    "id": {
+      "server": "whois.id",
+      "uri": "socket://whois.id:43",
+      "available": "DOMAIN NOT FOUND"
+    },
+    "th": {
+      "server": "whois.thnic.co.th",
+      "uri": "socket://whois.thnic.co.th:43",
+      "available": "No match for"
+    },
+    "mx": {
+      "server": "whois.mx",
+      "uri": "socket://whois.mx:43",
+      "available": "Not found"
+    },
+    "ar": {
+      "server": "whois.nic.ar",
+      "uri": "socket://whois.nic.ar:43",
+      "available": "El dominio no se encuentra registrado"
+    },
+    "cl": {
+      "server": "whois.nic.cl",
+      "uri": "socket://whois.nic.cl:43",
+      "available": "no existe"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from .models import (Service, ServiceSubscription, DNSRecord,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
@@ -12,6 +12,10 @@ from .serializers import (
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
     DomainRegistrationSerializer
 )
+from .whois_service import whois_service
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -242,5 +246,71 @@ class DomainRegistrationViewSet(viewsets.ModelViewSet):
             return DomainRegistration.objects.all()
         # Clients can only see their own domains
         return DomainRegistration.objects.filter(client__user=user)
+
+
+@api_view(['POST', 'GET'])
+@permission_classes([permissions.AllowAny])
+def whois_check(request):
+    """
+    WHOIS domain availability check endpoint
+    POST: Check domain availability for one or more domains
+    GET: Get API information
+    """
+    if request.method == 'GET':
+        return Response({
+            'name': 'WHOIS Domain Check API',
+            'version': '1.0.0',
+            'description': 'Check domain availability using WHOIS servers',
+            'endpoints': {
+                'POST': {
+                    'path': '/api/whois/check/',
+                    'description': 'Check domain availability',
+                    'requestBody': {
+                        'domains': ['example.com', 'test.org']
+                    },
+                    'response': {
+                        'results': [
+                            {
+                                'domain': 'string',
+                                'available': 'boolean',
+                                'tld': 'string',
+                                'whoisServer': 'string',
+                                'message': 'string (optional)',
+                                'error': 'string (optional)'
+                            }
+                        ]
+                    }
+                }
+            }
+        })
+    
+    # POST method
+    try:
+        domains = request.data.get('domains', [])
+        
+        if not domains or not isinstance(domains, list):
+            return Response(
+                {'error': 'Invalid request: domains must be a non-empty array'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if len(domains) > 10:
+            return Response(
+                {'error': 'Maximum 10 domains per request'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Query domains using WHOIS service
+        logger.info(f"WHOIS check requested for domains: {domains}")
+        results = whois_service.query_multiple_domains(domains)
+        
+        return Response({'results': results})
+        
+    except Exception as e:
+        logger.error(f"WHOIS check error: {e}", exc_info=True)
+        return Response(
+            {'error': 'Internal server error'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
