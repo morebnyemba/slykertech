@@ -27,10 +27,11 @@ class WhoisConfig:
     
     def load_config(self) -> None:
         """Load WHOIS configuration from dist.whois.json"""
-        # Get the project root directory (one level up from backend/config)
+        # Get the backend root directory (one level up from config/)
+        # In Docker, this is /app. Locally, this is backend/
         current_dir = Path(__file__).resolve().parent
-        project_root = current_dir.parent.parent
-        config_path = project_root / 'dist.whois.json'
+        backend_root = current_dir.parent
+        config_path = backend_root / 'dist.whois.json'
         
         if not config_path.exists():
             raise FileNotFoundError(
