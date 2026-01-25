@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from threading import Lock
 
-from ..config.whois_config import whois_config
+from config.whois_config import whois_config
 
 logger = logging.getLogger(__name__)
 
