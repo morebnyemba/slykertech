@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaCheckCircle, FaLock, FaUserPlus, FaSignInAlt } from 'react-icons/fa';
+import { FaCheckCircle, FaLock, FaUserPlus, FaSignInAlt, FaExclamationCircle } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
@@ -23,6 +23,8 @@ export default function CheckoutPage() {
 
   const [paymentMethod, setPaymentMethod] = useState('paynow');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successData, setSuccessData] = useState<{ invoiceNumber: string } | null>(null);
 
   useEffect(() => {
     fetchCart(token || undefined);
@@ -46,11 +48,11 @@ export default function CheckoutPage() {
   const itemCount = getItemCount();
 
   useEffect(() => {
-    // Redirect to cart if empty
-    if (cart && itemCount === 0) {
+    // Redirect to cart if empty (only when not showing success)
+    if (cart && itemCount === 0 && !successData) {
       router.push('/cart');
     }
-  }, [cart, itemCount, router]);
+  }, [cart, itemCount, router, successData]);
 
   // If user is not authenticated, show login/signup prompt
   if (!isAuthenticated) {
@@ -104,19 +106,22 @@ export default function CheckoutPage() {
       ...billingInfo,
       [e.target.name]: e.target.value,
     });
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     // Validation
     if (!billingInfo.fullName || !billingInfo.email || !billingInfo.phone) {
-      alert('Please fill in all required fields');
+      setError('Please fill in all required fields');
       return;
     }
 
     if (!cart) {
-      alert('No cart found');
+      setError('No cart found');
       return;
     }
 
@@ -157,20 +162,55 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Otherwise, show success and redirect to dashboard
-      alert(`Order placed successfully! Invoice #${data.invoice_number} has been created. You will receive a confirmation email shortly.`);
+      // Show success state
+      setSuccessData({ invoiceNumber: data.invoice_number });
       
       // Refresh cart to get new empty cart
       fetchCart(token || undefined);
-      
-      router.push('/dashboard/invoices');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Checkout failed';
-      alert(`Error: ${errorMessage}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Checkout failed';
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
   };
+
+  // Success state
+  if (successData) {
+    return (
+      <div className="min-h-screen py-12">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaCheckCircle className="text-green-600 text-3xl" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Order Placed Successfully!
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Invoice <strong>#{successData.invoiceNumber}</strong> has been created.
+              You will receive a confirmation email shortly.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/dashboard/invoices"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                View Invoice
+              </Link>
+              <Link
+                href="/services"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
+              >
+                Continue Shopping
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!cart || itemCount === 0) {
     return (
@@ -188,6 +228,17 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
           Checkout
         </h1>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3">
+            <FaExclamationCircle className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-red-700 dark:text-red-300 font-medium">Error</p>
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-3 gap-8">
