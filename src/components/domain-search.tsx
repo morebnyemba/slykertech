@@ -6,10 +6,9 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Loader2, CheckCircle2, XCircle, Copy, Download, Filter } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, XCircle, Copy, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  validateDomain,
   parseMultipleDomains,
   validateMultipleDomains,
 } from '@/lib/utils/domain-utils';
