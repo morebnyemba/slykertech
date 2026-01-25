@@ -351,23 +351,23 @@
       "available": "NOT FOUND"
     },
     "co.za": {
-      "server": "whois.co.za",
-      "uri": "socket://whois.co.za:43",
+      "server": "whois.registry.net.za",
+      "uri": "socket://whois.registry.net.za:43",
       "available": "Available"
     },
     "org.za": {
-      "server": "whois.co.za",
-      "uri": "socket://whois.co.za:43",
+      "server": "whois.registry.net.za",
+      "uri": "socket://whois.registry.net.za:43",
       "available": "Available"
     },
     "net.za": {
-      "server": "whois.co.za",
-      "uri": "socket://whois.co.za:43",
+      "server": "whois.registry.net.za",
+      "uri": "socket://whois.registry.net.za:43",
       "available": "Available"
     },
     "web.za": {
-      "server": "whois.co.za",
-      "uri": "socket://whois.co.za:43",
+      "server": "whois.registry.net.za",
+      "uri": "socket://whois.registry.net.za:43",
       "available": "Available"
     },
     "gh": {
