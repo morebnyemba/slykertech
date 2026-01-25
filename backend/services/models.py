@@ -45,12 +45,11 @@ class Service(models.Model):
     provisioning_type = models.CharField(max_length=50, blank=True, null=True,
                                         help_text="Type of provisioning needed: cpanel, directadmin, domain, etc.")
     
-    # Self-referencing field to allow a service to be an addon of another service
-    parent_service = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
-                                       related_name='addon_services',
-                                       help_text="Parent service if this is a service addon")
-    is_addon = models.BooleanField(default=False,
-                                   help_text="Indicates if this service is an addon to another service")
+    # Many-to-many relationship to allow selecting services as recommended addons
+    # E.g., Domain Registration can show Web Hosting or Web Dev as addon options
+    recommended_addons = models.ManyToManyField('self', symmetrical=False, blank=True,
+                                                related_name='addon_of_services',
+                                                help_text="Services to recommend as addons when purchasing this service")
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
