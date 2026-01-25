@@ -19,4 +19,4 @@ channels-redis==4.1.0
 django-jazzmin==3.0.1
 whitenoise==6.8.2
 django-filter==24.3
-urllib3==2.2.3
+urllib3==2.6.3
