@@ -373,22 +373,35 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
                         </span>
                       </td>
                       <td className="p-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopy(result.domain)}
-                          title="Copy domain name"
-                        >
-                          {copiedDomain === result.domain ? (
-                            <>
-                              <CheckCircle2 className="text-green-600" size={16} />
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={16} />
-                            </>
+                        <div className="flex items-center gap-2">
+                          {result.available && (
+                            <Link href={`/services/domains/register?domain=${encodeURIComponent(result.domain)}`}>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Register
+                              </Button>
+                            </Link>
                           )}
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopy(result.domain)}
+                            title="Copy domain name"
+                          >
+                            {copiedDomain === result.domain ? (
+                              <>
+                                <CheckCircle2 className="text-green-600" size={16} />
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={16} />
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
