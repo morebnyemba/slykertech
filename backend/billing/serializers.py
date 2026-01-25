@@ -11,25 +11,81 @@ class CartItemSerializer(serializers.ModelSerializer):
     total_price = serializers.SerializerMethodField()
     # Accept domain_product ID for domain-related cart items
     domain_product = serializers.IntegerField(write_only=True, required=False)
+    # Accept hosting_product ID for hosting-related cart items
+    hosting_product = serializers.IntegerField(write_only=True, required=False)
     
     class Meta:
         model = CartItem
         fields = ['id', 'cart', 'service', 'service_name', 'service_category', 
                   'service_metadata', 'quantity', 'unit_price', 'billing_cycle', 
-                  'total_price', 'created_at', 'domain_product']
+                  'total_price', 'created_at', 'domain_product', 'hosting_product']
         read_only_fields = ['id', 'created_at', 'total_price']
         extra_kwargs = {
-            'service': {'required': False}  # Not required when domain_product is provided
+            'service': {'required': False}  # Not required when domain_product or hosting_product is provided
         }
     
     def get_total_price(self, obj):
         return float(obj.get_price())
     
     def validate(self, attrs):
-        """Validate and handle domain_product field"""
+        """Validate and handle domain_product and hosting_product fields"""
         domain_product_id = attrs.pop('domain_product', None)
+        hosting_product_id = attrs.pop('hosting_product', None)
         
-        if domain_product_id is not None:
+        if hosting_product_id is not None:
+            # Handle hosting product - get or create hosting service
+            from services.models import Service
+            from services.whmcs_models import HostingProduct
+            
+            # Verify the hosting product exists
+            try:
+                hosting_product = HostingProduct.objects.get(id=hosting_product_id)
+            except HostingProduct.DoesNotExist:
+                raise serializers.ValidationError({
+                    'hosting_product': f'Hosting product with ID {hosting_product_id} not found'
+                })
+            
+            # Get or create a service for this hosting type
+            hosting_type_map = {
+                'shared': 'Shared Web Hosting',
+                'vps': 'VPS Hosting',
+                'dedicated': 'Dedicated Server Hosting',
+                'cloud': 'Cloud Hosting',
+                'reseller': 'Reseller Hosting',
+            }
+            service_name = hosting_type_map.get(hosting_product.hosting_type, 'Web Hosting')
+            
+            service, created = Service.objects.get_or_create(
+                name=service_name,
+                category='hosting',
+                defaults={
+                    'description': f'{service_name} - {hosting_product.description}',
+                    'is_active': True,
+                    'payment_type': 'recurring',
+                }
+            )
+            
+            attrs['service'] = service
+            
+            # Store hosting_product details in service_metadata
+            service_metadata = attrs.get('service_metadata', {})
+            if service_metadata is None:
+                service_metadata = {}
+            service_metadata['hosting_product_id'] = hosting_product_id
+            service_metadata['hosting_product_name'] = hosting_product.name
+            service_metadata['hosting_type'] = hosting_product.hosting_type
+            attrs['service_metadata'] = service_metadata
+            
+            # Set unit_price if not already set
+            if 'unit_price' not in attrs or attrs['unit_price'] is None:
+                billing_cycle = attrs.get('billing_cycle', 'monthly')
+                price = hosting_product.get_price(billing_cycle)
+                if price:
+                    attrs['unit_price'] = price
+                else:
+                    attrs['unit_price'] = hosting_product.monthly_price
+        
+        elif domain_product_id is not None:
             # Handle domain product - get or create domain service
             from services.models import Service
             from services.whmcs_models import DomainProduct
@@ -63,10 +119,10 @@ class CartItemSerializer(serializers.ModelSerializer):
             service_metadata['domain_product_tld'] = domain_product.tld
             attrs['service_metadata'] = service_metadata
         
-        # Ensure we have a service (either from service field or domain_product)
+        # Ensure we have a service (either from service field, domain_product, or hosting_product)
         if 'service' not in attrs or attrs.get('service') is None:
             raise serializers.ValidationError({
-                'service': 'Either service or domain_product must be provided'
+                'service': 'Either service, domain_product, or hosting_product must be provided'
             })
         
         return attrs

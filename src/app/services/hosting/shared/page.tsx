@@ -140,7 +140,7 @@ export default function SharedHostingPage() {
     }
 
     const cartItem = {
-      service: product.id,
+      hosting_product: product.id,
       service_metadata: {
         type: product.hosting_type,
         region: selectedRegion,

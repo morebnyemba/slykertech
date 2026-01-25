@@ -115,14 +115,61 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!cart) {
+      alert('No cart found');
+      return;
+    }
+
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
+      
+      const response = await fetch(`${apiUrl}/billing/carts/${cart.id}/checkout/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          billing_info: {
+            full_name: billingInfo.fullName,
+            email: billingInfo.email,
+            phone: billingInfo.phone,
+            address: billingInfo.address,
+            city: billingInfo.city,
+            country: billingInfo.country,
+          },
+          payment_method: paymentMethod,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Checkout failed');
+      }
+
+      // If payment was initiated with redirect URL (Paynow), redirect user
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
+
+      // Otherwise, show success and redirect to dashboard
+      alert(`Order placed successfully! Invoice #${data.invoice_number} has been created. You will receive a confirmation email shortly.`);
+      
+      // Refresh cart to get new empty cart
+      fetchCart(token || undefined);
+      
+      router.push('/dashboard/invoices');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Checkout failed';
+      alert(`Error: ${errorMessage}`);
+    } finally {
       setIsProcessing(false);
-      alert('Order placed successfully! You will receive a confirmation email shortly.');
-      router.push('/dashboard');
-    }, 2000);
+    }
   };
 
   if (!cart || itemCount === 0) {

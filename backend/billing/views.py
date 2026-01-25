@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Invoice, Payment, BillingProfile, Cart, CartItem
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem
 from .serializers import (
     InvoiceSerializer, InvoiceCreateSerializer,
     PaymentSerializer, BillingProfileSerializer,
@@ -101,6 +101,145 @@ class CartViewSet(viewsets.ModelViewSet):
         cart.items.all().delete()
         cart_serializer = self.get_serializer(cart)
         return Response(cart_serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def checkout(self, request, pk=None):
+        """
+        Convert cart to invoice and create payment
+        Requires authenticated user
+        
+        Request body:
+        {
+            "billing_info": {
+                "full_name": "John Doe",
+                "email": "john@example.com",
+                "phone": "+263771234567",
+                "address": "123 Main St",
+                "city": "Harare",
+                "country": "Zimbabwe"
+            },
+            "payment_method": "paynow"  // paynow, bank, crypto
+        }
+        """
+        cart = self.get_object()
+        user = request.user
+        
+        # Require authentication for checkout
+        if not user.is_authenticated:
+            return Response(
+                {"error": "Authentication required for checkout"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Check if user has a client profile
+        if not hasattr(user, 'client'):
+            return Response(
+                {"error": "Client profile required. Please complete your profile."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if cart has items
+        if cart.items.count() == 0:
+            return Response(
+                {"error": "Cart is empty"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        billing_info = request.data.get('billing_info', {})
+        payment_method = request.data.get('payment_method', 'paynow')
+        
+        from django.utils import timezone
+        from datetime import timedelta
+        from .models import Invoice, InvoiceItem
+        
+        # Create invoice
+        invoice = Invoice.objects.create(
+            client=user.client,
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date() + timedelta(days=7),
+            notes=f"Order from cart #{cart.id}",
+            subtotal=cart.get_total(),
+        )
+        
+        # Create invoice items from cart items
+        for cart_item in cart.items.all():
+            # Build description with metadata
+            description = cart_item.service.name
+            if cart_item.service_metadata:
+                if 'hosting_product_name' in cart_item.service_metadata:
+                    description = cart_item.service_metadata['hosting_product_name']
+                if 'domain_name' in cart_item.service_metadata:
+                    description = f"Domain: {cart_item.service_metadata['domain_name']}"
+                if 'region' in cart_item.service_metadata:
+                    description += f" ({cart_item.service_metadata['region']})"
+                if 'billing_cycle' in cart_item.service_metadata or cart_item.billing_cycle:
+                    description += f" - {cart_item.billing_cycle}"
+            
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=description,
+                quantity=cart_item.quantity,
+                unit_price=cart_item.unit_price,
+            )
+        
+        # Update cart status
+        cart.status = 'checkout'
+        cart.save()
+        
+        # If payment method is paynow, initiate payment
+        payment_data = {
+            "invoice_id": invoice.id,
+            "invoice_number": invoice.invoice_number,
+            "total": float(invoice.total),
+            "status": "pending",
+            "message": "Invoice created successfully"
+        }
+        
+        if payment_method == 'paynow' and billing_info.get('email'):
+            try:
+                from .paynow_service import PaynowService
+                paynow = PaynowService()
+                
+                result = paynow.process_invoice_payment(
+                    invoice=invoice,
+                    email=billing_info.get('email', ''),
+                    mobile_payment=False,
+                )
+                
+                if result['success']:
+                    # Create a pending payment record
+                    payment = Payment.objects.create(
+                        invoice=invoice,
+                        payment_method='paynow',
+                        amount=invoice.total,
+                        status='pending',
+                        transaction_id=result.get('reference'),
+                        metadata={
+                            'poll_url': result.get('poll_url'),
+                            'redirect_url': result.get('redirect_url'),
+                            'billing_info': billing_info,
+                        }
+                    )
+                    
+                    payment_data.update({
+                        "payment_id": payment.id,
+                        "redirect_url": result.get('redirect_url'),
+                        "poll_url": result.get('poll_url'),
+                        "payment_initiated": True,
+                    })
+            except ImportError:
+                # Paynow SDK not installed, just create invoice
+                payment_data["payment_initiated"] = False
+                payment_data["message"] = "Invoice created. Paynow payment can be initiated later."
+            except Exception as e:
+                payment_data["payment_initiated"] = False
+                payment_data["payment_error"] = str(e)
+        
+        # Mark cart as completed
+        cart.status = 'completed'
+        cart.save()
+        
+        return Response(payment_data, status=status.HTTP_201_CREATED)
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
