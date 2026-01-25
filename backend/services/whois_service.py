@@ -240,9 +240,10 @@ class WhoisService:
             requests.RequestException: If HTTP request fails
         """
         try:
-            # Check if URI ends with a query parameter (e.g., ?s= or ?search=)
-            # In this case, append the domain directly to the URI
-            if uri.endswith('='):
+            # Check if URI ends with a query parameter expecting a value (e.g., ?s= or ?search= or &domain=)
+            # Pattern matches: ?key= or &key= at the end of the URI
+            append_domain_pattern = re.compile(r'[\?&][a-zA-Z_][a-zA-Z0-9_]*=$')
+            if append_domain_pattern.search(uri):
                 # URI expects domain appended directly (e.g., ?s=example.co.zw)
                 full_url = uri + domain
                 response = self.session.get(

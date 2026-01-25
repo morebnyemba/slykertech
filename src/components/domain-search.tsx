@@ -20,6 +20,9 @@ interface DomainSearchProps {
 
 type FilterType = 'all' | 'available' | 'unavailable';
 
+// Number of TLDs to show before "Show All" is clicked
+const VISIBLE_TLDS_COUNT = 30;
+
 export default function DomainSearch({ className = '' }: DomainSearchProps) {
   const [searchInput, setSearchInput] = useState('');
   const [results, setResults] = useState<DomainSearchResult[]>([]);
@@ -29,6 +32,11 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [supportedTlds, setSupportedTlds] = useState<string[]>([]);
   const [showAllTlds, setShowAllTlds] = useState(false);
+
+  // Helper function to add TLD example to search input
+  const addTldToSearch = (tld: string) => {
+    setSearchInput(prev => prev ? `${prev}, example.${tld}` : `example.${tld}`);
+  };
 
   // Fetch supported TLDs on component mount
   useEffect(() => {
@@ -173,19 +181,19 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
             </Button>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {(showAllTlds ? supportedTlds : supportedTlds.slice(0, 30)).map((tld) => (
+            {(showAllTlds ? supportedTlds : supportedTlds.slice(0, VISIBLE_TLDS_COUNT)).map((tld) => (
               <span
                 key={tld}
                 className="px-2 py-0.5 bg-background border rounded text-xs font-mono cursor-pointer hover:bg-primary/10 transition-colors"
-                onClick={() => setSearchInput(prev => prev ? `${prev}, example.${tld}` : `example.${tld}`)}
+                onClick={() => addTldToSearch(tld)}
                 title={`Click to add example.${tld} to search`}
               >
                 .{tld}
               </span>
             ))}
-            {!showAllTlds && supportedTlds.length > 30 && (
+            {!showAllTlds && supportedTlds.length > VISIBLE_TLDS_COUNT && (
               <span className="px-2 py-0.5 text-xs text-muted-foreground">
-                +{supportedTlds.length - 30} more
+                +{supportedTlds.length - VISIBLE_TLDS_COUNT} more
               </span>
             )}
           </div>
