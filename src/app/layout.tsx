@@ -117,8 +117,8 @@ export default function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             <Header />
             {/* Spacer to prevent content from being cut off by fixed header */}
-            {/* Responsive header height: ~140px mobile, ~130px tablet, ~120px desktop */}
-            <div className="h-32 sm:h-28 md:h-26 lg:h-24 flex-shrink-0" aria-hidden="true" />
+            {/* Responsive header height adjusts based on screen size */}
+            <div className="h-32 sm:h-28 md:h-24 lg:h-24 flex-shrink-0" aria-hidden="true" />
             {/* Separator line between header and content */}
             <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" aria-hidden="true" />
             <main className="flex-1">

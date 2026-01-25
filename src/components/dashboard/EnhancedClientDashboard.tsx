@@ -156,6 +156,7 @@ export default function EnhancedClientDashboard() {
               </div>
               <button
                 onClick={handleRefresh}
+                aria-label="Refresh dashboard data"
                 className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm"
               >
                 <FaSync className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
