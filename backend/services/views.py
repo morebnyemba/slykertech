@@ -12,7 +12,7 @@ from .serializers import (
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
     DomainRegistrationSerializer
 )
-from backend.services.whois_service import whois_service
+from .whois_service import whois_service
 import logging
 
 logger = logging.getLogger(__name__)

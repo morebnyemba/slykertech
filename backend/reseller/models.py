@@ -43,7 +43,7 @@ class ResellerProfile(models.Model):
         ('platinum', 'Platinum'),
     ]
     
-    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='reseller_data')
+    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='reseller_data', null=True, blank=True)
     tier = models.CharField(max_length=20, choices=TIER_CHOICES, default='bronze')
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=10)
     commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=5)
@@ -83,7 +83,7 @@ class ResellerProfile(models.Model):
 
 class AgencyPartner(models.Model):
     """Agency partner-specific information"""
-    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='agency_data')
+    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='agency_data', null=True, blank=True)
     specialization = models.CharField(max_length=255, help_text="Primary area of expertise")
     referral_bonus_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=10)
     active_referrals = models.IntegerField(default=0)
@@ -94,7 +94,7 @@ class AgencyPartner(models.Model):
 
 class TechnologyAlliance(models.Model):
     """Technology alliance-specific information"""
-    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='technology_data')
+    partner = models.OneToOneField(PartnerProfile, on_delete=models.CASCADE, related_name='technology_data', null=True, blank=True)
     product_name = models.CharField(max_length=255)
     integration_type = models.CharField(max_length=255, help_text="Type of integration (API, Plugin, etc.)")
     api_key = models.CharField(max_length=255, unique=True, editable=False, blank=True)
