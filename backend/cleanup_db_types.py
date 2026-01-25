@@ -85,6 +85,18 @@ def get_pending_migration_models(cursor, backend_path):
                     # Convert to table name format: app_modelname (lowercase)
                     table_name = f"{app_name}_{model_name.lower()}"
                     pending_tables.add(table_name)
+                
+                # Find all AddField operations with ManyToManyField
+                # These create intermediary tables named: app_model_fieldname
+                # Pattern: migrations.AddField(model_name='Model', name='field', 
+                #          field=models.ManyToManyField(...))
+                addfield_pattern = r"migrations\.AddField\s*\(\s*model_name\s*=\s*['\"](\w+)['\"].*?name\s*=\s*['\"](\w+)['\"].*?ManyToManyField"
+                m2m_fields = re.findall(addfield_pattern, content, re.DOTALL)
+                
+                for model_name, field_name in m2m_fields:
+                    # Convert to intermediary table name format: app_model_fieldname (lowercase)
+                    table_name = f"{app_name}_{model_name.lower()}_{field_name.lower()}"
+                    pending_tables.add(table_name)
                     
             except IOError as e:
                 # Log file read errors for debugging but continue processing
