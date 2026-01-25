@@ -5,8 +5,12 @@ import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import ClientBackgroundWrapper from '@/components/ClientBackgroundWrapper'; // Import the wrapper
 import LiveChatWidget from '@/components/LiveChatWidget';
+import Script from 'next/script';
 
 export const metadata = defaultMetadata;
+
+// Google Analytics Measurement ID - Replace with your actual GA4 Measurement ID
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export default function RootLayout({
   children,
@@ -46,6 +50,51 @@ export default function RootLayout({
         <link rel="icon" href="/images/stws.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/images/stws.png" />
         <meta name="theme-color" content="#0066cc" />
+        
+        {/* Google Analytics - Only load if GA_MEASUREMENT_ID is set */}
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
+        
+        {/* 
+          Additional Tracking Scripts Placeholder
+          Add your tracking scripts here:
+          - Facebook Pixel
+          - Hotjar
+          - Microsoft Clarity
+          - Other analytics tools
+          
+          Example for Facebook Pixel:
+          <Script id="facebook-pixel" strategy="afterInteractive">
+            {`
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', 'YOUR_PIXEL_ID');
+              fbq('track', 'PageView');
+            `}
+          </Script>
+        */}
       </head>
       <body className="min-h-screen antialiased bg-background text-foreground">
         <ThemeProvider
@@ -67,8 +116,13 @@ export default function RootLayout({
           {/* Main content container */}
           <div className="relative flex min-h-screen flex-col">
             <Header />
+            {/* Spacer to prevent content from being cut off by fixed header */}
+            {/* Responsive header height: ~140px mobile, ~130px tablet, ~120px desktop */}
+            <div className="h-32 sm:h-28 md:h-26 lg:h-24 flex-shrink-0" aria-hidden="true" />
+            {/* Separator line between header and content */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" aria-hidden="true" />
             <main className="flex-1">
-              <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+              <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
                 {children}
               </div>
             </main>
