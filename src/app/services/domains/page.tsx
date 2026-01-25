@@ -423,9 +423,9 @@ export default function DomainsPage() {
                           <button
                             onClick={() => {
                               if (actionType === 'registration') {
-                                router.push(`/services/domains/register?domain=example${domain.tld}`);
+                                router.push(`/services/domains/register?tld=${encodeURIComponent(domain.tld)}`);
                               } else {
-                                router.push(`/services/domains/transfer?domain=example${domain.tld}`);
+                                router.push(`/services/domains/transfer`);
                               }
                             }}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"

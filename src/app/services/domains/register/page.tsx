@@ -59,8 +59,13 @@ function RegisterPageContent() {
   // Pre-fill domain from URL query parameter
   useEffect(() => {
     const domainParam = searchParams.get('domain');
+    const tldParam = searchParams.get('tld');
+    
     if (domainParam) {
       setDomainName(domainParam.toLowerCase());
+    } else if (tldParam) {
+      // If only TLD is provided, leave domain name empty for user to fill in
+      // The domain will be validated when user enters it
     }
   }, [searchParams]);
 
@@ -74,8 +79,9 @@ function RegisterPageContent() {
           const products = Array.isArray(response.data) ? response.data : response.data.results || [];
           setAllProducts(products);
         }
-      } catch {
-        setError('Failed to load domain products');
+      } catch (err) {
+        console.error('Failed to load domain products:', err);
+        setError('Failed to load domain products. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -135,21 +141,24 @@ function RegisterPageContent() {
     return () => clearTimeout(timeoutId);
   }, [domainName, allProducts]);
 
+  // Helper function to calculate registration price for any number of years
+  const calculatePriceForYears = (product: DomainProduct, years: number): number => {
+    if (years === 1) {
+      return parseFloat(product.registration_price_1yr);
+    }
+    if (years === 2 && product.registration_price_2yr) {
+      return parseFloat(product.registration_price_2yr);
+    }
+    if (years === 3 && product.registration_price_3yr) {
+      return parseFloat(product.registration_price_3yr);
+    }
+    // Default: multiply 1-year price by number of years
+    return parseFloat(product.registration_price_1yr) * years;
+  };
+
   const getPrice = () => {
     if (!domainProduct) return 0;
-    
-    switch (registrationYears) {
-      case 2:
-        return domainProduct.registration_price_2yr 
-          ? parseFloat(domainProduct.registration_price_2yr)
-          : parseFloat(domainProduct.registration_price_1yr) * 2;
-      case 3:
-        return domainProduct.registration_price_3yr 
-          ? parseFloat(domainProduct.registration_price_3yr)
-          : parseFloat(domainProduct.registration_price_1yr) * 3;
-      default:
-        return parseFloat(domainProduct.registration_price_1yr);
-    }
+    return calculatePriceForYears(domainProduct, registrationYears);
   };
 
   const getWhoisPrivacyPrice = () => {
@@ -380,14 +389,7 @@ function RegisterPageContent() {
                     >
                       <div className="font-bold text-gray-900 dark:text-white">{years} Year{years > 1 ? 's' : ''}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        ${(years === 1 
-                          ? parseFloat(domainProduct.registration_price_1yr)
-                          : years === 2 && domainProduct.registration_price_2yr
-                            ? parseFloat(domainProduct.registration_price_2yr)
-                            : years === 3 && domainProduct.registration_price_3yr
-                              ? parseFloat(domainProduct.registration_price_3yr)
-                              : parseFloat(domainProduct.registration_price_1yr) * years
-                        ).toFixed(2)}
+                        ${calculatePriceForYears(domainProduct, years).toFixed(2)}
                       </div>
                     </button>
                   ))}
