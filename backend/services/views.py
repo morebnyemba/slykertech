@@ -3,14 +3,16 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from .models import (Service, ServiceSubscription, DNSRecord,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
-                    HostingProduct, DomainProduct, ServiceAddon, DomainRegistration)
+                    HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
+                    DomainTransferRequest)
 from .serializers import (
     ServiceSerializer, ServiceSubscriptionSerializer, 
     ServiceSubscriptionCreateSerializer, DNSRecordSerializer,
     ProjectTrackerSerializer, ProjectTrackerCreateSerializer,
     ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectCommentSerializer,
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
-    DomainRegistrationSerializer
+    DomainRegistrationSerializer, DomainTransferRequestSerializer,
+    DomainTransferRequestCreateSerializer
 )
 from .whois_service import whois_service
 import logging
@@ -246,6 +248,64 @@ class DomainRegistrationViewSet(viewsets.ModelViewSet):
             return DomainRegistration.objects.all()
         # Clients can only see their own domains
         return DomainRegistration.objects.filter(client__user=user)
+
+
+class DomainTransferRequestViewSet(viewsets.ModelViewSet):
+    """ViewSet for DomainTransferRequest model - handles domain transfer requests"""
+    
+    queryset = DomainTransferRequest.objects.all()
+    serializer_class = DomainTransferRequestSerializer
+    permission_classes = [permissions.AllowAny]  # Allow public access for transfer requests
+    
+    def get_queryset(self):
+        """Filter transfer requests based on user"""
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_superuser or user.user_type == 'admin':
+                return DomainTransferRequest.objects.all()
+            # Authenticated clients can only see their own transfer requests
+            return DomainTransferRequest.objects.filter(client__user=user)
+        # Non-authenticated users can't list transfer requests
+        return DomainTransferRequest.objects.none()
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return DomainTransferRequestCreateSerializer
+        return DomainTransferRequestSerializer
+    
+    def perform_create(self, serializer):
+        """Set the client when creating a transfer request (if authenticated)"""
+        user = self.request.user
+        if user.is_authenticated:
+            try:
+                from clients.models import Client
+                client = Client.objects.get(user=user)
+                serializer.save(client=client)
+            except Exception:
+                serializer.save()
+        else:
+            serializer.save()
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def update_epp_code(self, request, pk=None):
+        """Update EPP code for a transfer request"""
+        transfer_request = self.get_object()
+        epp_code = request.data.get('epp_code')
+        
+        if not epp_code:
+            return Response(
+                {"error": "EPP code is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        transfer_request.epp_code = epp_code
+        transfer_request.status = 'in_progress'
+        transfer_request.save()
+        
+        return Response(
+            {"message": "EPP code updated successfully"},
+            status=status.HTTP_200_OK
+        )
 
 
 @api_view(['POST', 'GET'])

@@ -319,3 +319,85 @@ class DomainRegistration(models.Model):
         grace_days = self.domain_product.grace_period_days
         redemption_days = self.domain_product.redemption_period_days
         return self.is_expired() and (grace_days < days_expired <= grace_days + redemption_days)
+
+
+class DomainTransferRequest(models.Model):
+    """
+    Model for handling domain transfer requests
+    Stores all information needed to process a domain transfer
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('awaiting_epp', 'Awaiting EPP Code'),
+        ('in_progress', 'Transfer In Progress'),
+        ('completed', 'Transfer Completed'),
+        ('failed', 'Transfer Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    # Client making the transfer request
+    client = models.ForeignKey('clients.Client', on_delete=models.CASCADE, 
+                              related_name='transfer_requests',
+                              null=True, blank=True,
+                              help_text="Associated client (if logged in)")
+    
+    # Domain information
+    domain_name = models.CharField(max_length=255, help_text="Full domain name to transfer (e.g., example.com)")
+    
+    # Contact information (for non-logged-in users)
+    contact_email = models.EmailField(help_text="Contact email for transfer updates")
+    contact_name = models.CharField(max_length=255, help_text="Contact person's name")
+    contact_phone = models.CharField(max_length=50, blank=True, null=True, help_text="Contact phone number")
+    
+    # Transfer credentials
+    epp_code = models.CharField(max_length=100, blank=True, null=True, 
+                               help_text="EPP/Authorization code from current registrar")
+    current_registrar = models.CharField(max_length=255, blank=True, null=True,
+                                        help_text="Current domain registrar")
+    
+    # Domain ownership verification
+    admin_email = models.EmailField(blank=True, null=True,
+                                   help_text="Admin email listed in WHOIS (for verification)")
+    owns_domain = models.BooleanField(default=False, 
+                                     help_text="User confirms they own this domain")
+    
+    # Transfer status and processing
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status_message = models.TextField(blank=True, null=True,
+                                     help_text="Additional status information or error messages")
+    
+    # Nameserver preferences
+    update_nameservers = models.BooleanField(default=True,
+                                            help_text="Update nameservers to our servers after transfer")
+    nameserver1 = models.CharField(max_length=255, blank=True, null=True)
+    nameserver2 = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Additional options
+    whois_privacy = models.BooleanField(default=False, 
+                                       help_text="Enable WHOIS privacy after transfer")
+    auto_renew = models.BooleanField(default=True,
+                                    help_text="Enable auto-renewal after transfer")
+    
+    # Admin notes
+    admin_notes = models.TextField(blank=True, null=True,
+                                  help_text="Internal notes for staff")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(blank=True, null=True,
+                                       help_text="When the transfer was completed")
+    
+    class Meta:
+        verbose_name = _('domain transfer request')
+        verbose_name_plural = _('domain transfer requests')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Transfer: {self.domain_name} ({self.get_status_display()})"
+    
+    def get_tld(self):
+        """Extract TLD from domain name"""
+        if '.' in self.domain_name:
+            return self.domain_name.split('.')[-1]
+        return None
