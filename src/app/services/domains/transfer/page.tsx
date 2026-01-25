@@ -55,15 +55,25 @@ function TransferPageContent() {
     }
   }, [searchParams]);
 
+  // Helper function to get display name from user object
+  const getUserDisplayName = (): string => {
+    if (!user) return '';
+    if (user.full_name) return user.full_name;
+    const firstName = user.first_name || '';
+    const lastName = user.last_name || '';
+    return `${firstName} ${lastName}`.trim();
+  };
+
   // Pre-fill user information if logged in
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
         contact_email: user.email || prev.contact_email,
-        contact_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || prev.contact_name,
+        contact_name: getUserDisplayName() || prev.contact_name,
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

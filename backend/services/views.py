@@ -281,7 +281,8 @@ class DomainTransferRequestViewSet(viewsets.ModelViewSet):
                 from clients.models import Client
                 client = Client.objects.get(user=user)
                 serializer.save(client=client)
-            except Exception:
+            except Client.DoesNotExist:
+                # User is authenticated but doesn't have a client profile
                 serializer.save()
         else:
             serializer.save()
