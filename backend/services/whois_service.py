@@ -118,18 +118,31 @@ class WhoisService:
     
     def extract_tld(self, domain: str) -> str:
         """
-        Extract TLD from domain name
+        Extract TLD from domain name, supporting both single-level TLDs (e.g., 'com')
+        and second-level TLDs (e.g., 'co.zw', 'co.za', 'co.ke')
         
         Args:
-            domain: Full domain name (e.g., 'example.com')
+            domain: Full domain name (e.g., 'example.com' or 'example.co.zw')
         
         Returns:
-            TLD string (e.g., 'com')
+            TLD string (e.g., 'com' or 'co.zw')
         """
         domain = domain.lower().strip()
         parts = domain.split('.')
         if len(parts) < 2:
             raise ValueError(f"Invalid domain format: {domain}")
+        
+        # Check for second-level TLDs first (e.g., co.zw, co.za, co.ke, org.uk)
+        # These require at least 3 parts: name.second.tld
+        # For deeply nested subdomains like 'sub.example.co.zw' (4+ parts),
+        # this still works correctly since we always check the last two parts
+        if len(parts) >= 3:
+            second_level_tld = f"{parts[-2]}.{parts[-1]}"
+            # Check if this second-level TLD exists in our config
+            if whois_config.is_tld_supported(second_level_tld):
+                return second_level_tld
+        
+        # Fall back to single-level TLD
         return parts[-1]
     
     def normalize_domain(self, domain: str) -> str:
