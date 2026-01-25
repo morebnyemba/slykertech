@@ -4,6 +4,86 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def create_domain_transfer_request_if_not_exists(apps, schema_editor):
+    """
+    Safely create the DomainTransferRequest table only if it doesn't already exist.
+    This handles cases where a previous migration attempt may have partially created the table.
+    """
+    connection = schema_editor.connection
+    table_name = 'services_domaintransferrequest'
+    
+    # Check if the table already exists
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = %s
+            );
+        """, [table_name])
+        table_exists = cursor.fetchone()[0]
+    
+    if table_exists:
+        # Table already exists, nothing to do
+        return
+    
+    # Also check and clean up any orphaned sequences that might exist
+    sequence_name = 'services_domaintransferrequest_id_seq'
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM pg_sequences 
+                WHERE schemaname = 'public' 
+                AND sequencename = %s
+            );
+        """, [sequence_name])
+        sequence_exists = cursor.fetchone()[0]
+        
+        if sequence_exists:
+            # Drop the orphaned sequence before creating the table
+            cursor.execute(f'DROP SEQUENCE IF EXISTS "{sequence_name}" CASCADE;')
+    
+    # Now create the table using raw SQL
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE "services_domaintransferrequest" (
+                "id" bigserial NOT NULL PRIMARY KEY,
+                "domain_name" varchar(255) NOT NULL,
+                "contact_email" varchar(254) NOT NULL,
+                "contact_name" varchar(255) NOT NULL,
+                "contact_phone" varchar(50) NULL,
+                "epp_code" varchar(100) NULL,
+                "current_registrar" varchar(255) NULL,
+                "admin_email" varchar(254) NULL,
+                "owns_domain" boolean NOT NULL,
+                "status" varchar(20) NOT NULL,
+                "status_message" text NULL,
+                "update_nameservers" boolean NOT NULL,
+                "nameserver1" varchar(255) NULL,
+                "nameserver2" varchar(255) NULL,
+                "whois_privacy" boolean NOT NULL,
+                "auto_renew" boolean NOT NULL,
+                "admin_notes" text NULL,
+                "created_at" timestamp with time zone NOT NULL,
+                "updated_at" timestamp with time zone NOT NULL,
+                "completed_at" timestamp with time zone NULL,
+                "client_id" bigint NULL REFERENCES "clients_client" ("id") ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+            );
+        """)
+        # Create index for the foreign key
+        cursor.execute("""
+            CREATE INDEX "services_domaintransferrequest_client_id_idx" 
+            ON "services_domaintransferrequest" ("client_id");
+        """)
+
+
+def reverse_create_domain_transfer_request(apps, schema_editor):
+    """Reverse migration - drop the table if it exists."""
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        cursor.execute('DROP TABLE IF EXISTS "services_domaintransferrequest" CASCADE;')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,35 +92,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='DomainTransferRequest',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain_name', models.CharField(help_text='Full domain name to transfer (e.g., example.com)', max_length=255)),
-                ('contact_email', models.EmailField(help_text='Contact email for transfer updates', max_length=254)),
-                ('contact_name', models.CharField(help_text="Contact person's name", max_length=255)),
-                ('contact_phone', models.CharField(blank=True, help_text='Contact phone number', max_length=50, null=True)),
-                ('epp_code', models.CharField(blank=True, help_text='EPP/Authorization code from current registrar', max_length=100, null=True)),
-                ('current_registrar', models.CharField(blank=True, help_text='Current domain registrar', max_length=255, null=True)),
-                ('admin_email', models.EmailField(blank=True, help_text='Admin email listed in WHOIS (for verification)', max_length=254, null=True)),
-                ('owns_domain', models.BooleanField(default=False, help_text='User confirms they own this domain')),
-                ('status', models.CharField(choices=[('pending', 'Pending Review'), ('awaiting_epp', 'Awaiting EPP Code'), ('in_progress', 'Transfer In Progress'), ('completed', 'Transfer Completed'), ('failed', 'Transfer Failed'), ('cancelled', 'Cancelled')], default='pending', max_length=20)),
-                ('status_message', models.TextField(blank=True, help_text='Additional status information or error messages', null=True)),
-                ('update_nameservers', models.BooleanField(default=True, help_text='Update nameservers to our servers after transfer')),
-                ('nameserver1', models.CharField(blank=True, max_length=255, null=True)),
-                ('nameserver2', models.CharField(blank=True, max_length=255, null=True)),
-                ('whois_privacy', models.BooleanField(default=False, help_text='Enable WHOIS privacy after transfer')),
-                ('auto_renew', models.BooleanField(default=True, help_text='Enable auto-renewal after transfer')),
-                ('admin_notes', models.TextField(blank=True, help_text='Internal notes for staff', null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('completed_at', models.DateTimeField(blank=True, help_text='When the transfer was completed', null=True)),
-                ('client', models.ForeignKey(blank=True, help_text='Associated client (if logged in)', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='transfer_requests', to='clients.client')),
-            ],
-            options={
-                'verbose_name': 'domain transfer request',
-                'verbose_name_plural': 'domain transfer requests',
-                'ordering': ['-created_at'],
-            },
+        migrations.RunPython(
+            create_domain_transfer_request_if_not_exists,
+            reverse_create_domain_transfer_request,
         ),
     ]

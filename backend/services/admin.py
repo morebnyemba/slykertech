@@ -7,10 +7,38 @@ from .models import (Service, ServiceSubscription, DNSRecord,
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'base_price', 'is_active', 'created_at')
+    list_display = ('name', 'category', 'base_price', 'get_recommended_addons_count', 'is_active', 'created_at')
     list_filter = ('category', 'is_active', 'created_at')
     search_fields = ('name', 'description')
     readonly_fields = ('created_at', 'updated_at')
+    filter_horizontal = ('recommended_addons',)
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'category', 'description', 'features', 'base_price')
+        }),
+        ('Payment & Pricing', {
+            'fields': ('payment_type', 'pricing_options', 'service_metadata')
+        }),
+        ('Provisioning', {
+            'fields': ('requires_provisioning', 'provisioning_type')
+        }),
+        ('Recommended Addons', {
+            'fields': ('recommended_addons',),
+            'description': 'Select services to recommend as addons when a customer purchases this service (e.g., recommend Web Hosting when purchasing Domain Registration)'
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_recommended_addons_count(self, obj):
+        return obj.recommended_addons.count()
+    get_recommended_addons_count.short_description = 'Addons'
 
 
 class DNSRecordInline(admin.TabularInline):

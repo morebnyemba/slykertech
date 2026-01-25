@@ -44,6 +44,13 @@ class Service(models.Model):
                                                help_text="Requires automatic provisioning (e.g., cPanel account)")
     provisioning_type = models.CharField(max_length=50, blank=True, null=True,
                                         help_text="Type of provisioning needed: cpanel, directadmin, domain, etc.")
+    
+    # Many-to-many relationship to allow selecting services as recommended addons
+    # E.g., Domain Registration can show Web Hosting or Web Dev as addon options
+    recommended_addons = models.ManyToManyField('self', symmetrical=False, blank=True,
+                                                related_name='addon_of_services',
+                                                help_text="Services to recommend as addons when purchasing this service")
+    
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
