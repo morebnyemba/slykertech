@@ -10,11 +10,21 @@ from accounts.serializers import UserSerializer
 class ServiceSerializer(serializers.ModelSerializer):
     """Serializer for Service model"""
     
+    addon_services = serializers.SerializerMethodField(read_only=True)
+    
     class Meta:
         model = Service
         fields = ['id', 'name', 'category', 'description', 'features', 'base_price', 
+                  'payment_type', 'pricing_options', 'service_metadata', 
+                  'requires_provisioning', 'provisioning_type',
+                  'parent_service', 'is_addon', 'addon_services',
                   'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_addon_services(self, obj):
+        """Get a list of addon services for this service"""
+        addons = obj.addon_services.filter(is_active=True)
+        return [{'id': addon.id, 'name': addon.name, 'base_price': addon.base_price} for addon in addons]
 
 
 class DNSRecordSerializer(serializers.ModelSerializer):

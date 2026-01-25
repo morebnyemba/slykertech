@@ -7,10 +7,34 @@ from .models import (Service, ServiceSubscription, DNSRecord,
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'base_price', 'is_active', 'created_at')
-    list_filter = ('category', 'is_active', 'created_at')
+    list_display = ('name', 'category', 'base_price', 'is_addon', 'parent_service', 'is_active', 'created_at')
+    list_filter = ('category', 'is_active', 'is_addon', 'created_at')
     search_fields = ('name', 'description')
     readonly_fields = ('created_at', 'updated_at')
+    raw_id_fields = ('parent_service',)
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'category', 'description', 'features', 'base_price')
+        }),
+        ('Payment & Pricing', {
+            'fields': ('payment_type', 'pricing_options', 'service_metadata')
+        }),
+        ('Provisioning', {
+            'fields': ('requires_provisioning', 'provisioning_type')
+        }),
+        ('Service Addon Configuration', {
+            'fields': ('is_addon', 'parent_service'),
+            'description': 'Configure this service as an addon to another service'
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 class DNSRecordInline(admin.TabularInline):
