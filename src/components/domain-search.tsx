@@ -6,7 +6,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, CheckCircle2, XCircle, Copy, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Loader2, CheckCircle2, XCircle, Copy, Download, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   parseMultipleDomains,
@@ -338,12 +339,21 @@ export default function DomainSearch({ className = '' }: DomainSearchProps) {
                               </span>
                             </>
                           ) : (
-                            <>
-                              <XCircle className="text-muted-foreground" size={18} />
-                              <span className="text-sm text-muted-foreground">
-                                Registered
-                              </span>
-                            </>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <XCircle className="text-muted-foreground" size={18} />
+                                <span className="text-sm text-muted-foreground">
+                                  Registered
+                                </span>
+                              </div>
+                              <Link 
+                                href={`/services/domains/transfer?domain=${encodeURIComponent(result.domain)}`}
+                                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 hover:underline mt-1"
+                              >
+                                Is it yours? Transfer now
+                                <ArrowRight size={12} />
+                              </Link>
+                            </div>
                           )}
                           {result.cached && (
                             <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">

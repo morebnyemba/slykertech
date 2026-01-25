@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaGlobe, FaSearch, FaShieldAlt, FaLock, FaCheck } from 'react-icons/fa';
+import { FaGlobe, FaSearch, FaShieldAlt, FaLock, FaCheck, FaArrowRight } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
@@ -274,9 +275,18 @@ export default function DomainsPage() {
                           </button>
                         </>
                       ) : (
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Already Registered
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Already Registered
+                          </span>
+                          <Link
+                            href={`/services/domains/transfer?domain=${encodeURIComponent(result.domain)}`}
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                          >
+                            Is it yours? Transfer now
+                            <FaArrowRight size={10} />
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </div>

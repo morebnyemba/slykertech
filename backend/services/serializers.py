@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (Service, ServiceSubscription, DNSRecord,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
-                    HostingProduct, DomainProduct, ServiceAddon, DomainRegistration)
+                    HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
+                    DomainTransferRequest)
 from clients.serializers import ClientSerializer
 from accounts.serializers import UserSerializer
 
@@ -188,4 +189,52 @@ class DomainRegistrationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+
+class DomainTransferRequestSerializer(serializers.ModelSerializer):
+    """Serializer for DomainTransferRequest model"""
+    
+    client = ClientSerializer(read_only=True)
+    
+    class Meta:
+        model = DomainTransferRequest
+        fields = [
+            'id', 'client', 'domain_name', 'contact_email', 'contact_name', 
+            'contact_phone', 'epp_code', 'current_registrar', 'admin_email',
+            'owns_domain', 'status', 'status_message', 'update_nameservers',
+            'nameserver1', 'nameserver2', 'whois_privacy', 'auto_renew',
+            'created_at', 'updated_at', 'completed_at'
+        ]
+        read_only_fields = ['id', 'status', 'status_message', 'created_at', 
+                          'updated_at', 'completed_at']
+
+
+class DomainTransferRequestCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating DomainTransferRequest"""
+    
+    class Meta:
+        model = DomainTransferRequest
+        fields = [
+            'domain_name', 'contact_email', 'contact_name', 'contact_phone',
+            'epp_code', 'current_registrar', 'admin_email', 'owns_domain',
+            'update_nameservers', 'nameserver1', 'nameserver2', 
+            'whois_privacy', 'auto_renew'
+        ]
+    
+    def validate_domain_name(self, value):
+        """Validate domain name format"""
+        if not value or '.' not in value:
+            raise serializers.ValidationError("Please enter a valid domain name (e.g., example.com)")
+        return value.lower().strip()
+    
+    def validate_owns_domain(self, value):
+        """Ensure user confirms domain ownership"""
+        if not value:
+            raise serializers.ValidationError("You must confirm that you own this domain")
+        return value
+    
+    def validate(self, data):
+        """Cross-field validation"""
+        # EPP code is recommended but not required initially
+        # It can be provided later
+        return data
 

@@ -329,6 +329,7 @@ from .whmcs_models import (
     DomainProduct,
     ServiceAddon,
     DomainRegistration,
+    DomainTransferRequest,
 )
 
 __all__ = [
@@ -344,6 +345,7 @@ __all__ = [
     'DomainProduct',
     'ServiceAddon',
     'DomainRegistration',
+    'DomainTransferRequest',
 ]
 
 
