@@ -5,15 +5,20 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
 import { 
   FaFileInvoiceDollar, FaSpinner, FaSearch, FaPaperPlane,
-  FaCheckCircle, FaTimes
+  FaCheckCircle, FaTimes, FaPlus, FaTrash
 } from 'react-icons/fa';
 
 interface InvoiceItem {
-  id: number;
+  id?: number;
   description: string;
   quantity: number;
   unit_price: number;
   amount: number;
+}
+
+interface Client {
+  id: number;
+  company_name: string;
 }
 
 interface Invoice {
@@ -57,12 +62,39 @@ interface InvoiceStats {
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [filter, setFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  // Create form state
+  const [formData, setFormData] = useState({
+    client: '',
+    issue_date: new Date().toISOString().split('T')[0],
+    due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    tax_rate: '0',
+    discount_amount: '0',
+    notes: '',
+    terms: 'Payment is due within 30 days of invoice date.',
+  });
+  const [invoiceItems, setInvoiceItems] = useState<Array<{ description: string; quantity: string; unit_price: string }>>([
+    { description: '', quantity: '1', unit_price: '' }
+  ]);
+
+  const fetchClients = useCallback(async () => {
+    try {
+      const response = await apiService.getAllClients();
+      if (response.data) {
+        setClients(response.data as Client[]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch clients:', error);
+    }
+  }, []);
 
   const fetchInvoices = useCallback(async () => {
     try {
@@ -91,7 +123,81 @@ export default function InvoicesPage() {
   useEffect(() => {
     fetchInvoices();
     fetchStats();
-  }, [fetchInvoices, fetchStats]);
+    fetchClients();
+  }, [fetchInvoices, fetchStats, fetchClients]);
+
+  const handleCreateInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(-1);
+    
+    try {
+      const items = invoiceItems
+        .filter(item => item.description && item.unit_price)
+        .map(item => ({
+          description: item.description,
+          quantity: parseInt(item.quantity) || 1,
+          unit_price: parseFloat(item.unit_price) || 0,
+        }));
+      
+      await apiService.createInvoice({
+        client: parseInt(formData.client),
+        issue_date: formData.issue_date,
+        due_date: formData.due_date,
+        items,
+        tax_rate: parseFloat(formData.tax_rate) || 0,
+        discount_amount: parseFloat(formData.discount_amount) || 0,
+        notes: formData.notes,
+        terms: formData.terms,
+      });
+      
+      fetchInvoices();
+      fetchStats();
+      resetForm();
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const resetForm = () => {
+    setShowCreateForm(false);
+    setFormData({
+      client: '',
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tax_rate: '0',
+      discount_amount: '0',
+      notes: '',
+      terms: 'Payment is due within 30 days of invoice date.',
+    });
+    setInvoiceItems([{ description: '', quantity: '1', unit_price: '' }]);
+  };
+
+  const addInvoiceItem = () => {
+    setInvoiceItems([...invoiceItems, { description: '', quantity: '1', unit_price: '' }]);
+  };
+
+  const removeInvoiceItem = (index: number) => {
+    if (invoiceItems.length > 1) {
+      setInvoiceItems(invoiceItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateInvoiceItem = (index: number, field: string, value: string) => {
+    const updated = [...invoiceItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setInvoiceItems(updated);
+  };
+
+  const calculateTotal = () => {
+    const subtotal = invoiceItems.reduce((sum, item) => {
+      return sum + ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
+    }, 0);
+    const taxAmount = subtotal * (parseFloat(formData.tax_rate) || 0) / 100;
+    const discount = parseFloat(formData.discount_amount) || 0;
+    return subtotal + taxAmount - discount;
+  };
 
   const handleSendInvoice = async (id: number) => {
     setActionLoading(id);
@@ -169,22 +275,30 @@ export default function InvoicesPage() {
             <p className="text-gray-500 dark:text-gray-400">Manage billing and invoices</p>
           </div>
           
-          {stats && (
-            <div className="flex flex-wrap gap-3">
-              <div className="px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <span className="text-xl font-bold text-green-600">{formatCurrency(stats.revenue.this_month)}</span>
-                <span className="text-sm text-gray-500 ml-2">This Month</span>
-              </div>
-              <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                <span className="text-xl font-bold text-yellow-600">{formatCurrency(stats.outstanding)}</span>
-                <span className="text-sm text-gray-500 ml-2">Outstanding</span>
-              </div>
-              <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <span className="text-xl font-bold text-blue-600">{stats.by_status.paid}</span>
-                <span className="text-sm text-gray-500 ml-2">Paid</span>
-              </div>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {stats && (
+              <>
+                <div className="px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <span className="text-xl font-bold text-green-600">{formatCurrency(stats.revenue.this_month)}</span>
+                  <span className="text-sm text-gray-500 ml-2">This Month</span>
+                </div>
+                <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <span className="text-xl font-bold text-yellow-600">{formatCurrency(stats.outstanding)}</span>
+                  <span className="text-sm text-gray-500 ml-2">Outstanding</span>
+                </div>
+                <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <span className="text-xl font-bold text-blue-600">{stats.by_status.paid}</span>
+                  <span className="text-sm text-gray-500 ml-2">Paid</span>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <FaPlus /> Create Invoice
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -406,6 +520,206 @@ export default function InvoicesPage() {
             )}
           </div>
         </div>
+
+        {/* Create Invoice Modal */}
+        {showCreateForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Create New Invoice
+                  </h2>
+                  <button onClick={resetForm} className="text-gray-500 hover:text-gray-700">
+                    <FaTimes />
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateInvoice} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Client *
+                    </label>
+                    <select
+                      value={formData.client}
+                      onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select a client</option>
+                      {clients.map(client => (
+                        <option key={client.id} value={client.id}>{client.company_name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Issue Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.issue_date}
+                        onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Due Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.due_date}
+                        onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Invoice Items */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Line Items *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addInvoiceItem}
+                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                      >
+                        <FaPlus className="h-3 w-3" /> Add Item
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {invoiceItems.map((item, index) => (
+                        <div key={index} className="flex gap-2 items-start">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => updateInvoiceItem(index, 'description', e.target.value)}
+                            placeholder="Description"
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                          />
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateInvoiceItem(index, 'quantity', e.target.value)}
+                            placeholder="Qty"
+                            min="1"
+                            className="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                          />
+                          <input
+                            type="number"
+                            value={item.unit_price}
+                            onChange={(e) => updateInvoiceItem(index, 'unit_price', e.target.value)}
+                            placeholder="Price"
+                            step="0.01"
+                            min="0"
+                            className="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                          />
+                          {invoiceItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeInvoiceItem(index)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                            >
+                              <FaTrash className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Tax Rate (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.tax_rate}
+                        onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                        step="0.01"
+                        min="0"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Discount Amount
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.discount_amount}
+                        onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
+                        step="0.01"
+                        min="0"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Notes
+                    </label>
+                    <textarea
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="Additional notes..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Terms
+                    </label>
+                    <textarea
+                      value={formData.terms}
+                      onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  {/* Total Preview */}
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex justify-between text-lg font-bold">
+                      <span className="text-gray-900 dark:text-white">Estimated Total</span>
+                      <span className="text-blue-600">{formatCurrency(calculateTotal())}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={actionLoading === -1 || !formData.client || invoiceItems.every(i => !i.description)}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {actionLoading === -1 ? (
+                        <FaSpinner className="animate-spin mx-auto" />
+                      ) : 'Create Invoice'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

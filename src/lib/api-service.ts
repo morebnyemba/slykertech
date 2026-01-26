@@ -461,6 +461,70 @@ class ApiService {
     return this.request('/clients/');
   }
 
+  async getClient(id: number) {
+    return this.request(`/clients/${id}/`);
+  }
+
+  async createClient(data: {
+    company_name: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    postal_code?: string;
+  }) {
+    return this.request('/clients/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateClient(id: number, data: Partial<{
+    company_name: string;
+    phone: string;
+    address: string;
+    city: string;
+    country: string;
+    postal_code: string;
+  }>) {
+    return this.request(`/clients/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteClient(id: number) {
+    return this.request(`/clients/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Subscriptions (admin)
+  async getSubscription(id: number) {
+    return this.request(`/services/subscriptions/${id}/`);
+  }
+
+  async updateSubscription(id: number, data: Partial<{
+    status: string;
+    price: number;
+    billing_cycle: string;
+    notes: string;
+  }>) {
+    return this.request(`/services/subscriptions/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteSubscription(id: number) {
+    return this.request(`/services/subscriptions/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
   // ============ Tickets Endpoints ============
 
   async getTickets(params?: { status?: string; priority?: string; assigned_to_me?: boolean }) {
