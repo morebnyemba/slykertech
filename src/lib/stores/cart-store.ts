@@ -115,7 +115,23 @@ export const useCartStore = create<CartState>()(
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to add item to cart');
+            // Handle Django REST Framework validation errors
+            let errorMessage = 'Failed to add item to cart';
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (typeof errorData === 'object') {
+              // Parse field-level validation errors
+              const errors = Object.entries(errorData)
+                .map(([field, messages]) => {
+                  const msgArray = Array.isArray(messages) ? messages : [messages];
+                  return `${field}: ${msgArray.join(', ')}`;
+                })
+                .join('. ');
+              if (errors) errorMessage = errors;
+            }
+            throw new Error(errorMessage);
           }
 
           const updatedCart = await response.json();
