@@ -556,6 +556,91 @@ class ApiService {
     return this.request(`/livechat/messages/?session=${sessionId}`);
   }
 
+  // ============ Invoice Endpoints ============
+
+  async getInvoices(status?: string) {
+    const url = status ? `/billing/invoices/?status=${status}` : '/billing/invoices/';
+    return this.request(url);
+  }
+
+  async getInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/`);
+  }
+
+  async createInvoice(data: {
+    client: number;
+    issue_date: string;
+    due_date: string;
+    items?: Array<{ description: string; quantity: number; unit_price: number }>;
+    tax_rate?: number;
+    discount_amount?: number;
+    notes?: string;
+    terms?: string;
+  }) {
+    return this.request('/billing/invoices/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateInvoice(id: number, data: Partial<{
+    status: string;
+    issue_date: string;
+    due_date: string;
+    tax_rate: number;
+    discount_amount: number;
+    notes: string;
+    terms: string;
+  }>) {
+    return this.request(`/billing/invoices/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async sendInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/send/`, {
+      method: 'POST',
+    });
+  }
+
+  async markInvoicePaid(id: number) {
+    return this.request(`/billing/invoices/${id}/mark_paid/`, {
+      method: 'POST',
+    });
+  }
+
+  async cancelInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/cancel/`, {
+      method: 'POST',
+    });
+  }
+
+  async getInvoiceStats() {
+    return this.request('/billing/invoices/stats/');
+  }
+
+  // ============ Payment Endpoints ============
+
+  async getPayments(status?: string) {
+    const url = status ? `/billing/payments/?status=${status}` : '/billing/payments/';
+    return this.request(url);
+  }
+
+  async getPayment(id: number) {
+    return this.request(`/billing/payments/${id}/`);
+  }
+
+  async getPaymentStats() {
+    return this.request('/billing/payments/stats/');
+  }
+
   // ============ Analytics Endpoints ============
 
   async getAdminAnalytics() {

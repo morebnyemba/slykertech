@@ -9,7 +9,7 @@ import { apiService } from '@/lib/api-service';
 import { 
   FaHome, FaExclamationTriangle, FaUsers, FaServer, FaCog, 
   FaBars, FaTimes, FaSignOutAlt, FaBell, FaTicketAlt, FaComments,
-  FaChartBar
+  FaChartBar, FaFileInvoiceDollar
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -23,13 +23,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [pendingFailures, setPendingFailures] = useState(0);
   const [openTickets, setOpenTickets] = useState(0);
   const [activeChats, setActiveChats] = useState(0);
+  const [unpaidInvoices, setUnpaidInvoices] = useState(0);
 
   const fetchCounts = useCallback(async () => {
     try {
-      const [failuresRes, ticketStatsRes, chatStatsRes] = await Promise.all([
+      const [failuresRes, ticketStatsRes, chatStatsRes, invoiceStatsRes] = await Promise.all([
         apiService.getPendingFailuresCount(),
         apiService.getTicketStats().catch(() => ({ data: null })),
         apiService.getChatStats().catch(() => ({ data: null })),
+        apiService.getInvoiceStats().catch(() => ({ data: null })),
       ]);
       
       if (failuresRes.data) {
@@ -41,6 +43,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
       if (chatStatsRes.data) {
         setActiveChats((chatStatsRes.data as { active_sessions?: number }).active_sessions || 0);
+      }
+      if (invoiceStatsRes.data) {
+        const stats = invoiceStatsRes.data as { by_status?: { sent?: number; overdue?: number } };
+        setUnpaidInvoices((stats.by_status?.sent || 0) + (stats.by_status?.overdue || 0));
       }
     } catch (error) {
       console.error('Failed to fetch counts:', error);
@@ -69,6 +75,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       badge: activeChats > 0 ? activeChats : undefined
     },
     { 
+      name: 'Invoices', 
+      href: '/admin/invoices', 
+      icon: FaFileInvoiceDollar,
+      badge: unpaidInvoices > 0 ? unpaidInvoices : undefined
+    },
+    { 
       name: 'Provisioning Failures', 
       href: '/admin/provisioning-failures', 
       icon: FaExclamationTriangle,
@@ -80,7 +92,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Settings', href: '/admin/settings', icon: FaCog },
   ];
 
-  const totalAlerts = pendingFailures + openTickets + activeChats;
+  const totalAlerts = pendingFailures + openTickets + activeChats + unpaidInvoices;
 
   return (
     <AdminGuard>
