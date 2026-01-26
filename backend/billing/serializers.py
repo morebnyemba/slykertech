@@ -19,7 +19,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'cart', 'service', 'service_name', 'service_category', 
                   'service_metadata', 'quantity', 'unit_price', 'billing_cycle', 
                   'total_price', 'created_at', 'domain_product', 'hosting_product']
-        read_only_fields = ['id', 'created_at', 'total_price']
+        read_only_fields = ['id', 'cart', 'created_at', 'total_price']
         extra_kwargs = {
             'service': {'required': False}  # Not required when domain_product or hosting_product is provided
         }
