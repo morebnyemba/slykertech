@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (Service, ServiceSubscription, DNSRecord,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
-                    DomainTransferRequest)
+                    DomainTransferRequest, ProvisioningFailure)
 from clients.serializers import ClientSerializer
 from accounts.serializers import UserSerializer
 
@@ -248,4 +248,52 @@ class DomainTransferRequestCreateSerializer(serializers.ModelSerializer):
         # EPP code is recommended but not required initially
         # It can be provided later
         return data
+
+
+class ProvisioningFailureSerializer(serializers.ModelSerializer):
+    """Serializer for ProvisioningFailure model"""
+    
+    subscription = ServiceSubscriptionSerializer(read_only=True)
+    resolved_by = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = ProvisioningFailure
+        fields = [
+            'id', 'subscription', 'error_message', 'error_details',
+            'status', 'provisioning_data', 'admin_notes', 
+            'resolved_by', 'resolved_at', 'admin_notified', 
+            'notification_sent_at', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'subscription', 'error_message', 'error_details',
+                          'provisioning_data', 'resolved_by', 'resolved_at',
+                          'admin_notified', 'notification_sent_at', 
+                          'created_at', 'updated_at']
+
+
+class ProvisioningFailureUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating ProvisioningFailure (admin use)"""
+    
+    class Meta:
+        model = ProvisioningFailure
+        fields = ['status', 'admin_notes']
+    
+    def update(self, instance, validated_data):
+        # If marking as resolved, set resolved_by and resolved_at
+        if validated_data.get('status') == 'resolved':
+            from django.utils import timezone
+            instance.resolved_by = self.context['request'].user
+            instance.resolved_at = timezone.now()
+        
+        return super().update(instance, validated_data)
+
+
+class ManualProvisioningSerializer(serializers.Serializer):
+    """Serializer for manual provisioning completion"""
+    
+    notes = serializers.CharField(required=False, allow_blank=True)
+    provisioned_username = serializers.CharField(required=False, allow_blank=True)
+    provisioned_domain = serializers.CharField(required=False, allow_blank=True)
+    provisioned_password = serializers.CharField(required=False, allow_blank=True, 
+                                                  write_only=True)
+    additional_data = serializers.JSONField(required=False, default=dict)
 

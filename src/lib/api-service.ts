@@ -394,6 +394,334 @@ class ApiService {
       status: 200
     };
   }
+
+  // ============ Admin Endpoints ============
+
+  // Provisioning Failures
+  async getProvisioningFailures(status?: string) {
+    const params = status ? `?status=${status}` : '';
+    return this.request(`/services/provisioning-failures/${params}`);
+  }
+
+  async getProvisioningFailure(id: number) {
+    return this.request(`/services/provisioning-failures/${id}/`);
+  }
+
+  async getPendingFailuresCount() {
+    return this.request('/services/provisioning-failures/pending_count/');
+  }
+
+  async updateProvisioningFailure(id: number, data: Record<string, unknown>) {
+    return this.request(`/services/provisioning-failures/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async markFailureResolved(id: number, notes?: string) {
+    return this.request(`/services/provisioning-failures/${id}/mark_resolved/`, {
+      method: 'POST',
+      body: JSON.stringify({ notes: notes || '' }),
+    });
+  }
+
+  async dismissFailure(id: number, notes?: string) {
+    return this.request(`/services/provisioning-failures/${id}/dismiss/`, {
+      method: 'POST',
+      body: JSON.stringify({ notes: notes || '' }),
+    });
+  }
+
+  async retryProvisioning(id: number) {
+    return this.request(`/services/provisioning-failures/${id}/retry_provisioning/`, {
+      method: 'POST',
+    });
+  }
+
+  async completeManualProvisioning(id: number, data: {
+    notes?: string;
+    provisioned_username?: string;
+    provisioned_domain?: string;
+    provisioned_password?: string;
+    additional_data?: Record<string, unknown>;
+  }) {
+    return this.request(`/services/provisioning-failures/${id}/complete_manual_provisioning/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // All Subscriptions (admin)
+  async getAllSubscriptions() {
+    return this.request('/services/subscriptions/');
+  }
+
+  // All Clients (admin)
+  async getAllClients() {
+    return this.request('/clients/');
+  }
+
+  // ============ Tickets Endpoints ============
+
+  async getTickets(params?: { status?: string; priority?: string; assigned_to_me?: boolean }) {
+    let url = '/tickets/tickets/';
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.priority) queryParams.append('priority', params.priority);
+    if (params?.assigned_to_me) queryParams.append('assigned_to_me', 'true');
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    return this.request(url);
+  }
+
+  async getTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/`);
+  }
+
+  async createTicket(data: { subject: string; description: string; priority?: string; department?: string }) {
+    return this.request('/tickets/tickets/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTicket(id: number, data: { status?: string; priority?: string; assigned_to_id?: number }) {
+    return this.request(`/tickets/tickets/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getTicketStats() {
+    return this.request('/tickets/tickets/stats/');
+  }
+
+  async assignTicketToMe(id: number) {
+    return this.request(`/tickets/tickets/${id}/assign_to_me/`, {
+      method: 'POST',
+    });
+  }
+
+  async closeTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/close/`, {
+      method: 'POST',
+    });
+  }
+
+  async reopenTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/reopen/`, {
+      method: 'POST',
+    });
+  }
+
+  async replyToTicket(ticketId: number, message: string, isInternal?: boolean) {
+    return this.request('/tickets/replies/', {
+      method: 'POST',
+      body: JSON.stringify({ ticket: ticketId, message, is_internal: isInternal || false }),
+    });
+  }
+
+  // ============ Live Chat Endpoints ============
+
+  async getChatSessions(status?: string) {
+    const url = status ? `/livechat/sessions/?status=${status}` : '/livechat/sessions/';
+    return this.request(url);
+  }
+
+  async getActiveChatSessions() {
+    return this.request('/livechat/sessions/active/');
+  }
+
+  async getChatSession(id: number) {
+    return this.request(`/livechat/sessions/${id}/`);
+  }
+
+  async getChatStats() {
+    return this.request('/livechat/sessions/stats/');
+  }
+
+  async closeChatSession(id: number) {
+    return this.request(`/livechat/sessions/${id}/close_session/`, {
+      method: 'POST',
+    });
+  }
+
+  async sendChatMessage(sessionId: number, message: string) {
+    return this.request(`/livechat/sessions/${sessionId}/send_message/`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
+  async getChatMessages(sessionId: number) {
+    return this.request(`/livechat/messages/?session=${sessionId}`);
+  }
+
+  // ============ Invoice Endpoints ============
+
+  async getInvoices(status?: string) {
+    const url = status ? `/billing/invoices/?status=${status}` : '/billing/invoices/';
+    return this.request(url);
+  }
+
+  async getInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/`);
+  }
+
+  async createInvoice(data: {
+    client: number;
+    issue_date: string;
+    due_date: string;
+    items?: Array<{ description: string; quantity: number; unit_price: number }>;
+    tax_rate?: number;
+    discount_amount?: number;
+    notes?: string;
+    terms?: string;
+  }) {
+    return this.request('/billing/invoices/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateInvoice(id: number, data: Partial<{
+    status: string;
+    issue_date: string;
+    due_date: string;
+    tax_rate: number;
+    discount_amount: number;
+    notes: string;
+    terms: string;
+  }>) {
+    return this.request(`/billing/invoices/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async sendInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/send/`, {
+      method: 'POST',
+    });
+  }
+
+  async markInvoicePaid(id: number) {
+    return this.request(`/billing/invoices/${id}/mark_paid/`, {
+      method: 'POST',
+    });
+  }
+
+  async cancelInvoice(id: number) {
+    return this.request(`/billing/invoices/${id}/cancel/`, {
+      method: 'POST',
+    });
+  }
+
+  async getInvoiceStats() {
+    return this.request('/billing/invoices/stats/');
+  }
+
+  // ============ Payment Endpoints ============
+
+  async getPayments(status?: string) {
+    const url = status ? `/billing/payments/?status=${status}` : '/billing/payments/';
+    return this.request(url);
+  }
+
+  async getPayment(id: number) {
+    return this.request(`/billing/payments/${id}/`);
+  }
+
+  async getPaymentStats() {
+    return this.request('/billing/payments/stats/');
+  }
+
+  // ============ Expense Endpoints ============
+
+  async getExpenses(category?: string) {
+    const url = category ? `/billing/expenses/?category=${category}` : '/billing/expenses/';
+    return this.request(url);
+  }
+
+  async getExpense(id: number) {
+    return this.request(`/billing/expenses/${id}/`);
+  }
+
+  async createExpense(data: {
+    name: string;
+    category: string;
+    amount: number;
+    recurring?: string;
+    service?: number;
+    vendor?: string;
+    expense_date: string;
+    next_due_date?: string;
+    reference_number?: string;
+    notes?: string;
+    is_paid?: boolean;
+  }) {
+    return this.request('/billing/expenses/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateExpense(id: number, data: Partial<{
+    name: string;
+    category: string;
+    amount: number;
+    recurring: string;
+    service: number;
+    vendor: string;
+    expense_date: string;
+    next_due_date: string;
+    reference_number: string;
+    notes: string;
+    is_paid: boolean;
+  }>) {
+    return this.request(`/billing/expenses/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteExpense(id: number) {
+    return this.request(`/billing/expenses/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getExpenseStats() {
+    return this.request('/billing/expenses/stats/');
+  }
+
+  // ============ Analytics Endpoints ============
+
+  async getAdminAnalytics() {
+    // Aggregate data from various endpoints
+    const [ticketStats, chatStats, subscriptions, clients, failures] = await Promise.all([
+      this.getTicketStats().catch(() => ({ data: null })),
+      this.getChatStats().catch(() => ({ data: null })),
+      this.getAllSubscriptions().catch(() => ({ data: [] })),
+      this.getAllClients().catch(() => ({ data: [] })),
+      this.getPendingFailuresCount().catch(() => ({ data: { pending_count: 0 } })),
+    ]);
+    
+    return {
+      data: {
+        tickets: ticketStats.data,
+        chat: chatStats.data,
+        subscriptions: Array.isArray(subscriptions.data) ? subscriptions.data.length : 0,
+        clients: Array.isArray(clients.data) ? clients.data.length : 0,
+        pendingFailures: (failures.data as { pending_count: number })?.pending_count || 0,
+      }
+    };
+  }
 }
 
 // Export singleton instance

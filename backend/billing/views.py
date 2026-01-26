@@ -1,11 +1,11 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense
 from .serializers import (
     InvoiceSerializer, InvoiceCreateSerializer,
     PaymentSerializer, BillingProfileSerializer,
-    CartSerializer, CartItemSerializer
+    CartSerializer, CartItemSerializer, ExpenseSerializer
 )
 
 
@@ -310,6 +310,79 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
     
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get invoice statistics for admin dashboard"""
+        user = request.user
+        
+        if not (user.is_staff or user.is_superuser or getattr(user, 'user_type', '') == 'admin'):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        from django.db.models import Sum, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        now = timezone.now()
+        today = now.date()
+        this_month_start = today.replace(day=1)
+        last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+        
+        # Basic counts
+        total = Invoice.objects.count()
+        draft = Invoice.objects.filter(status='draft').count()
+        sent = Invoice.objects.filter(status='sent').count()
+        paid = Invoice.objects.filter(status='paid').count()
+        overdue = Invoice.objects.filter(status='overdue').count()
+        cancelled = Invoice.objects.filter(status='cancelled').count()
+        
+        # Revenue calculations
+        total_revenue = Invoice.objects.filter(status='paid').aggregate(Sum('total'))['total__sum'] or 0
+        this_month_revenue = Invoice.objects.filter(
+            status='paid', 
+            paid_date__gte=this_month_start
+        ).aggregate(Sum('total'))['total__sum'] or 0
+        last_month_revenue = Invoice.objects.filter(
+            status='paid', 
+            paid_date__gte=last_month_start,
+            paid_date__lt=this_month_start
+        ).aggregate(Sum('total'))['total__sum'] or 0
+        
+        # Outstanding amounts
+        outstanding = Invoice.objects.filter(status__in=['sent', 'overdue']).aggregate(Sum('total'))['total__sum'] or 0
+        
+        # Recent invoices count
+        recent_count = Invoice.objects.filter(created_at__gte=now - timedelta(days=7)).count()
+        
+        stats = {
+            'total': total,
+            'by_status': {
+                'draft': draft,
+                'sent': sent,
+                'paid': paid,
+                'overdue': overdue,
+                'cancelled': cancelled,
+            },
+            'revenue': {
+                'total': float(total_revenue),
+                'this_month': float(this_month_revenue),
+                'last_month': float(last_month_revenue),
+                'growth_percent': ((this_month_revenue - last_month_revenue) / last_month_revenue * 100) if last_month_revenue > 0 else 0,
+            },
+            'outstanding': float(outstanding),
+            'recent_count': recent_count,
+        }
+        
+        return Response(stats)
+    
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel an invoice"""
+        invoice = self.get_object()
+        invoice.status = 'cancelled'
+        invoice.save()
+        
+        return Response({"message": "Invoice cancelled."}, status=status.HTTP_200_OK)
+    
     @action(detail=True, methods=['post'])
     def paynow_payment(self, request, pk=None):
         """
@@ -601,6 +674,65 @@ class PaymentViewSet(viewsets.ModelViewSet):
         # Clients can only see their own payments
         return Payment.objects.filter(invoice__client__user=user)
     
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get payment statistics for admin dashboard"""
+        user = request.user
+        
+        if not (user.is_staff or user.is_superuser or getattr(user, 'user_type', '') == 'admin'):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        from django.db.models import Sum, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        now = timezone.now()
+        today = now.date()
+        this_month_start = today.replace(day=1)
+        last_30_days = now - timedelta(days=30)
+        
+        # Basic counts
+        total = Payment.objects.count()
+        completed = Payment.objects.filter(status='completed').count()
+        pending = Payment.objects.filter(status='pending').count()
+        failed = Payment.objects.filter(status='failed').count()
+        refunded = Payment.objects.filter(status='refunded').count()
+        
+        # Revenue by payment method
+        payment_methods = Payment.objects.filter(status='completed').values('payment_method').annotate(
+            count=Count('id'),
+            total=Sum('amount')
+        )
+        
+        by_method = {}
+        for pm in payment_methods:
+            by_method[pm['payment_method']] = {
+                'count': pm['count'],
+                'total': float(pm['total'] or 0)
+            }
+        
+        # Total completed amounts
+        total_completed = Payment.objects.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+        recent_completed = Payment.objects.filter(
+            status='completed',
+            payment_date__gte=last_30_days
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        stats = {
+            'total': total,
+            'by_status': {
+                'completed': completed,
+                'pending': pending,
+                'failed': failed,
+                'refunded': refunded,
+            },
+            'by_method': by_method,
+            'total_completed': float(total_completed),
+            'last_30_days': float(recent_completed),
+        }
+        
+        return Response(stats)
+    
     @action(detail=True, methods=['post'])
     def check_paynow_status(self, request, pk=None):
         """
@@ -674,3 +806,119 @@ class BillingProfileViewSet(viewsets.ModelViewSet):
         return BillingProfile.objects.filter(client__user=user)
 
 
+
+
+class ExpenseViewSet(viewsets.ModelViewSet):
+    """ViewSet for Expense model - Admin only"""
+    
+    queryset = Expense.objects.all()
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Only staff/admin can view expenses"""
+        user = self.request.user
+        if not (user.is_staff or user.is_superuser or getattr(user, 'user_type', '') == 'admin'):
+            return Expense.objects.none()
+        return Expense.objects.all()
+    
+    def create(self, request, *args, **kwargs):
+        """Only staff can create expenses"""
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        """Only staff can update expenses"""
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Only staff can delete expenses"""
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
+    
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get expense statistics for admin dashboard"""
+        user = request.user
+        
+        if not (user.is_staff or user.is_superuser or getattr(user, 'user_type', '') == 'admin'):
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        from django.db.models import Sum, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        now = timezone.now()
+        today = now.date()
+        this_month_start = today.replace(day=1)
+        last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+        
+        # Basic totals
+        total_expenses = Expense.objects.count()
+        total_amount = Expense.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # This month expenses
+        this_month_amount = Expense.objects.filter(
+            expense_date__gte=this_month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # Last month expenses
+        last_month_amount = Expense.objects.filter(
+            expense_date__gte=last_month_start,
+            expense_date__lt=this_month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # By category
+        by_category = Expense.objects.values('category').annotate(
+            count=Count('id'),
+            total=Sum('amount')
+        )
+        
+        category_data = {}
+        for cat in by_category:
+            category_data[cat['category']] = {
+                'count': cat['count'],
+                'total': float(cat['total'] or 0)
+            }
+        
+        # Recurring expenses (monthly cost)
+        recurring_monthly = Expense.objects.filter(recurring='monthly').aggregate(Sum('amount'))['amount__sum'] or 0
+        recurring_annual = Expense.objects.filter(recurring='annual').aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # Estimated monthly recurring cost
+        estimated_monthly = float(recurring_monthly) + (float(recurring_annual) / 12)
+        
+        # Get revenue for profit calculation
+        from billing.models import Invoice
+        this_month_revenue = Invoice.objects.filter(
+            status='paid', 
+            paid_date__gte=this_month_start
+        ).aggregate(Sum('total'))['total__sum'] or 0
+        
+        profit = float(this_month_revenue) - float(this_month_amount)
+        profit_margin = (profit / float(this_month_revenue) * 100) if this_month_revenue > 0 else 0
+        
+        stats = {
+            'total_expenses': total_expenses,
+            'total_amount': float(total_amount),
+            'this_month': float(this_month_amount),
+            'last_month': float(last_month_amount),
+            'by_category': category_data,
+            'recurring': {
+                'monthly': float(recurring_monthly),
+                'annual': float(recurring_annual),
+                'estimated_monthly': estimated_monthly,
+            },
+            'profit': {
+                'this_month_revenue': float(this_month_revenue),
+                'this_month_expenses': float(this_month_amount),
+                'this_month_profit': profit,
+                'profit_margin_percent': profit_margin,
+            }
+        }
+        
+        return Response(stats)

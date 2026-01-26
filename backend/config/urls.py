@@ -42,4 +42,6 @@ urlpatterns = [
     path('api/jobs/', include('jobs.urls')),
     path('api/investments/', include('investments.urls')),
     path('api/referrals/', include('referrals.urls')),
+    path('api/tickets/', include('tickets.urls')),
+    path('api/livechat/', include('livechat.urls')),
 ]

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Invoice, InvoiceItem, Payment, BillingProfile
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Expense
 
 
 class InvoiceItemInline(admin.TabularInline):
@@ -55,4 +55,36 @@ class BillingProfileAdmin(admin.ModelAdmin):
     list_filter = ('auto_pay', 'payment_method')
     search_fields = ('client__company_name', 'billing_email')
     readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(Expense)
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'category', 'amount', 'recurring', 'vendor', 'expense_date', 'is_paid')
+    list_filter = ('category', 'recurring', 'is_paid', 'expense_date')
+    search_fields = ('name', 'vendor', 'reference_number')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Expense Details', {
+            'fields': ('name', 'category', 'amount', 'recurring')
+        }),
+        ('Service Link', {
+            'fields': ('service',),
+            'description': 'Link expense to a service for cost tracking'
+        }),
+        ('Vendor Information', {
+            'fields': ('vendor', 'reference_number')
+        }),
+        ('Dates', {
+            'fields': ('expense_date', 'next_due_date', 'is_paid')
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 

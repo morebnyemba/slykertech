@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (Service, ServiceSubscription, DNSRecord, 
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
-                    DomainTransferRequest)
+                    DomainTransferRequest, ProvisioningFailure)
 
 
 @admin.register(Service)
@@ -362,4 +362,56 @@ class DomainTransferRequestAdmin(admin.ModelAdmin):
         queryset.update(status='cancelled')
         self.message_user(request, f"{queryset.count()} transfer(s) marked as cancelled.")
     mark_cancelled.short_description = "Mark selected as Cancelled"
+
+
+@admin.register(ProvisioningFailure)
+class ProvisioningFailureAdmin(admin.ModelAdmin):
+    """Admin for managing provisioning failures"""
+    list_display = ('subscription', 'status', 'admin_notified', 'created_at', 'resolved_by', 'resolved_at')
+    list_filter = ('status', 'admin_notified', 'created_at')
+    search_fields = ('subscription__client__company_name', 'error_message')
+    readonly_fields = ('subscription', 'error_message', 'error_details', 'provisioning_data',
+                      'admin_notified', 'notification_sent_at', 'created_at', 'updated_at')
+    raw_id_fields = ('resolved_by',)
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Failure Information', {
+            'fields': ('subscription', 'status', 'error_message', 'error_details')
+        }),
+        ('Provisioning Data (for manual setup)', {
+            'fields': ('provisioning_data',),
+            'description': 'Data needed for manual service provisioning'
+        }),
+        ('Resolution', {
+            'fields': ('admin_notes', 'resolved_by', 'resolved_at')
+        }),
+        ('Notification', {
+            'fields': ('admin_notified', 'notification_sent_at'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['mark_in_progress', 'mark_resolved', 'mark_dismissed']
+    
+    def mark_in_progress(self, request, queryset):
+        queryset.update(status='in_progress')
+        self.message_user(request, f"{queryset.count()} failure(s) marked as in progress.")
+    mark_in_progress.short_description = "Mark selected as In Progress"
+    
+    def mark_resolved(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='resolved', resolved_by=request.user, resolved_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} failure(s) marked as resolved.")
+    mark_resolved.short_description = "Mark selected as Resolved"
+    
+    def mark_dismissed(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='dismissed', resolved_by=request.user, resolved_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} failure(s) dismissed.")
+    mark_dismissed.short_description = "Dismiss selected"
 
