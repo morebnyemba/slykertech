@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db import ProgrammingError, OperationalError
+from django.db.utils import ProgrammingError, OperationalError
 from .models import ReferralProfile, Referral, ReferralReward, ReferralSettings
 
 
