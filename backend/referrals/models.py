@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, ProgrammingError, OperationalError
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 import secrets
@@ -182,8 +182,12 @@ class ReferralSettings(models.Model):
     
     def save(self, *args, **kwargs):
         # Ensure only one settings record exists
-        if not self.pk and ReferralSettings.objects.exists():
-            raise ValueError("Only one ReferralSettings instance is allowed")
+        # Handle case where table doesn't exist yet (before migrations)
+        try:
+            if not self.pk and ReferralSettings.objects.exists():
+                raise ValueError("Only one ReferralSettings instance is allowed")
+        except (ProgrammingError, OperationalError):
+            pass  # Table doesn't exist yet, allow save
         super().save(*args, **kwargs)
     
     def __str__(self):

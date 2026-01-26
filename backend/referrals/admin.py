@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import ProgrammingError, OperationalError
 from .models import ReferralProfile, Referral, ReferralReward, ReferralSettings
 
 
@@ -70,7 +71,11 @@ class ReferralSettingsAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         # Only allow one settings record
-        return not ReferralSettings.objects.exists()
+        # Handle case where table doesn't exist yet (before migrations)
+        try:
+            return not ReferralSettings.objects.exists()
+        except (ProgrammingError, OperationalError):
+            return True
     
     def has_delete_permission(self, request, obj=None):
         return False
