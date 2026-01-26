@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense
 from clients.serializers import ClientSerializer
 
 
@@ -241,5 +241,21 @@ class BillingProfileSerializer(serializers.ModelSerializer):
         model = BillingProfile
         fields = ['id', 'client', 'auto_pay', 'payment_method', 'billing_email', 
                   'billing_phone', 'billing_address', 'stripe_customer_id', 'paypal_email', 
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    """Serializer for Expense model"""
+    
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    recurring_display = serializers.CharField(source='get_recurring_display', read_only=True)
+    
+    class Meta:
+        model = Expense
+        fields = ['id', 'name', 'category', 'category_display', 'amount', 'recurring', 
+                  'recurring_display', 'service', 'service_name', 'vendor', 'expense_date', 
+                  'next_due_date', 'reference_number', 'notes', 'is_paid', 
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']

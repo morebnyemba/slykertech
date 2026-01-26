@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { FaLock, FaEnvelope, FaSpinner, FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaSpinner, FaEye, FaEyeSlash, FaShieldAlt, FaDesktop, FaGlobe } from 'react-icons/fa';
+
+interface DeviceInfo {
+  ip: string;
+  browser: string;
+  os: string;
+  device: string;
+}
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -13,6 +20,57 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
+    ip: 'Detecting...',
+    browser: 'Unknown',
+    os: 'Unknown',
+    device: 'Unknown'
+  });
+
+  useEffect(() => {
+    // Detect browser and OS from user agent
+    const detectDevice = () => {
+      const ua = navigator.userAgent;
+      
+      // Detect browser
+      let browser = 'Unknown';
+      if (ua.includes('Firefox')) browser = 'Firefox';
+      else if (ua.includes('Edg')) browser = 'Microsoft Edge';
+      else if (ua.includes('Chrome')) browser = 'Chrome';
+      else if (ua.includes('Safari')) browser = 'Safari';
+      else if (ua.includes('Opera') || ua.includes('OPR')) browser = 'Opera';
+      
+      // Detect OS
+      let os = 'Unknown';
+      if (ua.includes('Windows NT 10')) os = 'Windows 10/11';
+      else if (ua.includes('Windows')) os = 'Windows';
+      else if (ua.includes('Mac OS X')) os = 'macOS';
+      else if (ua.includes('Linux')) os = 'Linux';
+      else if (ua.includes('Android')) os = 'Android';
+      else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+      
+      // Detect device type
+      let device = 'Desktop';
+      if (/Mobi|Android/i.test(ua)) device = 'Mobile';
+      else if (/Tablet|iPad/i.test(ua)) device = 'Tablet';
+      
+      setDeviceInfo(prev => ({ ...prev, browser, os, device }));
+    };
+
+    // Fetch IP address
+    const fetchIP = async () => {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        setDeviceInfo(prev => ({ ...prev, ip: data.ip }));
+      } catch {
+        setDeviceInfo(prev => ({ ...prev, ip: 'Unable to detect' }));
+      }
+    };
+
+    detectDevice();
+    fetchIP();
+  }, []);
 
   // If already authenticated as staff, redirect to admin
   if (isAuthenticated && isStaff) {
@@ -143,11 +201,31 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Security Notice */}
+          {/* Security Monitoring Notice */}
           <div className="mt-6 pt-6 border-t border-gray-700">
+            <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FaShieldAlt className="text-red-500" />
+                <span className="text-red-400 font-semibold text-sm">⚠️ WE ARE WATCHING YOU</span>
+              </div>
+              <p className="text-xs text-red-300 mb-3">
+                This access is being monitored and recorded. Unauthorized access attempts will be prosecuted.
+              </p>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <FaGlobe className="text-gray-500 w-3 h-3" />
+                  <span>Your IP:</span>
+                  <span className="text-white font-mono bg-gray-700/50 px-2 py-0.5 rounded">{deviceInfo.ip}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-400">
+                  <FaDesktop className="text-gray-500 w-3 h-3" />
+                  <span>Device:</span>
+                  <span className="text-white">{deviceInfo.device} • {deviceInfo.os} • {deviceInfo.browser}</span>
+                </div>
+              </div>
+            </div>
             <p className="text-xs text-gray-500 text-center">
-              This is a secure admin area. All login attempts are logged and monitored.
-              Unauthorized access is strictly prohibited.
+              All login attempts are logged with IP, timestamp, and device information.
             </p>
           </div>
         </div>

@@ -641,6 +641,65 @@ class ApiService {
     return this.request('/billing/payments/stats/');
   }
 
+  // ============ Expense Endpoints ============
+
+  async getExpenses(category?: string) {
+    const url = category ? `/billing/expenses/?category=${category}` : '/billing/expenses/';
+    return this.request(url);
+  }
+
+  async getExpense(id: number) {
+    return this.request(`/billing/expenses/${id}/`);
+  }
+
+  async createExpense(data: {
+    name: string;
+    category: string;
+    amount: number;
+    recurring?: string;
+    service?: number;
+    vendor?: string;
+    expense_date: string;
+    next_due_date?: string;
+    reference_number?: string;
+    notes?: string;
+    is_paid?: boolean;
+  }) {
+    return this.request('/billing/expenses/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateExpense(id: number, data: Partial<{
+    name: string;
+    category: string;
+    amount: number;
+    recurring: string;
+    service: number;
+    vendor: string;
+    expense_date: string;
+    next_due_date: string;
+    reference_number: string;
+    notes: string;
+    is_paid: boolean;
+  }>) {
+    return this.request(`/billing/expenses/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteExpense(id: number) {
+    return this.request(`/billing/expenses/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getExpenseStats() {
+    return this.request('/billing/expenses/stats/');
+  }
+
   // ============ Analytics Endpoints ============
 
   async getAdminAnalytics() {

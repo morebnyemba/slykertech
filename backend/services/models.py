@@ -27,7 +27,10 @@ class Service(models.Model):
     category = models.CharField(max_length=50, choices=SERVICE_CATEGORY_CHOICES)
     description = models.TextField()
     features = models.JSONField(default=list, blank=True)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                     help_text="Selling price to clients")
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                     help_text="Cost price (e.g., cPanel license, domain registry cost)")
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='one_time',
                                     help_text="Payment structure for this service")
     pricing_options = models.JSONField(default=dict, blank=True,

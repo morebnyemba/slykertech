@@ -265,3 +265,63 @@ class CartItem(models.Model):
         
         super().clean()
 
+
+class Expense(models.Model):
+    """Track operational expenses for profit margin calculations"""
+    
+    CATEGORY_CHOICES = [
+        ('server', 'Server/Hosting Costs'),
+        ('domain', 'Domain Registry Costs'),
+        ('license', 'Software Licenses'),
+        ('cpanel', 'cPanel/Control Panel'),
+        ('ssl', 'SSL Certificates'),
+        ('bandwidth', 'Bandwidth/CDN'),
+        ('marketing', 'Marketing & Advertising'),
+        ('salary', 'Salaries & Wages'),
+        ('office', 'Office & Utilities'),
+        ('other', 'Other'),
+    ]
+    
+    RECURRING_CHOICES = [
+        ('none', 'One-time'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('annual', 'Annual'),
+    ]
+    
+    name = models.CharField(max_length=255, help_text="Expense description")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    recurring = models.CharField(max_length=20, choices=RECURRING_CHOICES, default='none')
+    
+    # Link to service if applicable
+    service = models.ForeignKey('services.Service', on_delete=models.SET_NULL, 
+                               null=True, blank=True, related_name='expenses',
+                               help_text="Associated service (e.g., cPanel license for hosting)")
+    
+    # Vendor/Provider info
+    vendor = models.CharField(max_length=255, blank=True, null=True, 
+                             help_text="Provider/Vendor name (e.g., cPanel Inc, Namecheap)")
+    
+    # Dates
+    expense_date = models.DateField(help_text="Date of expense")
+    next_due_date = models.DateField(null=True, blank=True, help_text="Next payment due for recurring")
+    
+    # Reference
+    reference_number = models.CharField(max_length=255, blank=True, null=True,
+                                       help_text="Invoice/Reference number from vendor")
+    
+    notes = models.TextField(blank=True, null=True)
+    is_paid = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('expense')
+        verbose_name_plural = _('expenses')
+        ordering = ['-expense_date']
+    
+    def __str__(self):
+        return f"{self.name} - {self.amount} ({self.expense_date})"
+

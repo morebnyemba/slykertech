@@ -9,7 +9,7 @@ import { apiService } from '@/lib/api-service';
 import { 
   FaHome, FaExclamationTriangle, FaUsers, FaServer, FaCog, 
   FaBars, FaTimes, FaSignOutAlt, FaBell, FaTicketAlt, FaComments,
-  FaChartBar, FaFileInvoiceDollar
+  FaChartBar, FaFileInvoiceDollar, FaMoneyBillWave
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -79,6 +79,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: '/admin/invoices', 
       icon: FaFileInvoiceDollar,
       badge: unpaidInvoices > 0 ? unpaidInvoices : undefined
+    },
+    { 
+      name: 'Expenses', 
+      href: '/admin/expenses', 
+      icon: FaMoneyBillWave
     },
     { 
       name: 'Provisioning Failures', 
