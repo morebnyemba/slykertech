@@ -31,18 +31,29 @@ interface Cart {
   item_count: number;
   created_at: string;
   updated_at: string;
+  // Promotion fields
+  applied_coupon?: string;
+  discount_amount?: number;
+  discount_description?: string;
+  subtotal?: number;
+  final_total?: number;
 }
 
 interface CartState {
   cart: Cart | null;
   isLoading: boolean;
   error: string | null;
+  couponLoading: boolean;
+  couponError: string | null;
   fetchCart: (token?: string) => Promise<void>;
   addItem: (item: Partial<CartItem>, token?: string) => Promise<{ success: boolean; error?: string }>;
   removeItem: (itemId: number, token?: string) => Promise<{ success: boolean; error?: string }>;
   clearCart: (token?: string) => Promise<{ success: boolean; error?: string }>;
+  applyCoupon: (code: string, token?: string) => Promise<{ success: boolean; error?: string; discount?: number }>;
+  removeCoupon: (token?: string) => Promise<{ success: boolean; error?: string }>;
   getItemCount: () => number;
   getTotal: () => number;
+  getDiscountedTotal: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -51,6 +62,8 @@ export const useCartStore = create<CartState>()(
       cart: null,
       isLoading: false,
       error: null,
+      couponLoading: false,
+      couponError: null,
 
       fetchCart: async (token?: string) => {
         set({ isLoading: true, error: null });
@@ -221,6 +234,84 @@ export const useCartStore = create<CartState>()(
         }
       },
 
+      applyCoupon: async (code: string, token?: string) => {
+        set({ couponLoading: true, couponError: null });
+        try {
+          const apiUrl = getApiUrl();
+          const { cart } = get();
+          
+          if (!cart) {
+            throw new Error('No cart available');
+          }
+
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`${apiUrl}/billing/carts/${cart.id}/apply_coupon/`, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: JSON.stringify({ code }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || errorData.detail || 'Invalid coupon code');
+          }
+
+          const updatedCart = await response.json();
+          set({ cart: updatedCart, couponLoading: false });
+          return { success: true, discount: updatedCart.discount_amount };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to apply coupon';
+          set({ couponError: errorMessage, couponLoading: false });
+          return { success: false, error: errorMessage };
+        }
+      },
+
+      removeCoupon: async (token?: string) => {
+        set({ couponLoading: true, couponError: null });
+        try {
+          const apiUrl = getApiUrl();
+          const { cart } = get();
+          
+          if (!cart) {
+            throw new Error('No cart available');
+          }
+
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`${apiUrl}/billing/carts/${cart.id}/remove_coupon/`, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to remove coupon');
+          }
+
+          const updatedCart = await response.json();
+          set({ cart: updatedCart, couponLoading: false });
+          return { success: true };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to remove coupon';
+          set({ couponError: errorMessage, couponLoading: false });
+          return { success: false, error: errorMessage };
+        }
+      },
+
       getItemCount: () => {
         const { cart } = get();
         return cart?.item_count || 0;
@@ -229,6 +320,12 @@ export const useCartStore = create<CartState>()(
       getTotal: () => {
         const { cart } = get();
         return cart?.total || 0;
+      },
+
+      getDiscountedTotal: () => {
+        const { cart } = get();
+        // Use final_total if available (from backend), otherwise calculate from discount
+        return cart?.final_total ?? ((cart?.total || 0) - (cart?.discount_amount || 0));
       },
     }),
     {

@@ -461,6 +461,70 @@ class ApiService {
     return this.request('/clients/');
   }
 
+  async getClient(id: number) {
+    return this.request(`/clients/${id}/`);
+  }
+
+  async createClient(data: {
+    company_name: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    postal_code?: string;
+  }) {
+    return this.request('/clients/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateClient(id: number, data: Partial<{
+    company_name: string;
+    phone: string;
+    address: string;
+    city: string;
+    country: string;
+    postal_code: string;
+  }>) {
+    return this.request(`/clients/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteClient(id: number) {
+    return this.request(`/clients/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Subscriptions (admin)
+  async getSubscription(id: number) {
+    return this.request(`/services/subscriptions/${id}/`);
+  }
+
+  async updateSubscription(id: number, data: Partial<{
+    status: string;
+    price: number;
+    billing_cycle: string;
+    notes: string;
+  }>) {
+    return this.request(`/services/subscriptions/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteSubscription(id: number) {
+    return this.request(`/services/subscriptions/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
   // ============ Tickets Endpoints ============
 
   async getTickets(params?: { status?: string; priority?: string; assigned_to_me?: boolean }) {
@@ -721,6 +785,103 @@ class ApiService {
         pendingFailures: (failures.data as { pending_count: number })?.pending_count || 0,
       }
     };
+  }
+
+  // ============ Promotions Endpoints ============
+
+  async getPromotions(params?: { is_active?: boolean; promotion_type?: string }) {
+    let url = '/billing/promotions/';
+    const queryParams = new URLSearchParams();
+    if (params?.is_active !== undefined) queryParams.append('is_active', String(params.is_active));
+    if (params?.promotion_type) queryParams.append('promotion_type', params.promotion_type);
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    return this.request(url);
+  }
+
+  async getActivePromotions() {
+    return this.request('/billing/promotions/active/');
+  }
+
+  async getPromotion(id: number) {
+    return this.request(`/billing/promotions/${id}/`);
+  }
+
+  async createPromotion(data: {
+    name: string;
+    code?: string;
+    promotion_type: string;
+    discount_type: string;
+    discount_value: number;
+    description?: string;
+    start_date: string;
+    end_date: string;
+    is_active?: boolean;
+    usage_limit?: number;
+    minimum_order_amount?: number;
+    applicable_services?: number[];
+    applicable_categories?: string[];
+    bundle_services?: number[];
+    free_service?: number;
+    free_service_duration?: number;
+  }) {
+    return this.request('/billing/promotions/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePromotion(id: number, data: Partial<{
+    name: string;
+    code: string;
+    promotion_type: string;
+    discount_type: string;
+    discount_value: number;
+    description: string;
+    start_date: string;
+    end_date: string;
+    is_active: boolean;
+    usage_limit: number;
+    minimum_order_amount: number;
+    applicable_services: number[];
+    applicable_categories: string[];
+    bundle_services: number[];
+    free_service: number;
+    free_service_duration: number;
+  }>) {
+    return this.request(`/billing/promotions/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePromotion(id: number) {
+    return this.request(`/billing/promotions/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  async validateCoupon(code: string, cartId?: number) {
+    return this.request('/billing/promotions/validate_coupon/', {
+      method: 'POST',
+      body: JSON.stringify({ code, cart_id: cartId }),
+    });
+  }
+
+  async applyCouponToCart(cartId: number, code: string) {
+    return this.request(`/billing/carts/${cartId}/apply_coupon/`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async removeCouponFromCart(cartId: number) {
+    return this.request(`/billing/carts/${cartId}/remove_coupon/`, {
+      method: 'POST',
+    });
+  }
+
+  async getPromotionStats() {
+    return this.request('/billing/promotions/stats/');
   }
 }
 
