@@ -1,10 +1,7 @@
 import './globals.css';
 import { defaultMetadata, SOCIAL_HANDLES } from '@/lib/seo-config';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import ClientBackgroundWrapper from '@/components/ClientBackgroundWrapper'; // Import the wrapper
-import LiveChatWidget from '@/components/LiveChatWidget';
+import ConditionalLayout from '@/components/ConditionalLayout';
 import Script from 'next/script';
 
 export const metadata = defaultMetadata;
@@ -103,34 +100,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          {/* Client-side only background elements */}
-          <ClientBackgroundWrapper /> {/* Use the wrapper component */}
-
-          {/* Static background layers */}
-          <div className="fixed inset-0 -z-50 overflow-hidden">
-            <div className="background-grid-circuit" />
-            <div className="background-overlay-gradient" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent dark:from-primary/10" />
-          </div>
-
-          {/* Main content container */}
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            {/* Spacer to prevent content from being cut off by fixed header */}
-            {/* Responsive header height adjusts based on screen size */}
-            <div className="h-32 sm:h-28 md:h-24 lg:h-24 flex-shrink-0" aria-hidden="true" />
-            {/* Separator line between header and content */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" aria-hidden="true" />
-            <main className="flex-1">
-              <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-                {children}
-              </div>
-            </main>
-            <Footer />
-          </div>
-
-          {/* Live Chat Widget - Persistent across all pages */}
-          <LiveChatWidget />
+          {/* Conditional layout based on route */}
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
 
           {/* Structured Data */}
           <script
