@@ -1,0 +1,9 @@
+/* Admin-specific styles */
+.admin-layout {
+  min-height: 100vh;
+  background-color: rgb(243 244 246); /* bg-gray-100 */
+}
+
+:root.dark .admin-layout {
+  background-color: rgb(17 24 39); /* dark:bg-gray-900 */
+}

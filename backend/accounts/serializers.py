@@ -27,7 +27,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'password', 'password2', 'first_name', 'last_name', 
-                  'phone', 'mobile_number', 'company_name', 'user_type', 
+                  'phone', 'mobile_number', 'company_name',
                   'email_notifications', 'whatsapp_notifications', 'sms_notifications',
                   'referral_code']
         extra_kwargs = {
@@ -53,7 +53,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         referral_code = validated_data.pop('referral_code', None)
         validated_data.pop('password2')
+        
+        # Force user_type to 'client' for frontend registrations
+        # Only admin/staff can set other user types via admin panel
+        validated_data['user_type'] = 'client'
+        
         user = User.objects.create_user(**validated_data)
+        
+        # Create Client profile for client users
+        from clients.models import Client
+        Client.objects.create(
+            user=user,
+            company_name=validated_data.get('company_name') or f"{user.first_name} {user.last_name}".strip() or user.email,
+        )
         
         # Handle referral if code was provided
         if referral_code:

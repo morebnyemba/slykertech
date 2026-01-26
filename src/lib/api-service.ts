@@ -458,11 +458,11 @@ class ApiService {
 
   // All Clients (admin)
   async getAllClients() {
-    return this.request('/clients/');
+    return this.request('/clients/clients/');
   }
 
   async getClient(id: number) {
-    return this.request(`/clients/${id}/`);
+    return this.request(`/clients/clients/${id}/`);
   }
 
   async createClient(data: {
@@ -476,7 +476,7 @@ class ApiService {
     country?: string;
     postal_code?: string;
   }) {
-    return this.request('/clients/', {
+    return this.request('/clients/clients/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -490,14 +490,14 @@ class ApiService {
     country: string;
     postal_code: string;
   }>) {
-    return this.request(`/clients/${id}/`, {
+    return this.request(`/clients/clients/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
 
   async deleteClient(id: number) {
-    return this.request(`/clients/${id}/`, {
+    return this.request(`/clients/clients/${id}/`, {
       method: 'DELETE',
     });
   }

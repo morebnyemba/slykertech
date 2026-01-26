@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaBriefcase, FaGift, FaChevronDown
+  FaCheck, FaBuilding, FaGift, FaChevronDown
 } from 'react-icons/fa';
 
 // Country codes with flags
@@ -44,7 +44,6 @@ interface FormData {
   phone_number: string;
   mobile_number: string;
   company_name: string;
-  user_type: 'client' | 'staff';
   referral_code: string;
 }
 
@@ -77,7 +76,6 @@ export default function MultiStepSignupForm() {
     phone_number: '',
     mobile_number: '',
     company_name: '',
-    user_type: 'client',
     referral_code: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -232,7 +230,6 @@ export default function MultiStepSignupForm() {
       last_name: formData.last_name,
       mobile_number: fullMobileNumber,
       company_name: formData.company_name,
-      user_type: formData.user_type,
       referral_code: formData.referral_code || undefined,
     });
 
@@ -614,27 +611,6 @@ export default function MultiStepSignupForm() {
                       className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Your Company Ltd"
                     />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="user_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Account Type
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaBriefcase className="text-gray-400" />
-                    </div>
-                    <select
-                      id="user_type"
-                      name="user_type"
-                      value={formData.user_type}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    >
-                      <option value="client">Client</option>
-                      <option value="staff">Staff</option>
-                    </select>
                   </div>
                 </div>
 
