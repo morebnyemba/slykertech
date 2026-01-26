@@ -707,7 +707,7 @@ export default function InvoicesPage() {
                     </button>
                     <button
                       type="submit"
-                      disabled={actionLoading === -1 || !formData.client || invoiceItems.every(i => !i.description)}
+                      disabled={actionLoading === -1 || !formData.client || !invoiceItems.some(i => i.description && i.unit_price)}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       {actionLoading === -1 ? (

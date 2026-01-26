@@ -156,39 +156,44 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             {/* Navigation */}
             <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-              {navigation.map((item) => {
+              {navigation.map((item, index) => {
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                const tooltipId = `nav-tooltip-${index}`;
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    title={sidebarCollapsed ? item.name : undefined}
+                    aria-describedby={sidebarCollapsed ? tooltipId : undefined}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative group ${
                       isActive
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                     } ${sidebarCollapsed ? 'justify-center' : ''}`}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                     {!sidebarCollapsed && (
                       <>
                         <span className="flex-1 truncate">{item.name}</span>
                         {item.badge && (
-                          <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full" aria-label={`${item.badge} notifications`}>
                             {item.badge}
                           </span>
                         )}
                       </>
                     )}
                     {sidebarCollapsed && item.badge && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center" aria-label={`${item.badge} notifications`}>
                         {item.badge > 9 ? '9+' : item.badge}
                       </span>
                     )}
                     {/* Tooltip for collapsed state */}
                     {sidebarCollapsed && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                      <div 
+                        id={tooltipId}
+                        role="tooltip"
+                        className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity"
+                      >
                         {item.name}
                         {item.badge && <span className="ml-1 text-red-300">({item.badge})</span>}
                       </div>

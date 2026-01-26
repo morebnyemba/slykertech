@@ -276,6 +276,7 @@ export default function SubscriptionsPage() {
                             value={sub.status}
                             onChange={(e) => handleStatusChange(sub.id, e.target.value)}
                             disabled={actionLoading === sub.id}
+                            aria-label={`Change status for ${sub.client?.company_name} subscription`}
                             className={`px-2 py-1 rounded-full text-xs font-medium border-0 cursor-pointer ${statusColors[sub.status] || statusColors.pending}`}
                           >
                             {STATUS_OPTIONS.map(opt => (
