@@ -4,7 +4,7 @@ from .views import (ServiceViewSet, ServiceSubscriptionViewSet, DNSRecordViewSet
                    ProjectTrackerViewSet, ProjectMilestoneViewSet, ProjectTaskViewSet,
                    ProjectCommentViewSet, HostingProductViewSet, DomainProductViewSet,
                    ServiceAddonViewSet, DomainRegistrationViewSet, DomainTransferRequestViewSet,
-                   whois_check, whois_cache)
+                   ProvisioningFailureViewSet, whois_check, whois_cache)
 
 router = DefaultRouter()
 router.register(r'services', ServiceViewSet, basename='service')
@@ -19,6 +19,7 @@ router.register(r'domain-products', DomainProductViewSet, basename='domain-produ
 router.register(r'service-addons', ServiceAddonViewSet, basename='service-addon')
 router.register(r'domain-registrations', DomainRegistrationViewSet, basename='domain-registration')
 router.register(r'domain-transfer-requests', DomainTransferRequestViewSet, basename='domain-transfer-request')
+router.register(r'provisioning-failures', ProvisioningFailureViewSet, basename='provisioning-failure')
 
 urlpatterns = [
     path('whois/check/', whois_check, name='whois-check'),

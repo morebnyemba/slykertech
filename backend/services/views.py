@@ -1,10 +1,11 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from django.utils import timezone
 from .models import (Service, ServiceSubscription, DNSRecord,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
-                    DomainTransferRequest)
+                    DomainTransferRequest, ProvisioningFailure)
 from .serializers import (
     ServiceSerializer, ServiceSubscriptionSerializer, 
     ServiceSubscriptionCreateSerializer, DNSRecordSerializer,
@@ -12,7 +13,8 @@ from .serializers import (
     ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectCommentSerializer,
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
     DomainRegistrationSerializer, DomainTransferRequestSerializer,
-    DomainTransferRequestCreateSerializer
+    DomainTransferRequestCreateSerializer, ProvisioningFailureSerializer,
+    ProvisioningFailureUpdateSerializer, ManualProvisioningSerializer
 )
 from .whois_service import whois_service
 import logging
@@ -307,6 +309,157 @@ class DomainTransferRequestViewSet(viewsets.ModelViewSet):
             {"message": "EPP code updated successfully"},
             status=status.HTTP_200_OK
         )
+
+
+class IsStaffUser(permissions.BasePermission):
+    """Permission class to check if user is staff"""
+    
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and (
+            request.user.is_staff or request.user.is_superuser or 
+            request.user.user_type == 'admin'
+        )
+
+
+class ProvisioningFailureViewSet(viewsets.ModelViewSet):
+    """ViewSet for ProvisioningFailure model - Admin only"""
+    
+    queryset = ProvisioningFailure.objects.all()
+    serializer_class = ProvisioningFailureSerializer
+    permission_classes = [IsStaffUser]
+    
+    def get_queryset(self):
+        """Get provisioning failures with optional filtering"""
+        queryset = ProvisioningFailure.objects.all().order_by('-created_at')
+        
+        # Filter by status if provided
+        status_filter = self.request.query_params.get('status', None)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        return queryset
+    
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return ProvisioningFailureUpdateSerializer
+        return ProvisioningFailureSerializer
+    
+    @action(detail=False, methods=['get'])
+    def pending_count(self, request):
+        """Get count of pending provisioning failures"""
+        count = ProvisioningFailure.objects.filter(status='pending').count()
+        return Response({'pending_count': count})
+    
+    @action(detail=True, methods=['post'])
+    def mark_resolved(self, request, pk=None):
+        """Mark a provisioning failure as resolved"""
+        failure = self.get_object()
+        notes = request.data.get('notes', '')
+        
+        failure.mark_resolved(request.user, notes)
+        
+        return Response({
+            'message': 'Provisioning failure marked as resolved',
+            'resolved_by': request.user.email,
+            'resolved_at': failure.resolved_at.isoformat()
+        })
+    
+    @action(detail=True, methods=['post'])
+    def complete_manual_provisioning(self, request, pk=None):
+        """
+        Complete manual provisioning for a failed subscription.
+        Admin provides the manually created credentials.
+        """
+        failure = self.get_object()
+        serializer = ManualProvisioningSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        subscription = failure.subscription
+        data = serializer.validated_data
+        
+        # Update subscription with manual provisioning data
+        subscription.metadata.update({
+            'manually_provisioned': True,
+            'provisioned_by': request.user.email,
+            'provisioned_at': timezone.now().isoformat(),
+            'provisioned_username': data.get('provisioned_username', ''),
+            'provisioned_domain': data.get('provisioned_domain', ''),
+            **data.get('additional_data', {})
+        })
+        subscription.provisioning_completed = True
+        subscription.status = 'active'
+        subscription.provisioning_error = None
+        subscription.save()
+        
+        # Mark failure as resolved
+        failure.mark_resolved(request.user, data.get('notes', 'Manual provisioning completed'))
+        
+        return Response({
+            'message': 'Manual provisioning completed successfully',
+            'subscription_id': subscription.id,
+            'subscription_status': subscription.status
+        })
+    
+    @action(detail=True, methods=['post'])
+    def dismiss(self, request, pk=None):
+        """Dismiss a provisioning failure (e.g., if not applicable)"""
+        failure = self.get_object()
+        notes = request.data.get('notes', '')
+        
+        failure.status = 'dismissed'
+        failure.admin_notes = notes
+        failure.resolved_by = request.user
+        failure.resolved_at = timezone.now()
+        failure.save()
+        
+        return Response({
+            'message': 'Provisioning failure dismissed',
+            'dismissed_by': request.user.email
+        })
+    
+    @action(detail=True, methods=['post'])
+    def retry_provisioning(self, request, pk=None):
+        """Retry automatic provisioning for a failed subscription"""
+        from .provisioning import provisioning_service
+        
+        failure = self.get_object()
+        subscription = failure.subscription
+        
+        # Mark failure as in progress
+        failure.status = 'in_progress'
+        failure.save()
+        
+        # Attempt provisioning again
+        success, message = provisioning_service.provision_subscription(subscription)
+        
+        if success:
+            # Mark subscription as provisioned
+            subscription.provisioning_completed = True
+            subscription.status = 'active'
+            subscription.provisioning_error = None
+            subscription.save()
+            
+            # Mark failure as resolved
+            failure.mark_resolved(request.user, f'Retry successful: {message}')
+            
+            return Response({
+                'success': True,
+                'message': message
+            })
+        else:
+            # Update failure with new error
+            failure.status = 'pending'
+            failure.error_message = message
+            failure.error_details['retry_attempted'] = timezone.now().isoformat()
+            failure.error_details['retry_error'] = message
+            failure.save()
+            
+            return Response({
+                'success': False,
+                'message': message
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST', 'GET'])

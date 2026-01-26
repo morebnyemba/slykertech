@@ -394,6 +394,77 @@ class ApiService {
       status: 200
     };
   }
+
+  // ============ Admin Endpoints ============
+
+  // Provisioning Failures
+  async getProvisioningFailures(status?: string) {
+    const params = status ? `?status=${status}` : '';
+    return this.request(`/services/provisioning-failures/${params}`);
+  }
+
+  async getProvisioningFailure(id: number) {
+    return this.request(`/services/provisioning-failures/${id}/`);
+  }
+
+  async getPendingFailuresCount() {
+    return this.request('/services/provisioning-failures/pending_count/');
+  }
+
+  async updateProvisioningFailure(id: number, data: Record<string, unknown>) {
+    return this.request(`/services/provisioning-failures/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async markFailureResolved(id: number, notes?: string) {
+    return this.request(`/services/provisioning-failures/${id}/mark_resolved/`, {
+      method: 'POST',
+      body: JSON.stringify({ notes: notes || '' }),
+    });
+  }
+
+  async dismissFailure(id: number, notes?: string) {
+    return this.request(`/services/provisioning-failures/${id}/dismiss/`, {
+      method: 'POST',
+      body: JSON.stringify({ notes: notes || '' }),
+    });
+  }
+
+  async retryProvisioning(id: number) {
+    return this.request(`/services/provisioning-failures/${id}/retry_provisioning/`, {
+      method: 'POST',
+    });
+  }
+
+  async completeManualProvisioning(id: number, data: {
+    notes?: string;
+    provisioned_username?: string;
+    provisioned_domain?: string;
+    provisioned_password?: string;
+    additional_data?: Record<string, unknown>;
+  }) {
+    return this.request(`/services/provisioning-failures/${id}/complete_manual_provisioning/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Admin Stats
+  async getAdminStats() {
+    return this.request('/services/admin-stats/');
+  }
+
+  // All Subscriptions (admin)
+  async getAllSubscriptions() {
+    return this.request('/services/subscriptions/');
+  }
+
+  // All Clients (admin)
+  async getAllClients() {
+    return this.request('/clients/');
+  }
 }
 
 // Export singleton instance

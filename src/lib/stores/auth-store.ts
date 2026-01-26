@@ -16,6 +16,9 @@ interface User {
   last_name: string;
   mobile_number?: string;
   role?: string;
+  user_type?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 }
 
 interface AuthState {
@@ -23,6 +26,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isStaff: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: {
     email: string;
@@ -39,6 +43,18 @@ interface AuthState {
   setToken: (token: string | null) => void;
 }
 
+const checkIsStaff = (user: User | null): boolean => {
+  if (!user) return false;
+  return (
+    user.is_staff === true ||
+    user.is_superuser === true ||
+    user.role === 'admin' ||
+    user.role === 'staff' ||
+    user.user_type === 'admin' ||
+    user.user_type === 'staff'
+  );
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -46,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isStaff: false,
 
       login: async (email: string, password: string) => {
         set({ isLoading: true });
@@ -81,6 +98,7 @@ export const useAuthStore = create<AuthState>()(
               user: userData,
               token: data.access,
               isAuthenticated: true,
+              isStaff: checkIsStaff(userData),
               isLoading: false,
             });
             return { success: true };
@@ -89,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             token: data.access,
             isAuthenticated: true,
+            isStaff: false,
             isLoading: false,
           });
           return { success: true };
@@ -147,6 +166,7 @@ export const useAuthStore = create<AuthState>()(
               user: data.user,
               token: data.access,
               isAuthenticated: true,
+              isStaff: checkIsStaff(data.user),
               isLoading: false,
             });
           } else {
@@ -165,11 +185,12 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           token: null,
           isAuthenticated: false,
+          isStaff: false,
         });
       },
 
       setUser: (user) => {
-        set({ user });
+        set({ user, isStaff: checkIsStaff(user) });
       },
 
       setToken: (token) => {

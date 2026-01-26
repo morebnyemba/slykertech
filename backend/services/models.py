@@ -330,6 +330,58 @@ class ProjectComment(models.Model):
         return f"Comment on {self.project.title} by {self.user.email}"
 
 
+class ProvisioningFailure(models.Model):
+    """Track failed provisioning attempts for admin review and manual intervention"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('dismissed', 'Dismissed'),
+    ]
+    
+    subscription = models.ForeignKey(ServiceSubscription, on_delete=models.CASCADE, related_name='provisioning_failures')
+    error_message = models.TextField(help_text="Error message from provisioning attempt")
+    error_details = models.JSONField(default=dict, blank=True, help_text="Additional error details")
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Manual provisioning data for admin to copy/paste
+    provisioning_data = models.JSONField(default=dict, blank=True,
+                                        help_text="Data needed for manual provisioning (username, domain, etc.)")
+    
+    # Admin notes and resolution details
+    admin_notes = models.TextField(blank=True, null=True)
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, 
+                                   null=True, blank=True, related_name='resolved_failures')
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    
+    # Notification tracking
+    admin_notified = models.BooleanField(default=False, help_text="Whether admin has been notified")
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('provisioning failure')
+        verbose_name_plural = _('provisioning failures')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Failure: {self.subscription} - {self.status}"
+    
+    def mark_resolved(self, user, notes=None):
+        """Mark this failure as resolved"""
+        from django.utils import timezone
+        self.status = 'resolved'
+        self.resolved_by = user
+        self.resolved_at = timezone.now()
+        if notes:
+            self.admin_notes = notes
+        self.save()
+
+
 # Import WHMCS models to make them available in the services app
 from .whmcs_models import (
     HostingProduct,
@@ -342,12 +394,12 @@ from .whmcs_models import (
 __all__ = [
     'Service',
     'ServiceSubscription',
-    'Pricing',
-    'Provisioning',
+    'DNSRecord',
     'ProjectTracker',
     'ProjectTask',
     'ProjectMilestone',
     'ProjectComment',
+    'ProvisioningFailure',
     'HostingProduct',
     'DomainProduct',
     'ServiceAddon',

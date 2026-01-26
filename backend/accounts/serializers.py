@@ -11,9 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'phone', 'mobile_number', 
-                  'company_name', 'user_type', 'is_active', 'email_notifications', 
-                  'whatsapp_notifications', 'sms_notifications', 'created_at', 'full_name']
-        read_only_fields = ['id', 'created_at', 'full_name']
+                  'company_name', 'user_type', 'is_active', 'is_staff', 'is_superuser',
+                  'email_notifications', 'whatsapp_notifications', 'sms_notifications', 
+                  'created_at', 'full_name']
+        read_only_fields = ['id', 'is_staff', 'is_superuser', 'created_at', 'full_name']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
