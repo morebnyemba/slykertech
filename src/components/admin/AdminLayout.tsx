@@ -9,7 +9,8 @@ import { apiService } from '@/lib/api-service';
 import { 
   FaHome, FaExclamationTriangle, FaUsers, FaServer, FaCog, 
   FaBars, FaTimes, FaSignOutAlt, FaBell, FaTicketAlt, FaComments,
-  FaChartBar, FaFileInvoiceDollar, FaMoneyBillWave, FaChevronLeft, FaChevronRight
+  FaChartBar, FaFileInvoiceDollar, FaMoneyBillWave, FaChevronLeft, FaChevronRight,
+  FaTag
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -109,6 +110,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: FaServer },
     { name: 'Clients', href: '/admin/clients', icon: FaUsers },
+    { name: 'Promotions', href: '/admin/promotions', icon: FaTag },
     { name: 'Analytics', href: '/admin/analytics', icon: FaChartBar },
     { name: 'Settings', href: '/admin/settings', icon: FaCog },
   ];

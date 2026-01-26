@@ -1,14 +1,28 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FaTrash, FaShoppingCart } from 'react-icons/fa';
+import { FaTrash, FaShoppingCart, FaTag, FaSpinner, FaTimes, FaGift } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
 export default function CartPage() {
-  const { cart, fetchCart, removeItem, clearCart, getTotal, getItemCount } = useCartStore();
+  const { 
+    cart, 
+    fetchCart, 
+    removeItem, 
+    clearCart, 
+    getTotal, 
+    getItemCount, 
+    getDiscountedTotal,
+    applyCoupon,
+    removeCoupon,
+    couponLoading,
+    couponError
+  } = useCartStore();
   const { token } = useAuthStore();
+  const [couponCode, setCouponCode] = useState('');
+  const [showCouponInput, setShowCouponInput] = useState(false);
 
   useEffect(() => {
     fetchCart(token || undefined);
@@ -30,8 +44,24 @@ export default function CartPage() {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    const result = await applyCoupon(couponCode.trim().toUpperCase(), token || undefined);
+    if (result.success) {
+      setCouponCode('');
+      setShowCouponInput(false);
+    }
+  };
+
+  const handleRemoveCoupon = async () => {
+    await removeCoupon(token || undefined);
+  };
+
   const total = getTotal();
+  const discountedTotal = getDiscountedTotal();
   const itemCount = getItemCount();
+  const hasDiscount = cart?.discount_amount && cart.discount_amount > 0;
 
   if (!cart || itemCount === 0) {
     return (
@@ -157,6 +187,77 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
+
+                {/* Coupon Section */}
+                {hasDiscount ? (
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                        <FaTag />
+                        <span className="font-medium">{cart?.applied_coupon}</span>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        disabled={couponLoading}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        title="Remove coupon"
+                      >
+                        {couponLoading ? <FaSpinner className="animate-spin" /> : <FaTimes />}
+                      </button>
+                    </div>
+                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                      {cart?.discount_description || `You save $${cart?.discount_amount?.toFixed(2)}`}
+                    </p>
+                  </div>
+                ) : showCouponInput ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono"
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+                      >
+                        {couponLoading ? <FaSpinner className="animate-spin" /> : 'Apply'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-sm text-red-500">{couponError}</p>
+                    )}
+                    <button
+                      onClick={() => {
+                        setShowCouponInput(false);
+                        setCouponCode('');
+                      }}
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCouponInput(true)}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    <FaGift /> Have a coupon code?
+                  </button>
+                )}
+
+                {/* Discount Line */}
+                {hasDiscount && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400">
+                    <span>Discount</span>
+                    <span>-${cart?.discount_amount?.toFixed(2)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Tax</span>
                   <span>$0.00</span>
@@ -164,8 +265,13 @@ export default function CartPage() {
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${discountedTotal.toFixed(2)}</span>
                   </div>
+                  {hasDiscount && (
+                    <p className="text-sm text-green-600 dark:text-green-400 text-right mt-1">
+                      You save ${cart?.discount_amount?.toFixed(2)}!
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -181,6 +287,14 @@ export default function CartPage() {
                 className="block w-full text-center text-blue-600 hover:text-blue-700 font-medium"
               >
                 Continue Shopping
+              </Link>
+
+              {/* Promotions Link */}
+              <Link
+                href="/promotions"
+                className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-500 hover:text-blue-600"
+              >
+                <FaTag /> View all promotions
               </Link>
             </div>
           </div>
