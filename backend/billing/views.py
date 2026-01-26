@@ -74,7 +74,19 @@ class CartViewSet(viewsets.ModelViewSet):
             cart_serializer = self.get_serializer(cart)
             return Response(cart_serializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Format errors for better frontend consumption
+        error_messages = []
+        for field, messages in serializer.errors.items():
+            if isinstance(messages, list):
+                for msg in messages:
+                    error_messages.append(f"{field}: {msg}" if field != 'non_field_errors' else str(msg))
+            else:
+                error_messages.append(f"{field}: {messages}" if field != 'non_field_errors' else str(messages))
+        
+        return Response({
+            'error': '. '.join(error_messages) if error_messages else 'Validation failed',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['delete'])
     def remove_item(self, request, pk=None):
