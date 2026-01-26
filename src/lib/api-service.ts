@@ -560,22 +560,21 @@ class ApiService {
 
   async getAdminAnalytics() {
     // Aggregate data from various endpoints
+    const [ticketStats, chatStats, subscriptions, clients, failures] = await Promise.all([
+      this.getTicketStats().catch(() => ({ data: null })),
+      this.getChatStats().catch(() => ({ data: null })),
+      this.getAllSubscriptions().catch(() => ({ data: [] })),
+      this.getAllClients().catch(() => ({ data: [] })),
+      this.getPendingFailuresCount().catch(() => ({ data: { pending_count: 0 } })),
+    ]);
+    
     return {
-      async fetch(apiService: ApiService) {
-        const [ticketStats, chatStats, subscriptions, clients, failures] = await Promise.all([
-          apiService.getTicketStats(),
-          apiService.getChatStats(),
-          apiService.getAllSubscriptions(),
-          apiService.getAllClients(),
-          apiService.getPendingFailuresCount(),
-        ]);
-        return {
-          tickets: ticketStats.data,
-          chat: chatStats.data,
-          subscriptions: Array.isArray(subscriptions.data) ? subscriptions.data.length : 0,
-          clients: Array.isArray(clients.data) ? clients.data.length : 0,
-          pendingFailures: (failures.data as { pending_count: number })?.pending_count || 0,
-        };
+      data: {
+        tickets: ticketStats.data,
+        chat: chatStats.data,
+        subscriptions: Array.isArray(subscriptions.data) ? subscriptions.data.length : 0,
+        clients: Array.isArray(clients.data) ? clients.data.length : 0,
+        pendingFailures: (failures.data as { pending_count: number })?.pending_count || 0,
       }
     };
   }
