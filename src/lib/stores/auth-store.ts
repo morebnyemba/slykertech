@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Get user profile
-          const profileResponse = await fetch(`${apiUrl}/accounts/profile/`, {
+          const profileResponse = await fetch(`${apiUrl}/accounts/users/me/`, {
             credentials: 'include',
             headers: {
               'Authorization': `Bearer ${data.access}`,
