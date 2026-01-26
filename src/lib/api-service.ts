@@ -451,11 +451,6 @@ class ApiService {
     });
   }
 
-  // Admin Stats
-  async getAdminStats() {
-    return this.request('/services/admin-stats/');
-  }
-
   // All Subscriptions (admin)
   async getAllSubscriptions() {
     return this.request('/services/subscriptions/');

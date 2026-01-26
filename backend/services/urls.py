@@ -19,6 +19,7 @@ router.register(r'domain-products', DomainProductViewSet, basename='domain-produ
 router.register(r'service-addons', ServiceAddonViewSet, basename='service-addon')
 router.register(r'domain-registrations', DomainRegistrationViewSet, basename='domain-registration')
 router.register(r'domain-transfer-requests', DomainTransferRequestViewSet, basename='domain-transfer-request')
+# Admin-only endpoint - protected by IsStaffUser permission class in the viewset
 router.register(r'provisioning-failures', ProvisioningFailureViewSet, basename='provisioning-failure')
 
 urlpatterns = [
