@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'investments',
     'referrals',
     'tickets',
+    'livechat',
 ]
 
 MIDDLEWARE = [

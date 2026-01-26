@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { FaSpinner, FaLock } from 'react-icons/fa';
 
@@ -11,13 +11,22 @@ interface AdminGuardProps {
 
 export default function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, isStaff, isLoading, user } = useAuthStore();
 
   useEffect(() => {
+    // Don't redirect if we're on the admin login page
+    if (pathname === '/admin/login') return;
+    
     if (!isLoading && !isAuthenticated) {
-      router.push('/login?redirect=/admin');
+      router.push('/admin/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, pathname]);
+
+  // Don't guard the login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
@@ -49,12 +58,23 @@ export default function AdminGuard({ children }: AdminGuardProps) {
             <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
               Logged in as: {user?.email}
             </p>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Go to Dashboard
-            </button>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => {
+                  useAuthStore.getState().logout();
+                  router.push('/admin/login');
+                }}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Sign Out
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </div>
           </div>
         </div>
       </div>

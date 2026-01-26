@@ -8,7 +8,8 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
 import { 
   FaHome, FaExclamationTriangle, FaUsers, FaServer, FaCog, 
-  FaBars, FaTimes, FaSignOutAlt, FaBell
+  FaBars, FaTimes, FaSignOutAlt, FaBell, FaTicketAlt, FaComments,
+  FaChartBar
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -20,27 +21,53 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingFailures, setPendingFailures] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [activeChats, setActiveChats] = useState(0);
 
-  const fetchPendingCount = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     try {
-      const response = await apiService.getPendingFailuresCount();
-      if (response.data) {
-        setPendingFailures((response.data as { pending_count: number }).pending_count || 0);
+      const [failuresRes, ticketStatsRes, chatStatsRes] = await Promise.all([
+        apiService.getPendingFailuresCount(),
+        apiService.getTicketStats().catch(() => ({ data: null })),
+        apiService.getChatStats().catch(() => ({ data: null })),
+      ]);
+      
+      if (failuresRes.data) {
+        setPendingFailures((failuresRes.data as { pending_count: number }).pending_count || 0);
+      }
+      if (ticketStatsRes.data) {
+        const stats = ticketStatsRes.data as { open?: number; in_progress?: number };
+        setOpenTickets((stats.open || 0) + (stats.in_progress || 0));
+      }
+      if (chatStatsRes.data) {
+        setActiveChats((chatStatsRes.data as { active_sessions?: number }).active_sessions || 0);
       }
     } catch (error) {
-      console.error('Failed to fetch pending count:', error);
+      console.error('Failed to fetch counts:', error);
     }
   }, []);
 
   useEffect(() => {
-    fetchPendingCount();
+    fetchCounts();
     // Refresh every 30 seconds
-    const interval = setInterval(fetchPendingCount, 30000);
+    const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchPendingCount]);
+  }, [fetchCounts]);
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: FaHome },
+    { 
+      name: 'Tickets', 
+      href: '/admin/tickets', 
+      icon: FaTicketAlt,
+      badge: openTickets > 0 ? openTickets : undefined
+    },
+    { 
+      name: 'Live Chat', 
+      href: '/admin/livechat', 
+      icon: FaComments,
+      badge: activeChats > 0 ? activeChats : undefined
+    },
     { 
       name: 'Provisioning Failures', 
       href: '/admin/provisioning-failures', 
@@ -49,8 +76,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: FaServer },
     { name: 'Clients', href: '/admin/clients', icon: FaUsers },
+    { name: 'Analytics', href: '/admin/analytics', icon: FaChartBar },
     { name: 'Settings', href: '/admin/settings', icon: FaCog },
   ];
+
+  const totalAlerts = pendingFailures + openTickets + activeChats;
 
   return (
     <AdminGuard>
@@ -84,9 +114,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1">
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
               {navigation.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                 return (
                   <Link
                     key={item.name}
@@ -157,9 +187,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <div className="flex items-center gap-4 ml-auto">
                 <button className="relative p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                   <FaBell className="h-5 w-5" />
-                  {pendingFailures > 0 && (
+                  {totalAlerts > 0 && (
                     <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {pendingFailures}
+                      {totalAlerts > 9 ? '9+' : totalAlerts}
                     </span>
                   )}
                 </button>

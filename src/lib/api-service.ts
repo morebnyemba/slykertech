@@ -460,6 +460,125 @@ class ApiService {
   async getAllClients() {
     return this.request('/clients/');
   }
+
+  // ============ Tickets Endpoints ============
+
+  async getTickets(params?: { status?: string; priority?: string; assigned_to_me?: boolean }) {
+    let url = '/tickets/tickets/';
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.priority) queryParams.append('priority', params.priority);
+    if (params?.assigned_to_me) queryParams.append('assigned_to_me', 'true');
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    return this.request(url);
+  }
+
+  async getTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/`);
+  }
+
+  async createTicket(data: { subject: string; description: string; priority?: string; department?: string }) {
+    return this.request('/tickets/tickets/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTicket(id: number, data: { status?: string; priority?: string; assigned_to_id?: number }) {
+    return this.request(`/tickets/tickets/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getTicketStats() {
+    return this.request('/tickets/tickets/stats/');
+  }
+
+  async assignTicketToMe(id: number) {
+    return this.request(`/tickets/tickets/${id}/assign_to_me/`, {
+      method: 'POST',
+    });
+  }
+
+  async closeTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/close/`, {
+      method: 'POST',
+    });
+  }
+
+  async reopenTicket(id: number) {
+    return this.request(`/tickets/tickets/${id}/reopen/`, {
+      method: 'POST',
+    });
+  }
+
+  async replyToTicket(ticketId: number, message: string, isInternal?: boolean) {
+    return this.request('/tickets/replies/', {
+      method: 'POST',
+      body: JSON.stringify({ ticket: ticketId, message, is_internal: isInternal || false }),
+    });
+  }
+
+  // ============ Live Chat Endpoints ============
+
+  async getChatSessions(status?: string) {
+    const url = status ? `/livechat/sessions/?status=${status}` : '/livechat/sessions/';
+    return this.request(url);
+  }
+
+  async getActiveChatSessions() {
+    return this.request('/livechat/sessions/active/');
+  }
+
+  async getChatSession(id: number) {
+    return this.request(`/livechat/sessions/${id}/`);
+  }
+
+  async getChatStats() {
+    return this.request('/livechat/sessions/stats/');
+  }
+
+  async closeChatSession(id: number) {
+    return this.request(`/livechat/sessions/${id}/close_session/`, {
+      method: 'POST',
+    });
+  }
+
+  async sendChatMessage(sessionId: number, message: string) {
+    return this.request(`/livechat/sessions/${sessionId}/send_message/`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
+  async getChatMessages(sessionId: number) {
+    return this.request(`/livechat/messages/?session=${sessionId}`);
+  }
+
+  // ============ Analytics Endpoints ============
+
+  async getAdminAnalytics() {
+    // Aggregate data from various endpoints
+    return {
+      async fetch(apiService: ApiService) {
+        const [ticketStats, chatStats, subscriptions, clients, failures] = await Promise.all([
+          apiService.getTicketStats(),
+          apiService.getChatStats(),
+          apiService.getAllSubscriptions(),
+          apiService.getAllClients(),
+          apiService.getPendingFailuresCount(),
+        ]);
+        return {
+          tickets: ticketStats.data,
+          chat: chatStats.data,
+          subscriptions: Array.isArray(subscriptions.data) ? subscriptions.data.length : 0,
+          clients: Array.isArray(clients.data) ? clients.data.length : 0,
+          pendingFailures: (failures.data as { pending_count: number })?.pending_count || 0,
+        };
+      }
+    };
+  }
 }
 
 // Export singleton instance
