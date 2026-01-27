@@ -70,6 +70,7 @@ export default function MultiStepSignupForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [referrerName, setReferrerName] = useState<string | null>(null);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [referralCodeLocked, setReferralCodeLocked] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -91,6 +92,24 @@ export default function MultiStepSignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
+  // Cookie helper functions
+  const setCookie = (name: string, value: string, days: number) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  };
+
+  const getCookie = (name: string): string | null => {
+    const nameEQ = name + '=';
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  };
+
   const validateReferralCode = async (code: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -111,12 +130,25 @@ export default function MultiStepSignupForm() {
     }
   };
 
-  // Check for referral code in URL
+  // Check for referral code in URL or cookies on mount
   useEffect(() => {
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      setFormData(prev => ({ ...prev, referral_code: refCode }));
-      validateReferralCode(refCode);
+    // First check URL for referral code
+    const refCodeFromUrl = searchParams.get('ref');
+    if (refCodeFromUrl) {
+      // Store in cookie for 30 days
+      setCookie('referral_code', refCodeFromUrl, 30);
+      setFormData(prev => ({ ...prev, referral_code: refCodeFromUrl }));
+      setReferralCodeLocked(true);
+      validateReferralCode(refCodeFromUrl);
+      return;
+    }
+    
+    // If no URL param, check cookies
+    const refCodeFromCookie = getCookie('referral_code');
+    if (refCodeFromCookie) {
+      setFormData(prev => ({ ...prev, referral_code: refCodeFromCookie }));
+      setReferralCodeLocked(true);
+      validateReferralCode(refCodeFromCookie);
     }
   }, [searchParams]);
 
@@ -724,25 +756,37 @@ export default function MultiStepSignupForm() {
                 <div>
                   <label htmlFor="referral_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Referral Code (Optional)
+                    {referralCodeLocked && (
+                      <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                        (Applied from referral link)
+                      </span>
+                    )}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaGift className="text-gray-400" />
+                      <FaGift className={referralCodeLocked ? "text-blue-500" : "text-gray-400"} />
                     </div>
                     <input
                       id="referral_code"
                       name="referral_code"
                       type="text"
                       value={formData.referral_code}
+                      readOnly={referralCodeLocked}
                       onChange={(e) => {
-                        handleChange(e);
-                        if (e.target.value.length === 8) {
-                          validateReferralCode(e.target.value);
-                        } else {
-                          setReferrerName(null);
+                        if (!referralCodeLocked) {
+                          handleChange(e);
+                          if (e.target.value.length === 8) {
+                            validateReferralCode(e.target.value);
+                          } else {
+                            setReferrerName(null);
+                          }
                         }
                       }}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                        referralCodeLocked 
+                          ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 cursor-not-allowed' 
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
                       placeholder="ABCD1234"
                     />
                   </div>
