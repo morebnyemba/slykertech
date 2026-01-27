@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { apiService } from '@/lib/api-service';
 
 // API URL constant
 const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
@@ -97,6 +98,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (profileResponse.ok) {
             const userData = await profileResponse.json();
+            // Sync token with apiService for authenticated API requests
+            apiService.setToken(data.access);
             set({
               user: userData,
               token: data.access,
@@ -107,6 +110,8 @@ export const useAuthStore = create<AuthState>()(
             return { success: true };
           }
 
+          // Sync token with apiService for authenticated API requests
+          apiService.setToken(data.access);
           set({
             token: data.access,
             isAuthenticated: true,
@@ -165,6 +170,8 @@ export const useAuthStore = create<AuthState>()(
 
           // Auto-login after registration if token is provided
           if (data.access) {
+            // Sync token with apiService for authenticated API requests
+            apiService.setToken(data.access);
             set({
               user: data.user,
               token: data.access,
@@ -184,6 +191,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Clear token from apiService
+        apiService.clearToken();
         set({
           user: null,
           token: null,
@@ -197,12 +206,24 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setToken: (token) => {
+        if (token) {
+          apiService.setToken(token);
+        } else {
+          apiService.clearToken();
+        }
         set({ token, isAuthenticated: !!token });
       },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        // Sync token with apiService when store is rehydrated from localStorage
+        if (!state) return;
+        if (state.token) {
+          apiService.setToken(state.token);
+        }
+      },
     }
   )
 );
