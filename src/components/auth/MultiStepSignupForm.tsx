@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaBriefcase, FaGift, FaChevronDown
+  FaCheck, FaBuilding, FaGift, FaChevronDown, FaGlobe, FaMapMarkerAlt, FaCity, FaFlag
 } from 'react-icons/fa';
 
 // Country codes with flags
@@ -44,7 +44,10 @@ interface FormData {
   phone_number: string;
   mobile_number: string;
   company_name: string;
-  user_type: 'client' | 'staff';
+  company_website: string;
+  address: string;
+  city: string;
+  country: string;
   referral_code: string;
 }
 
@@ -67,6 +70,7 @@ export default function MultiStepSignupForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [referrerName, setReferrerName] = useState<string | null>(null);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [referralCodeLocked, setReferralCodeLocked] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -77,13 +81,34 @@ export default function MultiStepSignupForm() {
     phone_number: '',
     mobile_number: '',
     company_name: '',
-    user_type: 'client',
+    company_website: '',
+    address: '',
+    city: '',
+    country: '',
     referral_code: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Cookie helper functions
+  const setCookie = (name: string, value: string, days: number) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  };
+
+  const getCookie = (name: string): string | null => {
+    const nameEQ = name + '=';
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  };
 
   const validateReferralCode = async (code: string) => {
     try {
@@ -105,12 +130,25 @@ export default function MultiStepSignupForm() {
     }
   };
 
-  // Check for referral code in URL
+  // Check for referral code in URL or cookies on mount
   useEffect(() => {
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      setFormData(prev => ({ ...prev, referral_code: refCode }));
-      validateReferralCode(refCode);
+    // First check URL for referral code
+    const refCodeFromUrl = searchParams.get('ref');
+    if (refCodeFromUrl) {
+      // Store in cookie for 30 days
+      setCookie('referral_code', refCodeFromUrl, 30);
+      setFormData(prev => ({ ...prev, referral_code: refCodeFromUrl }));
+      setReferralCodeLocked(true);
+      validateReferralCode(refCodeFromUrl);
+      return;
+    }
+    
+    // If no URL param, check cookies
+    const refCodeFromCookie = getCookie('referral_code');
+    if (refCodeFromCookie) {
+      setFormData(prev => ({ ...prev, referral_code: refCodeFromCookie }));
+      setReferralCodeLocked(true);
+      validateReferralCode(refCodeFromCookie);
     }
   }, [searchParams]);
 
@@ -232,7 +270,10 @@ export default function MultiStepSignupForm() {
       last_name: formData.last_name,
       mobile_number: fullMobileNumber,
       company_name: formData.company_name,
-      user_type: formData.user_type,
+      company_website: formData.company_website || undefined,
+      address: formData.address || undefined,
+      city: formData.city || undefined,
+      country: formData.country || undefined,
       referral_code: formData.referral_code || undefined,
     });
 
@@ -597,44 +638,117 @@ export default function MultiStepSignupForm() {
             {/* Step 4: Additional Info (Optional) */}
             {currentStep === 4 && (
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Company Name (Optional)
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaBuilding className="text-gray-400" />
+                {/* Company Information Section */}
+                <div className="pb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Company Information</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Company Name (Optional)
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaBuilding className="text-gray-400" />
+                        </div>
+                        <input
+                          id="company_name"
+                          name="company_name"
+                          type="text"
+                          value={formData.company_name}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Your Company Ltd"
+                        />
+                      </div>
                     </div>
-                    <input
-                      id="company_name"
-                      name="company_name"
-                      type="text"
-                      value={formData.company_name}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Your Company Ltd"
-                    />
+
+                    <div>
+                      <label htmlFor="company_website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Company Website (Optional)
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaGlobe className="text-gray-400" />
+                        </div>
+                        <input
+                          id="company_website"
+                          name="company_website"
+                          type="url"
+                          value={formData.company_website}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="https://www.yourcompany.com"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="user_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Account Type
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaBriefcase className="text-gray-400" />
+                {/* Address Section */}
+                <div className="pb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Address (Optional)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Street Address
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaMapMarkerAlt className="text-gray-400" />
+                        </div>
+                        <input
+                          id="address"
+                          name="address"
+                          type="text"
+                          value={formData.address}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="123 Main Street"
+                        />
+                      </div>
                     </div>
-                    <select
-                      id="user_type"
-                      name="user_type"
-                      value={formData.user_type}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    >
-                      <option value="client">Client</option>
-                      <option value="staff">Staff</option>
-                    </select>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          City
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaCity className="text-gray-400" />
+                          </div>
+                          <input
+                            id="city"
+                            name="city"
+                            type="text"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Harare"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Country
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaFlag className="text-gray-400" />
+                          </div>
+                          <input
+                            id="country"
+                            name="country"
+                            type="text"
+                            value={formData.country}
+                            onChange={handleChange}
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Zimbabwe"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -642,25 +756,37 @@ export default function MultiStepSignupForm() {
                 <div>
                   <label htmlFor="referral_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Referral Code (Optional)
+                    {referralCodeLocked && (
+                      <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                        (Applied from referral link)
+                      </span>
+                    )}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaGift className="text-gray-400" />
+                      <FaGift className={referralCodeLocked ? "text-blue-500" : "text-gray-400"} />
                     </div>
                     <input
                       id="referral_code"
                       name="referral_code"
                       type="text"
                       value={formData.referral_code}
+                      readOnly={referralCodeLocked}
                       onChange={(e) => {
-                        handleChange(e);
-                        if (e.target.value.length === 8) {
-                          validateReferralCode(e.target.value);
-                        } else {
-                          setReferrerName(null);
+                        if (!referralCodeLocked) {
+                          handleChange(e);
+                          if (e.target.value.length === 8) {
+                            validateReferralCode(e.target.value);
+                          } else {
+                            setReferrerName(null);
+                          }
                         }
                       }}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                        referralCodeLocked 
+                          ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 cursor-not-allowed' 
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
                       placeholder="ABCD1234"
                     />
                   </div>

@@ -35,7 +35,10 @@ interface AuthState {
     last_name: string;
     mobile_number?: string;
     company_name?: string;
-    user_type?: string;
+    company_website?: string;
+    address?: string;
+    city?: string;
+    country?: string;
     referral_code?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
