@@ -219,7 +219,8 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         // Sync token with apiService when store is rehydrated from localStorage
-        if (state?.token) {
+        if (!state) return;
+        if (state.token) {
           apiService.setToken(state.token);
         }
       },
