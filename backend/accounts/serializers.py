@@ -23,13 +23,18 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    # Client profile fields
+    company_website = serializers.URLField(write_only=True, required=False, allow_blank=True)
+    address = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    city = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    country = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = User
         fields = ['email', 'password', 'password2', 'first_name', 'last_name', 
                   'phone', 'mobile_number', 'company_name',
                   'email_notifications', 'whatsapp_notifications', 'sms_notifications',
-                  'referral_code']
+                  'referral_code', 'company_website', 'address', 'city', 'country']
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},
@@ -54,17 +59,27 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         referral_code = validated_data.pop('referral_code', None)
         validated_data.pop('password2')
         
+        # Extract client profile fields
+        company_website = validated_data.pop('company_website', None)
+        address = validated_data.pop('address', None)
+        city = validated_data.pop('city', None)
+        country = validated_data.pop('country', None)
+        
         # Force user_type to 'client' for frontend registrations
         # Only admin/staff can set other user types via admin panel
         validated_data['user_type'] = 'client'
         
         user = User.objects.create_user(**validated_data)
         
-        # Create Client profile for client users
+        # Create Client profile for client users with all collected information
         from clients.models import Client
         Client.objects.create(
             user=user,
             company_name=validated_data.get('company_name') or f"{user.first_name} {user.last_name}".strip() or user.email,
+            company_website=company_website if company_website else None,
+            address=address if address else None,
+            city=city if city else None,
+            country=country if country else None,
         )
         
         # Handle referral if code was provided

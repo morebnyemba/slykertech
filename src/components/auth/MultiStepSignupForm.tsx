@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaEnvelope, FaLock, FaSpinner, FaEye, FaEyeSlash, FaUser, FaPhone, 
-  FaCheck, FaBuilding, FaGift, FaChevronDown
+  FaCheck, FaBuilding, FaGift, FaChevronDown, FaGlobe, FaMapMarkerAlt, FaCity, FaFlag
 } from 'react-icons/fa';
 
 // Country codes with flags
@@ -44,6 +44,10 @@ interface FormData {
   phone_number: string;
   mobile_number: string;
   company_name: string;
+  company_website: string;
+  address: string;
+  city: string;
+  country: string;
   referral_code: string;
 }
 
@@ -76,6 +80,10 @@ export default function MultiStepSignupForm() {
     phone_number: '',
     mobile_number: '',
     company_name: '',
+    company_website: '',
+    address: '',
+    city: '',
+    country: '',
     referral_code: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -230,6 +238,10 @@ export default function MultiStepSignupForm() {
       last_name: formData.last_name,
       mobile_number: fullMobileNumber,
       company_name: formData.company_name,
+      company_website: formData.company_website || undefined,
+      address: formData.address || undefined,
+      city: formData.city || undefined,
+      country: formData.country || undefined,
       referral_code: formData.referral_code || undefined,
     });
 
@@ -594,23 +606,117 @@ export default function MultiStepSignupForm() {
             {/* Step 4: Additional Info (Optional) */}
             {currentStep === 4 && (
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Company Name (Optional)
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaBuilding className="text-gray-400" />
+                {/* Company Information Section */}
+                <div className="pb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Company Information</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Company Name (Optional)
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaBuilding className="text-gray-400" />
+                        </div>
+                        <input
+                          id="company_name"
+                          name="company_name"
+                          type="text"
+                          value={formData.company_name}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Your Company Ltd"
+                        />
+                      </div>
                     </div>
-                    <input
-                      id="company_name"
-                      name="company_name"
-                      type="text"
-                      value={formData.company_name}
-                      onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Your Company Ltd"
-                    />
+
+                    <div>
+                      <label htmlFor="company_website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Company Website (Optional)
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaGlobe className="text-gray-400" />
+                        </div>
+                        <input
+                          id="company_website"
+                          name="company_website"
+                          type="url"
+                          value={formData.company_website}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="https://www.yourcompany.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address Section */}
+                <div className="pb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Address (Optional)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Street Address
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FaMapMarkerAlt className="text-gray-400" />
+                        </div>
+                        <input
+                          id="address"
+                          name="address"
+                          type="text"
+                          value={formData.address}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="123 Main Street"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          City
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaCity className="text-gray-400" />
+                          </div>
+                          <input
+                            id="city"
+                            name="city"
+                            type="text"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Harare"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Country
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaFlag className="text-gray-400" />
+                          </div>
+                          <input
+                            id="country"
+                            name="country"
+                            type="text"
+                            value={formData.country}
+                            onChange={handleChange}
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Zimbabwe"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
