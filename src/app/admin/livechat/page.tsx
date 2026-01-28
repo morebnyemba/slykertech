@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaComments, FaSpinner, FaUser, FaClock, FaPaperPlane,
   FaCircle, FaTimes
@@ -51,7 +52,6 @@ export default function LiveChatPage() {
 
   const fetchSessions = useCallback(async () => {
     // Only fetch sessions if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
@@ -72,7 +72,6 @@ export default function LiveChatPage() {
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaChartBar, FaSpinner, FaUsers, FaServer, FaTicketAlt, 
   FaComments, FaExclamationTriangle, FaCheckCircle, FaArrowUp,
@@ -82,7 +83,6 @@ export default function AnalyticsPage() {
 
   const fetchAllData = useCallback(async () => {
     // Only fetch data if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);

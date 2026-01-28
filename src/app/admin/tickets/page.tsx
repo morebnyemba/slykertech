@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaTicketAlt, FaSpinner, FaSearch, FaReply, FaUser, FaClock
 } from 'react-icons/fa';
@@ -61,7 +62,6 @@ export default function TicketsPage() {
 
   const fetchTickets = useCallback(async () => {
     // Only fetch tickets if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
@@ -87,7 +87,6 @@ export default function TicketsPage() {
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaFileInvoiceDollar, FaSpinner, FaSearch, FaPaperPlane,
   FaCheckCircle, FaTimes, FaPlus, FaTrash
@@ -87,7 +88,6 @@ export default function InvoicesPage() {
 
   const fetchClients = useCallback(async () => {
     // Only fetch clients if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;
@@ -105,7 +105,6 @@ export default function InvoicesPage() {
 
   const fetchInvoices = useCallback(async () => {
     // Only fetch invoices if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
@@ -126,7 +125,6 @@ export default function InvoicesPage() {
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;

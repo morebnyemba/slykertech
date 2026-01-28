@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaExclamationTriangle, FaServer, FaUsers, FaCheckCircle, 
   FaSpinner, FaArrowRight
@@ -27,7 +28,6 @@ export default function AdminDashboard() {
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { useAuthStore } = await import('@/lib/stores/auth-store');
     const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
