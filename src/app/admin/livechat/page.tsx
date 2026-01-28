@@ -42,7 +42,7 @@ interface ChatStats {
 }
 
 export default function LiveChatPage() {
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [stats, setStats] = useState<ChatStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,8 +52,8 @@ export default function LiveChatPage() {
   const [filter, setFilter] = useState<string>('active');
 
   const fetchSessions = useCallback(async () => {
-    // Only fetch sessions if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch sessions if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       setLoading(false);
       return;
     }
@@ -68,11 +68,11 @@ export default function LiveChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, isAuthenticated, token]);
+  }, [filter, hasHydrated, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
-    // Only fetch stats if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch stats if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       return;
     }
 
@@ -84,7 +84,7 @@ export default function LiveChatPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, [isAuthenticated, token]);
+  }, [hasHydrated, isAuthenticated, token]);
 
   useEffect(() => {
     fetchSessions();

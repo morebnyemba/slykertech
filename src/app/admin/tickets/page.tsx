@@ -50,7 +50,7 @@ interface TicketStats {
 }
 
 export default function TicketsPage() {
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,8 +62,8 @@ export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchTickets = useCallback(async () => {
-    // Only fetch tickets if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch tickets if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       setLoading(false);
       return;
     }
@@ -83,11 +83,11 @@ export default function TicketsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, isAuthenticated, token]);
+  }, [filter, hasHydrated, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
-    // Only fetch stats if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch stats if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       return;
     }
 
@@ -99,7 +99,7 @@ export default function TicketsPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, [isAuthenticated, token]);
+  }, [hasHydrated, isAuthenticated, token]);
 
   useEffect(() => {
     fetchTickets();
