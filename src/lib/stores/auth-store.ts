@@ -266,6 +266,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           isAuthenticated: false,
           isStaff: false,
+          hasHydrated: false,
         });
       },
 
@@ -285,17 +286,31 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        // Sync token with apiService when store is rehydrated from localStorage
-        if (!state) {
-          return;
-        }
-        if (state.token) {
-          apiService.setToken(state.token);
-        }
-        // Mark hydration as complete
-        state.hasHydrated = true;
+      onRehydrateStorage: () => {
+        // Return a callback that will be called after rehydration is complete
+        return (state, error) => {
+          if (error) {
+            console.error('Error rehydrating auth store:', error);
+            return;
+          }
+          
+          // Sync token with apiService when store is rehydrated from localStorage
+          if (state?.token) {
+            apiService.setToken(state.token);
+          }
+          
+          // Mark hydration as complete using proper Zustand pattern
+          useAuthStore.setState({ hasHydrated: true });
+        };
       },
+      // Don't persist hasHydrated - it should always start as false
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+        isStaff: state.isStaff,
+      }),
     }
   )
 );
