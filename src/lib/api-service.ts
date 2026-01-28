@@ -14,12 +14,12 @@ interface ApiResponse<T = unknown> {
 class ApiService {
   private baseUrl: string;
   private token: string | null = null;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('access_token');
-    }
+    // Token will be synced from auth-store, don't try to load here
+    // This prevents race conditions during initialization
   }
 
   private getHeaders(): HeadersInit {
@@ -36,7 +36,8 @@ class ApiService {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retryCount = 0
   ): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -49,6 +50,31 @@ class ApiService {
       });
 
       const data = await response.json().catch(() => null);
+
+      // Handle 401 Unauthorized - try to refresh token once
+      if (response.status === 401 && retryCount === 0 && !endpoint.includes('/token/')) {
+        // Use existing refresh promise if one is in progress, otherwise create new one
+        if (!this.refreshPromise) {
+          this.refreshPromise = (async () => {
+            try {
+              // Import auth store dynamically to avoid circular dependency
+              const { useAuthStore } = await import('@/lib/stores/auth-store');
+              const success = await useAuthStore.getState().refreshAccessToken();
+              return success;
+            } finally {
+              // Clear the promise when done so future 401s can trigger new refreshes
+              this.refreshPromise = null;
+            }
+          })();
+        }
+        
+        const refreshSuccess = await this.refreshPromise;
+        
+        if (refreshSuccess) {
+          // Retry the request with the new token
+          return this.request<T>(endpoint, options, retryCount + 1);
+        }
+      }
 
       if (!response.ok) {
         return {
@@ -92,16 +118,16 @@ class ApiService {
 
   setToken(token: string) {
     this.token = token;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', token);
-    }
+    // Token is managed by auth-store, no need to duplicate in localStorage
   }
 
   clearToken() {
     this.token = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token');
-    }
+    // Token is managed by auth-store
+  }
+
+  getToken(): string | null {
+    return this.token;
   }
 
   // Services
