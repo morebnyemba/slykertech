@@ -14,6 +14,7 @@ interface ApiResponse<T = unknown> {
 class ApiService {
   private baseUrl: string;
   private token: string | null = null;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -52,9 +53,22 @@ class ApiService {
 
       // Handle 401 Unauthorized - try to refresh token once
       if (response.status === 401 && retryCount === 0 && !endpoint.includes('/token/')) {
-        // Import auth store dynamically to avoid circular dependency
-        const { useAuthStore } = await import('@/lib/stores/auth-store');
-        const refreshSuccess = await useAuthStore.getState().refreshAccessToken();
+        // Use existing refresh promise if one is in progress, otherwise create new one
+        if (!this.refreshPromise) {
+          this.refreshPromise = (async () => {
+            try {
+              // Import auth store dynamically to avoid circular dependency
+              const { useAuthStore } = await import('@/lib/stores/auth-store');
+              const success = await useAuthStore.getState().refreshAccessToken();
+              return success;
+            } finally {
+              // Clear the promise when done so future 401s can trigger new refreshes
+              this.refreshPromise = null;
+            }
+          })();
+        }
+        
+        const refreshSuccess = await this.refreshPromise;
         
         if (refreshSuccess) {
           // Retry the request with the new token

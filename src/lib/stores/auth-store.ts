@@ -91,6 +91,12 @@ export const useAuthStore = create<AuthState>()(
             return { success: false, error: data.detail || 'Login failed' };
           }
 
+          // Validate tokens exist
+          if (!data.access || !data.refresh) {
+            set({ isLoading: false });
+            return { success: false, error: 'Invalid response from server: missing tokens' };
+          }
+
           // Get user profile
           const profileResponse = await fetch(`${apiUrl}/accounts/users/me/`, {
             credentials: 'include',
@@ -124,7 +130,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
           return { success: true };
-        } catch {
+        } catch (error) {
+          console.error('Login error:', error);
           set({ isLoading: false });
           return { success: false, error: 'Network error. Please try again.' };
         }
@@ -174,7 +181,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Auto-login after registration if token is provided
-          if (data.access) {
+          if (data.access && data.refresh) {
             // Sync token with apiService for authenticated API requests
             apiService.setToken(data.access);
             set({
@@ -190,7 +197,8 @@ export const useAuthStore = create<AuthState>()(
           }
 
           return { success: true };
-        } catch {
+        } catch (error) {
+          console.error('Registration error:', error);
           set({ isLoading: false });
           return { success: false, error: 'Network error. Please try again.' };
         }
@@ -199,6 +207,7 @@ export const useAuthStore = create<AuthState>()(
       refreshAccessToken: async () => {
         const state = get();
         if (!state.refreshToken) {
+          console.warn('No refresh token available');
           return false;
         }
 
@@ -215,11 +224,19 @@ export const useAuthStore = create<AuthState>()(
 
           if (!response.ok) {
             // Refresh token is invalid, logout user
+            console.warn('Token refresh failed, logging out');
             get().logout();
             return false;
           }
 
           const data = await response.json();
+          
+          // Validate new access token
+          if (!data.access) {
+            console.error('Token refresh response missing access token');
+            get().logout();
+            return false;
+          }
           
           // Update access token
           apiService.setToken(data.access);
@@ -230,9 +247,10 @@ export const useAuthStore = create<AuthState>()(
           });
           
           return true;
-        } catch {
-          // Network error during refresh, logout user
-          get().logout();
+        } catch (error) {
+          // Network error during refresh - log but don't logout immediately
+          // This allows for temporary network issues
+          console.error('Token refresh network error:', error);
           return false;
         }
       },

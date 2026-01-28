@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# Sitemap (auto-generated)
+/public/sitemap*.xml
+/public/robots.txt
+
 # production
 /build
 
