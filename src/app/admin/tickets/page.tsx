@@ -50,6 +50,7 @@ interface TicketStats {
 }
 
 export default function TicketsPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,6 @@ export default function TicketsPage() {
 
   const fetchTickets = useCallback(async () => {
     // Only fetch tickets if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
       return;
@@ -83,11 +83,10 @@ export default function TicketsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;
     }
@@ -100,7 +99,7 @@ export default function TicketsPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchTickets();

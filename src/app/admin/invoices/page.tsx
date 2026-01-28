@@ -62,6 +62,7 @@ interface InvoiceStats {
 }
 
 export default function InvoicesPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
@@ -88,7 +89,6 @@ export default function InvoicesPage() {
 
   const fetchClients = useCallback(async () => {
     // Only fetch clients if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;
     }
@@ -101,11 +101,10 @@ export default function InvoicesPage() {
     } catch (error) {
       console.error('Failed to fetch clients:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   const fetchInvoices = useCallback(async () => {
     // Only fetch invoices if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
       return;
@@ -121,11 +120,10 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;
     }
@@ -138,7 +136,7 @@ export default function InvoicesPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchInvoices();

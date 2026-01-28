@@ -42,6 +42,7 @@ interface ChatStats {
 }
 
 export default function LiveChatPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [stats, setStats] = useState<ChatStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,6 @@ export default function LiveChatPage() {
 
   const fetchSessions = useCallback(async () => {
     // Only fetch sessions if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       setLoading(false);
       return;
@@ -68,11 +68,10 @@ export default function LiveChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
     // Only fetch stats if user is authenticated with a valid token
-    const { isAuthenticated, token } = useAuthStore.getState();
     if (!isAuthenticated || !token) {
       return;
     }
@@ -85,7 +84,7 @@ export default function LiveChatPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchSessions();
