@@ -19,7 +19,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated, token } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pendingFailures, setPendingFailures] = useState(0);
@@ -43,6 +43,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const fetchCounts = useCallback(async () => {
+    // Only fetch counts if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const [failuresRes, ticketStatsRes, chatStatsRes, invoiceStatsRes] = await Promise.all([
         apiService.getPendingFailuresCount(),
@@ -68,7 +73,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     } catch (error) {
       console.error('Failed to fetch counts:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchCounts();

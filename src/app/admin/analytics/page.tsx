@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaChartBar, FaSpinner, FaUsers, FaServer, FaTicketAlt, 
   FaComments, FaExclamationTriangle, FaCheckCircle, FaArrowUp,
@@ -71,6 +72,7 @@ interface PaymentStats {
 }
 
 export default function AnalyticsPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
   const [chatStats, setChatStats] = useState<ChatStats | null>(null);
@@ -81,6 +83,12 @@ export default function AnalyticsPage() {
   const [pendingFailures, setPendingFailures] = useState(0);
 
   const fetchAllData = useCallback(async () => {
+    // Only fetch data if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [ticketRes, chatRes, subsRes, clientsRes, failuresRes, invoiceRes, paymentRes] = await Promise.all([
         apiService.getTicketStats().catch(() => ({ data: null })),
@@ -104,7 +112,7 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchAllData();

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaExclamationTriangle, FaServer, FaUsers, FaCheckCircle, 
   FaSpinner, FaArrowRight
@@ -17,6 +18,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const { isAuthenticated, token } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats>({
     pendingFailures: 0,
     totalSubscriptions: 0,
@@ -26,6 +28,12 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [failuresRes, subscriptionsRes, clientsRes] = await Promise.all([
         apiService.getPendingFailuresCount(),
@@ -47,7 +55,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchStats();

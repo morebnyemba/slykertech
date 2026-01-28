@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaComments, FaSpinner, FaUser, FaClock, FaPaperPlane,
   FaCircle, FaTimes
@@ -41,6 +42,7 @@ interface ChatStats {
 }
 
 export default function LiveChatPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [stats, setStats] = useState<ChatStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,12 @@ export default function LiveChatPage() {
   const [filter, setFilter] = useState<string>('active');
 
   const fetchSessions = useCallback(async () => {
+    // Only fetch sessions if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await apiService.getChatSessions(filter || undefined);
       if (response.data) {
@@ -60,9 +68,14 @@ export default function LiveChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getChatStats();
       if (response.data) {
@@ -71,7 +84,7 @@ export default function LiveChatPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchSessions();

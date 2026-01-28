@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaFileInvoiceDollar, FaSpinner, FaSearch, FaPaperPlane,
   FaCheckCircle, FaTimes, FaPlus, FaTrash
@@ -61,6 +62,7 @@ interface InvoiceStats {
 }
 
 export default function InvoicesPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
@@ -86,6 +88,11 @@ export default function InvoicesPage() {
   ]);
 
   const fetchClients = useCallback(async () => {
+    // Only fetch clients if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getAllClients();
       if (response.data) {
@@ -94,9 +101,15 @@ export default function InvoicesPage() {
     } catch (error) {
       console.error('Failed to fetch clients:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   const fetchInvoices = useCallback(async () => {
+    // Only fetch invoices if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await apiService.getInvoices(filter || undefined);
       if (response.data) {
@@ -107,9 +120,14 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getInvoiceStats();
       if (response.data) {
@@ -118,7 +136,7 @@ export default function InvoicesPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchInvoices();

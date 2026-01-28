@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { apiService } from '@/lib/api-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { 
   FaTicketAlt, FaSpinner, FaSearch, FaReply, FaUser, FaClock
 } from 'react-icons/fa';
@@ -49,6 +50,7 @@ interface TicketStats {
 }
 
 export default function TicketsPage() {
+  const { isAuthenticated, token } = useAuthStore();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,12 @@ export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchTickets = useCallback(async () => {
+    // Only fetch tickets if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const params: { status?: string; priority?: string; assigned_to_me?: boolean } = {};
       if (filter.status) params.status = filter.status;
@@ -75,9 +83,14 @@ export default function TicketsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, isAuthenticated, token]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getTicketStats();
       if (response.data) {
@@ -86,7 +99,7 @@ export default function TicketsPage() {
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     fetchTickets();
