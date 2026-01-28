@@ -25,6 +25,7 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   isStaff: boolean;
@@ -42,6 +43,7 @@ interface AuthState {
     country?: string;
     referral_code?: string;
   }) => Promise<{ success: boolean; error?: string }>;
+  refreshAccessToken: () => Promise<boolean>;
   logout: () => void;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
@@ -61,9 +63,10 @@ const checkIsStaff = (user: User | null): boolean => {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
       isStaff: false,
@@ -103,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               user: userData,
               token: data.access,
+              refreshToken: data.refresh,
               isAuthenticated: true,
               isStaff: checkIsStaff(userData),
               isLoading: false,
@@ -114,6 +118,7 @@ export const useAuthStore = create<AuthState>()(
           apiService.setToken(data.access);
           set({
             token: data.access,
+            refreshToken: data.refresh,
             isAuthenticated: true,
             isStaff: false,
             isLoading: false,
@@ -175,6 +180,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               user: data.user,
               token: data.access,
+              refreshToken: data.refresh,
               isAuthenticated: true,
               isStaff: checkIsStaff(data.user),
               isLoading: false,
@@ -190,12 +196,54 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      refreshAccessToken: async () => {
+        const state = get();
+        if (!state.refreshToken) {
+          return false;
+        }
+
+        try {
+          const apiUrl = getApiUrl();
+          const response = await fetch(`${apiUrl}/token/refresh/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: state.refreshToken }),
+          });
+
+          if (!response.ok) {
+            // Refresh token is invalid, logout user
+            get().logout();
+            return false;
+          }
+
+          const data = await response.json();
+          
+          // Update access token
+          apiService.setToken(data.access);
+          set({
+            token: data.access,
+            // Update refresh token if it's rotated
+            ...(data.refresh ? { refreshToken: data.refresh } : {}),
+          });
+          
+          return true;
+        } catch {
+          // Network error during refresh, logout user
+          get().logout();
+          return false;
+        }
+      },
+
       logout: () => {
         // Clear token from apiService
         apiService.clearToken();
         set({
           user: null,
           token: null,
+          refreshToken: null,
           isAuthenticated: false,
           isStaff: false,
         });
