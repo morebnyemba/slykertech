@@ -72,7 +72,7 @@ interface PaymentStats {
 }
 
 export default function AnalyticsPage() {
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
   const [chatStats, setChatStats] = useState<ChatStats | null>(null);
@@ -83,8 +83,8 @@ export default function AnalyticsPage() {
   const [pendingFailures, setPendingFailures] = useState(0);
 
   const fetchAllData = useCallback(async () => {
-    // Only fetch data if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch data if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       setLoading(false);
       return;
     }
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, token]);
+  }, [hasHydrated, isAuthenticated, token]);
 
   useEffect(() => {
     fetchAllData();

@@ -29,6 +29,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isStaff: boolean;
+  hasHydrated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: {
     email: string;
@@ -70,6 +71,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       isStaff: false,
+      hasHydrated: false,
 
       login: async (email: string, password: string) => {
         set({ isLoading: true });
@@ -285,10 +287,14 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         // Sync token with apiService when store is rehydrated from localStorage
-        if (!state) return;
+        if (!state) {
+          return;
+        }
         if (state.token) {
           apiService.setToken(state.token);
         }
+        // Mark hydration as complete
+        state.hasHydrated = true;
       },
     }
   )

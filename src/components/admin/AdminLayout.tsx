@@ -19,7 +19,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const { user, logout, isAuthenticated, token } = useAuthStore();
+  const { user, logout, isAuthenticated, token, hasHydrated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pendingFailures, setPendingFailures] = useState(0);
@@ -43,8 +43,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const fetchCounts = useCallback(async () => {
-    // Only fetch counts if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch counts if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       return;
     }
 
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     } catch (error) {
       console.error('Failed to fetch counts:', error);
     }
-  }, [isAuthenticated, token]);
+  }, [hasHydrated, isAuthenticated, token]);
 
   useEffect(() => {
     fetchCounts();

@@ -18,7 +18,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats>({
     pendingFailures: 0,
     totalSubscriptions: 0,
@@ -28,8 +28,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
-    // Only fetch stats if user is authenticated with a valid token
-    if (!isAuthenticated || !token) {
+    // Only fetch stats if hydration is complete and user is authenticated with a valid token
+    if (!hasHydrated || !isAuthenticated || !token) {
       setLoading(false);
       return;
     }
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, token]);
+  }, [hasHydrated, isAuthenticated, token]);
 
   useEffect(() => {
     fetchStats();
