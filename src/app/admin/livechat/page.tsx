@@ -50,6 +50,14 @@ export default function LiveChatPage() {
   const [filter, setFilter] = useState<string>('active');
 
   const fetchSessions = useCallback(async () => {
+    // Only fetch sessions if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await apiService.getChatSessions(filter || undefined);
       if (response.data) {
@@ -63,6 +71,13 @@ export default function LiveChatPage() {
   }, [filter]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getChatStats();
       if (response.data) {

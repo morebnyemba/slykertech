@@ -43,6 +43,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const fetchCounts = useCallback(async () => {
+    // Only fetch counts if user is authenticated with a valid token
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const [failuresRes, ticketStatsRes, chatStatsRes, invoiceStatsRes] = await Promise.all([
         apiService.getPendingFailuresCount(),

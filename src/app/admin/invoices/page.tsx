@@ -86,6 +86,13 @@ export default function InvoicesPage() {
   ]);
 
   const fetchClients = useCallback(async () => {
+    // Only fetch clients if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getAllClients();
       if (response.data) {
@@ -97,6 +104,14 @@ export default function InvoicesPage() {
   }, []);
 
   const fetchInvoices = useCallback(async () => {
+    // Only fetch invoices if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await apiService.getInvoices(filter || undefined);
       if (response.data) {
@@ -110,6 +125,13 @@ export default function InvoicesPage() {
   }, [filter]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getInvoiceStats();
       if (response.data) {

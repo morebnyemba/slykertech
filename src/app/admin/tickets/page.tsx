@@ -60,6 +60,14 @@ export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchTickets = useCallback(async () => {
+    // Only fetch tickets if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const params: { status?: string; priority?: string; assigned_to_me?: boolean } = {};
       if (filter.status) params.status = filter.status;
@@ -78,6 +86,13 @@ export default function TicketsPage() {
   }, [filter]);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      return;
+    }
+
     try {
       const response = await apiService.getTicketStats();
       if (response.data) {

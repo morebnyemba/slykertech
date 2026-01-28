@@ -81,6 +81,14 @@ export default function AnalyticsPage() {
   const [pendingFailures, setPendingFailures] = useState(0);
 
   const fetchAllData = useCallback(async () => {
+    // Only fetch data if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [ticketRes, chatRes, subsRes, clientsRes, failuresRes, invoiceRes, paymentRes] = await Promise.all([
         apiService.getTicketStats().catch(() => ({ data: null })),

@@ -26,6 +26,14 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
+    // Only fetch stats if user is authenticated with a valid token
+    const { useAuthStore } = await import('@/lib/stores/auth-store');
+    const { isAuthenticated, token } = useAuthStore.getState();
+    if (!isAuthenticated || !token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const [failuresRes, subscriptionsRes, clientsRes] = await Promise.all([
         apiService.getPendingFailuresCount(),
