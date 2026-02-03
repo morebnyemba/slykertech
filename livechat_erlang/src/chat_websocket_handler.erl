@@ -48,11 +48,11 @@ websocket_handle({text, Msg}, State) ->
                         {reply, {text, ResponseMsg}, State};
                     {error, _Reason} ->
                         %% Fallback response
-                        ErrorMsg = jsx:encode(#{
+                        FallbackMsg = jsx:encode(#{
                             type => <<"system">>,
                             message => <<"Support team will respond shortly">>
                         }),
-                        {reply, {text, ErrorMsg}, State}
+                        {reply, {text, FallbackMsg}, State}
                 end;
             _ ->
                 {ok, State}
@@ -60,11 +60,11 @@ websocket_handle({text, Msg}, State) ->
     catch
         _:_ ->
             %% JSON parse error
-            ErrorMsg = jsx:encode(#{
+            ParseErrorMsg = jsx:encode(#{
                 type => <<"system">>,
                 message => <<"Invalid message format">>
             }),
-            {reply, {text, ErrorMsg}, State}
+            {reply, {text, ParseErrorMsg}, State}
     end;
 
 websocket_handle(_Frame, State) ->
