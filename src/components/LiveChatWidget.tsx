@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaComments, FaTimes, FaPaperPlane, FaCircle } from 'react-icons/fa';
+import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
 
 interface Message {
   id: string;
