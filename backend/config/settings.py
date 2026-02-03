@@ -86,7 +86,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Re-enabled for proper credential handling
+    # 'corsheaders.middleware.CorsMiddleware',  # Disabled - NGINX handles CORS to prevent duplicate headers
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -239,8 +239,8 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-# NOTE: CORS middleware is enabled for proper credential handling in authentication.
-# In production with NGINX, ensure NGINX does not add duplicate CORS headers.
+# NOTE: CORS middleware is DISABLED in production as NGINX handles CORS headers.
+# This prevents duplicate header issues. In development, you may re-enable it.
 # Allow all origins in development, specific origins in production
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True

@@ -293,16 +293,22 @@ export const useAuthStore = create<AuthState>()(
         return (state, error) => {
           if (error) {
             console.error('Error rehydrating auth store:', error);
+            // Mark as hydrated even on error to prevent infinite loading
+            useAuthStore.setState({ hasHydrated: true });
             return;
           }
           
-          // Sync token with apiService when store is rehydrated from localStorage
-          if (state?.token) {
-            apiService.setToken(state.token);
+          try {
+            // Sync token with apiService when store is rehydrated from localStorage
+            if (state?.token) {
+              apiService.setToken(state.token);
+            }
+          } catch (err) {
+            console.error('Error syncing token:', err);
+          } finally {
+            // Always mark hydration as complete using proper Zustand pattern
+            useAuthStore.setState({ hasHydrated: true });
           }
-          
-          // Mark hydration as complete using proper Zustand pattern
-          useAuthStore.setState({ hasHydrated: true });
         };
       },
       // Don't persist hasHydrated - it should always start as false
