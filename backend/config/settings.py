@@ -83,7 +83,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'livechat.middleware.DisableSSLRedirectForInternalMiddleware',  # Allow HTTP for internal Docker requests
+    'livechat.middleware.CustomSSLRedirectMiddleware',  # Custom SSL redirect with exemptions
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -298,7 +298,7 @@ CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript to read it
 if not DEBUG:
     # Trust X-Forwarded-Proto header from nginx for SSL redirect
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
+    # Note: SECURE_SSL_REDIRECT is handled by custom middleware to exempt internal APIs
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -307,6 +307,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+else:
+    # Disable SSL redirect in DEBUG mode
+    SECURE_SSL_REDIRECT = False
 
 # Logging Configuration
 LOGGING = {
