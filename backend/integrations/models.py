@@ -1,12 +1,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from cryptography.fernet import Fernet
-import base64
 
 
 class APIConfiguration(models.Model):
-    """Store API configurations in database instead of environment variables"""
+    """Store API configurations in database (plain text storage for simplicity)"""
     
     PROVIDER_CHOICES = [
         ('whatsapp', 'WhatsApp Business API'),
@@ -43,55 +41,25 @@ class APIConfiguration(models.Model):
     def __str__(self):
         return f"{self.get_provider_display()} - {self.name}"
     
-    def encrypt_field(self, value):
-        """Encrypt a field value"""
-        if not value:
-            return None
-        from decouple import config
-        encryption_key = config('ENCRYPTION_KEY', default=None)
-        
-        if not encryption_key:
-            key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
-        else:
-            key = encryption_key[:32].ljust(32, '0').encode()
-        
-        cipher = Fernet(base64.urlsafe_b64encode(key))
-        return cipher.encrypt(value.encode()).decode()
-    
-    def decrypt_field(self, encrypted_value):
-        """Decrypt a field value"""
-        if not encrypted_value:
-            return None
-        from decouple import config
-        encryption_key = config('ENCRYPTION_KEY', default=None)
-        
-        if not encryption_key:
-            key = settings.SECRET_KEY[:32].ljust(32, '0').encode()
-        else:
-            key = encryption_key[:32].ljust(32, '0').encode()
-        
-        cipher = Fernet(base64.urlsafe_b64encode(key))
-        return cipher.decrypt(encrypted_value.encode()).decode()
-    
     def set_api_key(self, value):
-        """Set encrypted API key"""
-        self.encrypted_api_key = self.encrypt_field(value)
+        """Set API key (plain text storage)"""
+        self.encrypted_api_key = value
     
     def get_api_key(self):
-        """Get decrypted API key"""
-        return self.decrypt_field(self.encrypted_api_key)
+        """Get API key"""
+        return self.encrypted_api_key
     
     def set_api_secret(self, value):
-        """Set encrypted API secret"""
-        self.encrypted_api_secret = self.encrypt_field(value)
+        """Set API secret (plain text storage)"""
+        self.encrypted_api_secret = value
     
     def get_api_secret(self):
-        """Get decrypted API secret"""
-        return self.decrypt_field(self.encrypted_api_secret)
+        """Get API secret"""
+        return self.encrypted_api_secret
     
     def set_access_token(self, value):
-        """Set encrypted access token"""
-        self.encrypted_access_token = self.encrypt_field(value)
+        """Set access token (plain text storage)"""
+        self.encrypted_access_token = value
     
     def get_access_token(self):
         """Get decrypted access token"""

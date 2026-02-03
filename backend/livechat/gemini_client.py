@@ -191,7 +191,8 @@ def generate_gemini_response(message: str, department: str, visitor_name: str) -
     if not config or not config.get('api_key'):
         raise RuntimeError(
             "Gemini API key is not configured. "
-            "Please set GEMINI_API_KEY environment variable in .env file."
+            "Please add it via Django admin (/admin/integrations/apiconfiguration/) "
+            "or set GEMINI_API_KEY environment variable in .env file."
         )
 
     if genai is None:
