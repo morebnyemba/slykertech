@@ -62,10 +62,28 @@ def ai_response(request):
             message=message,
         )
 
+        session_messages = list(
+            ChatMessage.objects.filter(session=session)
+            .order_by('created_at')
+        )
+
+        history = [
+            {
+                'sender_type': msg.sender_type,
+                'message': msg.message,
+            }
+            for msg in session_messages
+        ]
+
         persona = get_persona(department)
         logger.info(f"Calling Gemini for response (session={session_id})")
         try:
-            raw_response = generate_gemini_response(message, department, visitor_name)
+            raw_response = generate_gemini_response(
+                message,
+                department,
+                visitor_name,
+                history=history,
+            )
             logger.info(f"Gemini response received (length={len(raw_response)})")
         except Exception as gemini_error:
             logger.exception("Gemini response failed")

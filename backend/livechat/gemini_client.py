@@ -212,7 +212,33 @@ def get_persona(department: str) -> Dict[str, str]:
     return PERSONAS.get(department, PERSONAS["default"])
 
 
-def generate_gemini_response(message: str, department: str, visitor_name: str) -> str:
+def _format_chat_history(history):
+    if not history:
+        return ""
+
+    lines = []
+    for item in history:
+        sender_type = item.get("sender_type")
+        text = item.get("message") or ""
+        if not text:
+            continue
+
+        if sender_type == "user":
+            role = "User"
+        elif sender_type == "ai":
+            role = "Assistant"
+        else:
+            role = "Agent"
+
+        lines.append(f"{role}: {text}")
+
+    if not lines:
+        return ""
+
+    return "Conversation so far:\n" + "\n".join(lines) + "\n\n"
+
+
+def generate_gemini_response(message: str, department: str, visitor_name: str, history=None) -> str:
     config = get_gemini_config()
     if not config or not config.get('api_key'):
         raise RuntimeError(
@@ -229,6 +255,7 @@ def generate_gemini_response(message: str, department: str, visitor_name: str) -
 
     # Security guidelines are already in persona prompts
     # This ensures NO cross-customer data sharing
+    history_context = _format_chat_history(history)
     system_prompt = (
         f"{persona['prompt']}\n"
         f"Visitor name: {visitor_name}\n"
@@ -261,7 +288,7 @@ def generate_gemini_response(message: str, department: str, visitor_name: str) -
         },
     )
 
-    response = model.generate_content(message)
+    response = model.generate_content(history_context + message)
     text = getattr(response, "text", None)
     if not text:
         raise RuntimeError("Empty Gemini response")
