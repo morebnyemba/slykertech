@@ -22,13 +22,50 @@ init(Req0, State) ->
 
 websocket_init(State) ->
     %% Initialize WebSocket connection
-    {ok, State}.
+    %% Send welcome message
+    WelcomeMsg = jsx:encode(#{
+        type => <<"system">>,
+        message => <<"Connected to Slyker Tech Live Support">>
+    }),
+    {reply, {text, WelcomeMsg}, State}.
 
 websocket_handle({text, Msg}, State) ->
     %% Handle incoming message
-    %% Call Django API for AI response
-    Response = django_http:call_api(post, "/api/livechat/bridge/ai_response/", #{message => Msg}),
-    {reply, {text, <<"AI response">>}, State};
+    try
+        Data = jsx:decode(Msg, [return_maps]),
+        
+        case maps:get(<<"type">>, Data, <<"message">>) of
+            <<"message">> ->
+                %% User message - call Django API for AI response
+                MessageText = maps:get(<<"message">>, Data, <<"">>),
+                VisitorName = maps:get(<<"visitor_name">>, Data, <<"Guest">>),
+                
+                case django_http:call_api(post, "/api/livechat/bridge/ai_response/", 
+                    #{message => MessageText, visitor_name => VisitorName}) of
+                    {ok, Response} ->
+                        %% Send response back to client
+                        ResponseMsg = jsx:encode(Response),
+                        {reply, {text, ResponseMsg}, State};
+                    {error, _Reason} ->
+                        %% Fallback response
+                        ErrorMsg = jsx:encode(#{
+                            type => <<"system">>,
+                            message => <<"Support team will respond shortly">>
+                        }),
+                        {reply, {text, ErrorMsg}, State}
+                end;
+            _ ->
+                {ok, State}
+        end
+    catch
+        _:_ ->
+            %% JSON parse error
+            ErrorMsg = jsx:encode(#{
+                type => <<"system">>,
+                message => <<"Invalid message format">>
+            }),
+            {reply, {text, ErrorMsg}, State}
+    end;
 
 websocket_handle(_Frame, State) ->
     {ok, State}.
