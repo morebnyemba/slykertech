@@ -8,16 +8,9 @@ echo "Populating Services Database"
 echo "=========================================="
 echo ""
 
-# Check if we're in a virtual environment
-if [ -z "$VIRTUAL_ENV" ]; then
-    echo "⚠️  Warning: No virtual environment detected"
-    echo "Consider activating your virtual environment first"
-    echo ""
-fi
-
-# Run the management command
+# Run the management command through Docker
 echo "📦 Populating hosting products..."
-python manage.py populate_hosting_products
+docker-compose exec backend python manage.py populate_hosting_products
 
 echo ""
 echo "=========================================="

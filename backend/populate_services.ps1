@@ -6,16 +6,9 @@ Write-Host "Populating Services Database" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check if we're in a virtual environment
-if (-not $env:VIRTUAL_ENV) {
-    Write-Host "⚠️  Warning: No virtual environment detected" -ForegroundColor Yellow
-    Write-Host "Consider activating your virtual environment first" -ForegroundColor Yellow
-    Write-Host ""
-}
-
-# Run the management command
+# Run the management command through Docker
 Write-Host "📦 Populating hosting products..." -ForegroundColor Green
-python manage.py populate_hosting_products
+docker-compose exec backend python manage.py populate_hosting_products
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
