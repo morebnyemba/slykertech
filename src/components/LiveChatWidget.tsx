@@ -55,11 +55,12 @@ export default function LiveChatWidget() {
     if (typeof window === 'undefined') return '';
     
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname;
-    const port = window.location.protocol === 'https:' ? '' : ':80';
+    const host = window.location.host; // includes port if not standard
     
     // Connect through nginx to Erlang livechat service
-    return `${protocol}//${host}${port}/livechat/ws/${department}/`;
+    const url = `${protocol}//${host}/livechat/ws/${department}/`;
+    console.log('WebSocket URL:', url, 'Protocol:', protocol, 'Host:', host);
+    return url;
   };
 
   const connectWebSocket = (department: string) => {
@@ -68,75 +69,94 @@ export default function LiveChatWidget() {
     }
 
     const wsURL = getWebSocketURL(department);
-    if (!wsURL) return;
+    if (!wsURL) {
+      console.error('Failed to construct WebSocket URL');
+      return;
+    }
 
-    const ws = new WebSocket(wsURL);
+    console.log('Attempting WebSocket connection to:', wsURL);
     
-    ws.onopen = () => {
-      setIsConnected(true);
-      setMessages([]);
-      setMessages(prev => [...prev, {
-        type: 'system',
-        message: 'Connected to live support. How can we help you today?',
-        timestamp: new Date().toISOString(),
-      }]);
-    };
+    try {
+      const ws = new WebSocket(wsURL);
+      
+      ws.onopen = () => {
+        console.log('✓ WebSocket connected successfully for department:', department);
+        setIsConnected(true);
+        setMessages([]);
+        setMessages(prev => [...prev, {
+          type: 'system',
+          message: 'Connected to live support. How can we help you today?',
+          timestamp: new Date().toISOString(),
+        }]);
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'system') {
-          setMessages(prev => [...prev, {
-            type: 'system',
-            message: data.message,
-            timestamp: new Date().toISOString(),
-          }]);
-        } else if (data.type === 'message') {
-          setMessages(prev => [...prev, {
-            type: 'chat_message',
-            message: data.text || data.message,
-            sender: data.sender || 'Support',
-            timestamp: new Date().toISOString(),
-          }]);
-        } else if (data.type === 'typing') {
-          if (data.is_typing) {
-            setMessages(prev => [...prev, { type: 'typing', sender: data.sender }]);
-          } else {
-            setMessages(prev => prev.filter(m => !(m.type === 'typing' && m.sender === data.sender)));
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Message received:', data);
+          
+          if (data.type === 'system') {
+            setMessages(prev => [...prev, {
+              type: 'system',
+              message: data.message,
+              timestamp: new Date().toISOString(),
+            }]);
+          } else if (data.type === 'message') {
+            setMessages(prev => [...prev, {
+              type: 'chat_message',
+              message: data.text || data.message,
+              sender: data.sender || 'Support',
+              timestamp: new Date().toISOString(),
+            }]);
+          } else if (data.type === 'typing') {
+            if (data.is_typing) {
+              setMessages(prev => [...prev, { type: 'typing', sender: data.sender }]);
+            } else {
+              setMessages(prev => prev.filter(m => !(m.type === 'typing' && m.sender === data.sender)));
+            }
           }
+        } catch (e) {
+          console.error('Error parsing message:', e, 'Raw data:', event.data);
         }
-      } catch (e) {
-        console.error('Error parsing message:', e);
-      }
-    };
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      ws.onerror = (error) => {
+        console.error('✗ WebSocket error:', error);
+        console.error('WebSocket readyState:', ws.readyState);
+        setMessages(prev => [...prev, {
+          type: 'error',
+          message: 'Connection error. Check browser console for details.',
+          timestamp: new Date().toISOString(),
+        }]);
+      };
+
+      ws.onclose = (closeEvent) => {
+        console.log('WebSocket closed. Code:', closeEvent.code, 'Reason:', closeEvent.reason);
+        setIsConnected(false);
+        setMessages(prev => [...prev, {
+          type: 'system',
+          message: 'Disconnected. Attempting to reconnect...',
+          timestamp: new Date().toISOString(),
+        }]);
+        
+        // Attempt to reconnect after 3 seconds
+        setTimeout(() => {
+          if (isOpen && selectedDepartment) {
+            console.log('Reconnecting to department:', selectedDepartment);
+            connectWebSocket(selectedDepartment);
+          }
+        }, 3000);
+      };
+
+      wsRef.current = ws;
+    } catch (error) {
+      console.error('✗ Failed to create WebSocket:', error);
       setMessages(prev => [...prev, {
         type: 'error',
-        message: 'Connection error. Please try again.',
+        message: 'Failed to create connection. Please try again.',
         timestamp: new Date().toISOString(),
       }]);
-    };
-
-    ws.onclose = () => {
-      setIsConnected(false);
-      setMessages(prev => [...prev, {
-        type: 'system',
-        message: 'Disconnected. Attempting to reconnect...',
-        timestamp: new Date().toISOString(),
-      }]);
-      
-      // Attempt to reconnect after 3 seconds
-      setTimeout(() => {
-        if (isOpen && selectedDepartment) {
-          connectWebSocket(selectedDepartment);
-        }
-      }, 3000);
-    };
-
-    wsRef.current = ws;
+    }
   };
 
   const handleDepartmentSelect = (deptId: string) => {
