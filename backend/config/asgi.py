@@ -11,7 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import OriginValidator
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -20,6 +19,7 @@ django_asgi_app = get_asgi_application()
 
 # Import routing and settings after Django setup
 from config.routing import websocket_urlpatterns
+from config.jwt_auth_middleware import JWTAuthMiddlewareStack
 from django.conf import settings
 
 
@@ -65,7 +65,7 @@ class CorsOriginValidator(OriginValidator):
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": CorsOriginValidator(
-        AuthMiddlewareStack(
+        JWTAuthMiddlewareStack(
             URLRouter(websocket_urlpatterns)
         )
     ),

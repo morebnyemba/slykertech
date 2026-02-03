@@ -138,11 +138,35 @@ export default function AboutPage() {
                   <li className="flex items-start gap-4">
                     <div className="text-darkgoldenrod dark:text-yellow-400 mt-1">▹</div>
                     <div>
-                      <span className="font-medium">2026:</span> Expanded services with enterprise solutions
+                      <span className="font-medium">2026:</span> Awarded Top 25 Reseller Hosting by HostAdvice
                     </div>
                   </li>
                 </ul>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Awards & Recognition */}
+      <section className="py-20 bg-white dark:bg-gray-950">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8">
+          <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
+            Awards & Recognition
+          </h2>
+          <div className="flex justify-center">
+            <div className="max-w-md text-center">
+              <a href="https://hostadvice.com/hosting-company/slyker-tech-web-services-reviews/" target="_blank" rel="noopener noreferrer">
+                <img 
+                  style={{width: '100%', maxWidth: '290px'}} 
+                  src="https://hostadvice.com/awards/2026-top-25-reseller-hosting.png" 
+                  alt="Slyker Tech Web Services review - Top 25 Reseller Hosting 2026"
+                  className="mx-auto hover:scale-105 transition-transform duration-300"
+                />
+              </a>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                Recognized as one of the Top 25 Reseller Hosting providers globally for 2026
+              </p>
             </div>
           </div>
         </div>
