@@ -83,14 +83,27 @@ export default function DedicatedHostingPage() {
   const formatFeatures = (product: HostingProduct): string[] => {
     const features: string[] = [];
     
+    if (product.cpu_type) {
+      features.push(product.cpu_type);
+    }
+
+    if (product.cpu_cores && product.cpu_cores > 0) {
+      features.push(`${product.cpu_cores} CPU Cores`);
+    }
+
+    if (product.ram_gb && product.ram_gb > 0) {
+      features.push(`${product.ram_gb} GB RAM`);
+    }
+
     if (product.disk_space === 0) {
       features.push('Unlimited Storage');
     } else {
       const storage = Math.floor(product.disk_space / 1024);
+      const storageType = product.storage_type ? `${product.storage_type} ` : '';
       if (storage >= 1000) {
-        features.push(`${Math.floor(storage / 1024)} TB SSD Storage`);
+        features.push(`${Math.floor(storage / 1024)} TB ${storageType}Storage`);
       } else {
-        features.push(`${storage} GB SSD Storage`);
+        features.push(`${storage} GB ${storageType}Storage`);
       }
     }
     
@@ -100,24 +113,12 @@ export default function DedicatedHostingPage() {
       features.push(`${Math.floor(product.bandwidth / 1024)} GB Bandwidth`);
     }
     
-    if (product.email_accounts === 0) {
-      features.push('Unlimited Email Accounts');
-    } else {
-      features.push(`${product.email_accounts} Email Accounts`);
-    }
-    
-    if (product.databases === 0) {
-      features.push('Unlimited Databases');
-    } else {
-      features.push(`${product.databases} Databases`);
-    }
-    
     if (product.ssl_certificate) features.push('Free SSL Certificate');
     if (product.dedicated_ip) features.push('Dedicated IP Address');
-    if (product.cpanel_access) features.push('cPanel/WHM Access');
     if (product.ssh_access) features.push('Full Root Access');
     if (product.cron_jobs) features.push('Unlimited Cron Jobs');
     if (product.backups_included) features.push('Daily Backups');
+    features.push('No Account Limits');
     features.push('DDoS Protection');
     features.push('24/7 Monitoring');
     

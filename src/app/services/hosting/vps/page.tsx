@@ -83,10 +83,19 @@ export default function VPSHostingPage() {
   const formatFeatures = (product: HostingProduct): string[] => {
     const features: string[] = [];
     
+    if (product.cpu_cores && product.cpu_cores > 0) {
+      features.push(`${product.cpu_cores} vCPU Cores`);
+    }
+
+    if (product.ram_gb && product.ram_gb > 0) {
+      features.push(`${product.ram_gb} GB RAM`);
+    }
+
     if (product.disk_space === 0) {
       features.push('Unlimited Storage');
     } else {
-      features.push(`${Math.floor(product.disk_space / 1024)} GB SSD Storage`);
+      const storageType = product.storage_type ? `${product.storage_type} ` : '';
+      features.push(`${Math.floor(product.disk_space / 1024)} GB ${storageType}Storage`);
     }
     
     if (product.bandwidth === 0) {
@@ -95,24 +104,12 @@ export default function VPSHostingPage() {
       features.push(`${Math.floor(product.bandwidth / 1024)} GB Bandwidth`);
     }
     
-    if (product.email_accounts === 0) {
-      features.push('Unlimited Email Accounts');
-    } else {
-      features.push(`${product.email_accounts} Email Accounts`);
-    }
-    
-    if (product.databases === 0) {
-      features.push('Unlimited Databases');
-    } else {
-      features.push(`${product.databases} Databases`);
-    }
-    
     if (product.ssl_certificate) features.push('Free SSL Certificate');
     if (product.dedicated_ip) features.push('Dedicated IP Address');
-    if (product.cpanel_access) features.push('cPanel Access');
     if (product.ssh_access) features.push('Root/SSH Access');
     if (product.cron_jobs) features.push('Cron Jobs');
     if (product.backups_included) features.push('Daily Backups');
+    features.push('No Account Limits');
     
     return features;
   };
