@@ -10,6 +10,9 @@ import {
     FaArrowRight, FaCheckCircle, FaSearch, FaGlobe
 } from 'react-icons/fa';
 import { apiService } from '@/lib/api-service';
+import ServiceFAQ from '@/components/service-pages/ServiceFAQ';
+import PromotionsCTA from '@/components/service-pages/PromotionsCTA';
+import { companyFAQs } from '@/components/service-pages/companyFAQData';
 
 const HomePageClientView = () => {
     const [dynamicStats, setDynamicStats] = useState({
@@ -497,6 +500,26 @@ const HomePageClientView = () => {
                         </div>
                     </div>
                 </section>
+
+                {/* Promotions CTA */}
+                <PromotionsCTA />
+
+                {/* FAQ Section */}
+                <div className="bg-gray-50 dark:bg-gray-900">
+                    <ServiceFAQ 
+                        faqs={companyFAQs}
+                        serviceName="Slyker Tech"
+                    />
+                    <div className="text-center pb-16">
+                        <Link
+                            href="/about#faqs"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all"
+                        >
+                            View More FAQs
+                            <FaArrowRight />
+                        </Link>
+                    </div>
+                </div>
 
                 {/* Final CTA */}
                 <section className="py-24 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950">

@@ -1,11 +1,11 @@
 // app/about/page.tsx
+'use client';
 
 import Image from 'next/image';
 import { FaGlobeAfrica, FaCode, FaCloud, FaHandshake } from 'react-icons/fa';
 import { MdEngineering, MdPayments, MdSecurity, MdTrendingUp } from 'react-icons/md';
-import metadata from './metadata';
-
-export { metadata };
+import ServiceFAQ from '@/components/service-pages/ServiceFAQ';
+import { aboutPageFAQs } from '@/components/service-pages/companyFAQData';
 
 export default function AboutPage() {
   const stats = [
@@ -241,6 +241,14 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* FAQs Section */}
+      <section id="faqs">
+        <ServiceFAQ 
+          faqs={aboutPageFAQs}
+          serviceName="Slyker Tech"
+        />
       </section>
     </div>
   );

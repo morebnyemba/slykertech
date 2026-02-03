@@ -30,6 +30,20 @@ class HostingProduct(models.Model):
     # Resource Limits (like WHMCS product configuration)
     disk_space = models.IntegerField(help_text="Disk space in MB, 0 = unlimited")
     bandwidth = models.IntegerField(help_text="Bandwidth in MB per month, 0 = unlimited")
+    
+    # VPS/Dedicated Server Specs
+    cpu_cores = models.IntegerField(default=0, help_text="Number of CPU cores (for VPS/Dedicated), 0 for shared hosting")
+    ram_gb = models.IntegerField(default=0, help_text="RAM in GB (for VPS/Dedicated), 0 for shared hosting")
+    cpu_type = models.CharField(max_length=200, blank=True, null=True, help_text="CPU type/model (for Dedicated servers)")
+    
+    STORAGE_TYPE_CHOICES = [
+        ('HDD', 'HDD'),
+        ('SSD', 'SSD'),
+        ('NVMe', 'NVMe SSD'),
+    ]
+    storage_type = models.CharField(max_length=50, default='SSD', choices=STORAGE_TYPE_CHOICES, help_text="Storage type")
+    
+    # Shared Hosting Limits
     email_accounts = models.IntegerField(help_text="Number of email accounts, 0 = unlimited")
     databases = models.IntegerField(help_text="Number of databases, 0 = unlimited")
     ftp_accounts = models.IntegerField(help_text="Number of FTP accounts, 0 = unlimited")

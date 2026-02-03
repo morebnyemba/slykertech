@@ -16,6 +16,7 @@ class Command(BaseCommand):
                 'slug': 'shared-basic',
                 'description': 'Perfect for personal websites and blogs',
                 'hosting_type': 'shared',
+
                 'disk_space': 5120,  # 5 GB in MB
                 'bandwidth': 51200,  # 50 GB in MB
                 'email_accounts': 3,
@@ -120,17 +121,20 @@ class Command(BaseCommand):
                 'slug': 'vps-s',
                 'description': '4 vCPU Cores, 6 GB RAM, 50 GB NVMe SSD',
                 'hosting_type': 'vps',
+                'cpu_cores': 4,
+                'ram_gb': 6,
+                'storage_type': 'NVMe',
                 'disk_space': 51200,  # 50 GB
                 'bandwidth': 0,  # Unlimited (32 TB traffic)
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
-                'addon_domains': 0,  # Unlimited
-                'parked_domains': 0,  # Unlimited
+                'email_accounts': 0,
+                'databases': 0,
+                'ftp_accounts': 0,
+                'subdomains': 0,
+                'addon_domains': 0,
+                'parked_domains': 0,
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,  # Optional, not included by default
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
@@ -145,17 +149,20 @@ class Command(BaseCommand):
                 'slug': 'vps-m',
                 'description': '6 vCPU Cores, 16 GB RAM, 100 GB NVMe SSD',
                 'hosting_type': 'vps',
+                'cpu_cores': 6,
+                'ram_gb': 16,
+                'storage_type': 'NVMe',
                 'disk_space': 102400,  # 100 GB
-                'bandwidth': 0,  # Unlimited (32 TB traffic)
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
+                'bandwidth': 0,  # Unlimited
+                'email_accounts': 0,  # No limits - full root access
+                'databases': 0,  # No limits
+                'ftp_accounts': 0,  # No limits
+                'subdomains': 0,  # No limits
                 'addon_domains': 0,  # Unlimited
                 'parked_domains': 0,  # Unlimited
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
@@ -170,17 +177,20 @@ class Command(BaseCommand):
                 'slug': 'vps-l',
                 'description': '8 vCPU Cores, 30 GB RAM, 200 GB NVMe SSD',
                 'hosting_type': 'vps',
+                'cpu_cores': 8,
+                'ram_gb': 30,
+                'storage_type': 'NVMe',
                 'disk_space': 204800,  # 200 GB
-                'bandwidth': 0,  # Unlimited (32 TB traffic)
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
+                'bandwidth': 0,  # Unlimited
+                'email_accounts': 0,  # No limits - full root access
+                'databases': 0,  # No limits
+                'ftp_accounts': 0,  # No limits
+                'subdomains': 0,  # No limits
                 'addon_domains': 0,  # Unlimited
                 'parked_domains': 0,  # Unlimited
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
@@ -195,17 +205,20 @@ class Command(BaseCommand):
                 'slug': 'vps-xl',
                 'description': '10 vCPU Cores, 60 GB RAM, 400 GB NVMe SSD',
                 'hosting_type': 'vps',
+                'cpu_cores': 10,
+                'ram_gb': 60,
+                'storage_type': 'NVMe',
                 'disk_space': 409600,  # 400 GB
-                'bandwidth': 0,  # Unlimited (32 TB traffic)
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
+                'bandwidth': 0,  # Unlimited
+                'email_accounts': 0,  # No limits - full root access
+                'databases': 0,  # No limits
+                'ftp_accounts': 0,  # No limits
+                'subdomains': 0,  # No limits
                 'addon_domains': 0,  # Unlimited
                 'parked_domains': 0,  # Unlimited
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
@@ -222,19 +235,23 @@ class Command(BaseCommand):
             {
                 'name': 'Dedicated Starter',
                 'slug': 'dedicated-starter',
-                'description': 'Entry-level dedicated server',
+                'description': 'Intel Xeon E-2136, 32 GB RAM, 500 GB NVMe SSD',
                 'hosting_type': 'dedicated',
+                'cpu_cores': 6,
+                'ram_gb': 32,
+                'cpu_type': 'Intel Xeon E-2136 (6 Cores @ 3.3 GHz)',
+                'storage_type': 'NVMe',
                 'disk_space': 512000,  # 500 GB
                 'bandwidth': 0,  # Unlimited
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
+                'email_accounts': 0,  # No limits - full root access
+                'databases': 0,  # No limits
+                'ftp_accounts': 0,  # No limits
+                'subdomains': 0,  # No limits
                 'addon_domains': 0,  # Unlimited
                 'parked_domains': 0,  # Unlimited
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
@@ -247,19 +264,23 @@ class Command(BaseCommand):
             {
                 'name': 'Dedicated Enterprise',
                 'slug': 'dedicated-enterprise',
-                'description': 'Maximum performance and control',
+                'description': 'AMD Ryzen 9 5950X, 128 GB RAM, 2 TB NVMe SSD',
                 'hosting_type': 'dedicated',
+                'cpu_cores': 16,
+                'ram_gb': 128,
+                'cpu_type': 'AMD Ryzen 9 5950X (16 Cores @ 3.4 GHz)',
+                'storage_type': 'NVMe',
                 'disk_space': 2048000,  # 2 TB
                 'bandwidth': 0,  # Unlimited
-                'email_accounts': 0,  # Unlimited
-                'databases': 0,  # Unlimited
-                'ftp_accounts': 0,  # Unlimited
-                'subdomains': 0,  # Unlimited
+                'email_accounts': 0,  # No limits - full root access
+                'databases': 0,  # No limits
+                'ftp_accounts': 0,  # No limits
+                'subdomains': 0,  # No limits
                 'addon_domains': 0,  # Unlimited
                 'parked_domains': 0,  # Unlimited
                 'ssl_certificate': True,
                 'dedicated_ip': True,
-                'cpanel_access': True,
+                'cpanel_access': False,
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,

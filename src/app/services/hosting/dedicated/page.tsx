@@ -6,6 +6,10 @@ import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
 import Link from 'next/link';
+import ServiceFAQ from '@/components/service-pages/ServiceFAQ';
+import WhyChooseUs from '@/components/service-pages/WhyChooseUs';
+import PromotionsCTA from '@/components/service-pages/PromotionsCTA';
+import { dedicatedHostingFAQs, dedicatedHostingBenefits } from '@/components/service-pages/hostingPageData';
 
 interface HostingProduct {
   id: number;
@@ -13,6 +17,10 @@ interface HostingProduct {
   slug: string;
   description: string;
   hosting_type: string;
+  cpu_cores?: number;
+  ram_gb?: number;
+  cpu_type?: string;
+  storage_type?: string;
   disk_space: number;
   bandwidth: number;
   email_accounts: number;
@@ -381,6 +389,21 @@ export default function DedicatedHostingPage() {
           </div>
         )}
       </div>
+
+      {/* Why Choose Us Section */}
+      <WhyChooseUs 
+        serviceName="Dedicated Server Hosting" 
+        benefits={dedicatedHostingBenefits}
+      />
+
+      {/* FAQ Section */}
+      <ServiceFAQ 
+        faqs={dedicatedHostingFAQs}
+        serviceName="Dedicated Server Hosting"
+      />
+
+      {/* Promotions CTA */}
+      <PromotionsCTA serviceName="Dedicated Server Hosting" />
     </div>
   );
 }
