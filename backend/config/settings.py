@@ -45,7 +45,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS', 
-    default='localhost,127.0.0.1,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw', 
+    default='localhost,127.0.0.1,backend,api.slykertech.co.zw,slykertech.co.zw,www.slykertech.co.zw', 
     cast=parse_comma_separated
 )
 
