@@ -12,56 +12,30 @@ except Exception:  # pragma: no cover - optional dependency
 
 def get_gemini_config():
     """
-    Get Gemini configuration from database or environment variables.
+    Get Gemini configuration from environment variables.
+    Database config disabled to keep it simple.
     
     Returns:
         dict with keys: api_key, model, temperature, max_tokens
     """
-    # Try to get from database first
-    try:
-        from integrations.models import APIConfiguration
-        
-        logger.info("Attempting to load Gemini config from database...")
-        config = APIConfiguration.objects.filter(
-            provider='gemini',
-            is_active=True
-        ).first()
-        
-        logger.info(f"Database query result: config={'found' if config else 'not found'}")
-        
-        if config:
-            logger.info(f"Found Gemini config: {config.name}")
-            config_data = config.config_data or {}
-            api_key = config.get_api_key()
-            logger.info(f"API key decrypted: {'yes' if api_key else 'no'}")
-            
-            return {
-                'api_key': api_key,
-                'model': config_data.get('model', 'gemini-1.5-flash'),
-                'temperature': float(config_data.get('temperature', 0.6)),
-                'max_tokens': int(config_data.get('max_tokens', 512)),
-            }
-    except Exception as e:
-        logger.exception(f"Error loading Gemini config from database: {e}")
+    logger.info("Loading Gemini config from environment variables...")
     
-    # Fallback to environment variables
-    logger.info("Falling back to environment variables...")
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         logger.warning("No GEMINI_API_KEY in environment")
         return None
     
-    logger.info("Loaded Gemini config from environment variables")
+    logger.info("✓ Gemini config loaded from environment variables")
     return {
         'api_key': api_key,
-        'model': os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
-        'temperature': float(os.getenv("GEMINI_TEMPERATURE", "0.6")),
+        'model': os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        'temperature': float(os.getenv("GEMINI_TEMPERATURE", "0.7")),
         'max_tokens': int(os.getenv("GEMINI_MAX_TOKENS", "512")),
     }
 
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-DEFAULT_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0.6"))
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0.7"))
 DEFAULT_MAX_TOKENS = int(os.getenv("GEMINI_MAX_TOKENS", "512"))
 
 PERSONAS: Dict[str, Dict[str, str]] = {
@@ -213,13 +187,11 @@ def get_persona(department: str) -> Dict[str, str]:
 
 
 def generate_gemini_response(message: str, department: str, visitor_name: str) -> str:
-    # Get configuration from database or environment
     config = get_gemini_config()
     if not config or not config.get('api_key'):
         raise RuntimeError(
             "Gemini API key is not configured. "
-            "Please add it via Django admin (/admin/integrations/apiconfiguration/) "
-            "or set GEMINI_API_KEY environment variable."
+            "Please set GEMINI_API_KEY environment variable in .env file."
         )
 
     if genai is None:
