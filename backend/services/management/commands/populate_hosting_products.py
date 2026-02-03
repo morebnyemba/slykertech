@@ -12,36 +12,61 @@ class Command(BaseCommand):
         # Shared Hosting Products
         shared_products = [
             {
-                'name': 'Shared Starter',
-                'slug': 'shared-starter',
-                'description': 'Perfect for small websites and blogs',
+                'name': 'Shared Basic',
+                'slug': 'shared-basic',
+                'description': 'Perfect for personal websites and blogs',
                 'hosting_type': 'shared',
-                'disk_space': 10240,  # 10 GB in MB
-                'bandwidth': 102400,  # 100 GB in MB
-                'email_accounts': 5,
-                'databases': 2,
-                'ftp_accounts': 2,
-                'subdomains': 5,
+                'disk_space': 5120,  # 5 GB in MB
+                'bandwidth': 51200,  # 50 GB in MB
+                'email_accounts': 3,
+                'databases': 1,
+                'ftp_accounts': 1,
+                'subdomains': 3,
                 'addon_domains': 0,
                 'parked_domains': 0,
                 'ssl_certificate': True,
                 'dedicated_ip': False,
                 'cpanel_access': True,
                 'ssh_access': False,
-                'cron_jobs': True,
+                'cron_jobs': False,
                 'backups_included': True,
-                'monthly_price': Decimal('10.00'),
-                'quarterly_price': Decimal('27.00'),
-                'annual_price': Decimal('96.00'),
+                'monthly_price': Decimal('4.00'),
+                'quarterly_price': Decimal('10.80'),
+                'annual_price': Decimal('38.40'),
                 'is_featured': False,
                 'sort_order': 1,
             },
             {
+                'name': 'Shared Starter',
+                'slug': 'shared-starter',
+                'description': 'Great for small websites and portfolios',
+                'hosting_type': 'shared',
+                'disk_space': 10240,  # 10 GB in MB
+                'bandwidth': 102400,  # 100 GB in MB
+                'email_accounts': 10,
+                'databases': 3,
+                'ftp_accounts': 3,
+                'subdomains': 10,
+                'addon_domains': 1,
+                'parked_domains': 1,
+                'ssl_certificate': True,
+                'dedicated_ip': False,
+                'cpanel_access': True,
+                'ssh_access': False,
+                'cron_jobs': True,
+                'backups_included': True,
+                'monthly_price': Decimal('8.00'),
+                'quarterly_price': Decimal('21.60'),
+                'annual_price': Decimal('76.80'),
+                'is_featured': True,
+                'sort_order': 2,
+            },
+            {
                 'name': 'Shared Business',
                 'slug': 'shared-business',
-                'description': 'Great for growing businesses with multiple sites',
+                'description': 'Ideal for growing businesses with multiple sites',
                 'hosting_type': 'shared',
-                'disk_space': 51200,  # 50 GB in MB
+                'disk_space': 30720,  # 30 GB in MB
                 'bandwidth': 0,  # Unlimited
                 'email_accounts': 0,  # Unlimited
                 'databases': 10,
@@ -55,23 +80,48 @@ class Command(BaseCommand):
                 'ssh_access': False,
                 'cron_jobs': True,
                 'backups_included': True,
+                'monthly_price': Decimal('15.00'),
+                'quarterly_price': Decimal('40.50'),
+                'annual_price': Decimal('144.00'),
+                'is_featured': False,
+                'sort_order': 3,
+            },
+            {
+                'name': 'Shared Professional',
+                'slug': 'shared-professional',
+                'description': 'Maximum shared hosting features for professionals',
+                'hosting_type': 'shared',
+                'disk_space': 51200,  # 50 GB in MB
+                'bandwidth': 0,  # Unlimited
+                'email_accounts': 0,  # Unlimited
+                'databases': 0,  # Unlimited
+                'ftp_accounts': 0,  # Unlimited
+                'subdomains': 0,  # Unlimited
+                'addon_domains': 0,  # Unlimited
+                'parked_domains': 0,  # Unlimited
+                'ssl_certificate': True,
+                'dedicated_ip': False,
+                'cpanel_access': True,
+                'ssh_access': True,
+                'cron_jobs': True,
+                'backups_included': True,
                 'monthly_price': Decimal('25.00'),
                 'quarterly_price': Decimal('67.50'),
                 'annual_price': Decimal('240.00'),
-                'is_featured': True,
-                'sort_order': 2,
+                'is_featured': False,
+                'sort_order': 4,
             },
         ]
         
-        # VPS Hosting Products
+        # VPS Hosting Products (Contabo-based pricing with 25% markup)
         vps_products = [
             {
-                'name': 'VPS Basic',
-                'slug': 'vps-basic',
-                'description': 'Entry-level VPS with dedicated resources',
+                'name': 'VPS S',
+                'slug': 'vps-s',
+                'description': '4 vCPU Cores, 6 GB RAM, 50 GB NVMe SSD',
                 'hosting_type': 'vps',
                 'disk_space': 51200,  # 50 GB
-                'bandwidth': 0,  # Unlimited
+                'bandwidth': 0,  # Unlimited (32 TB traffic)
                 'email_accounts': 0,  # Unlimited
                 'databases': 0,  # Unlimited
                 'ftp_accounts': 0,  # Unlimited
@@ -84,19 +134,69 @@ class Command(BaseCommand):
                 'ssh_access': True,
                 'cron_jobs': True,
                 'backups_included': True,
-                'monthly_price': Decimal('30.00'),
-                'quarterly_price': Decimal('81.00'),
-                'annual_price': Decimal('288.00'),
+                'monthly_price': Decimal('6.25'),
+                'quarterly_price': Decimal('16.88'),
+                'annual_price': Decimal('60.00'),
                 'is_featured': False,
-                'sort_order': 3,
+                'sort_order': 5,
             },
             {
-                'name': 'VPS Business',
-                'slug': 'vps-business',
-                'description': 'Scalable resources for growing businesses',
+                'name': 'VPS M',
+                'slug': 'vps-m',
+                'description': '6 vCPU Cores, 16 GB RAM, 100 GB NVMe SSD',
                 'hosting_type': 'vps',
                 'disk_space': 102400,  # 100 GB
-                'bandwidth': 0,  # Unlimited
+                'bandwidth': 0,  # Unlimited (32 TB traffic)
+                'email_accounts': 0,  # Unlimited
+                'databases': 0,  # Unlimited
+                'ftp_accounts': 0,  # Unlimited
+                'subdomains': 0,  # Unlimited
+                'addon_domains': 0,  # Unlimited
+                'parked_domains': 0,  # Unlimited
+                'ssl_certificate': True,
+                'dedicated_ip': True,
+                'cpanel_access': True,
+                'ssh_access': True,
+                'cron_jobs': True,
+                'backups_included': True,
+                'monthly_price': Decimal('12.50'),
+                'quarterly_price': Decimal('33.75'),
+                'annual_price': Decimal('120.00'),
+                'is_featured': True,
+                'sort_order': 6,
+            },
+            {
+                'name': 'VPS L',
+                'slug': 'vps-l',
+                'description': '8 vCPU Cores, 30 GB RAM, 200 GB NVMe SSD',
+                'hosting_type': 'vps',
+                'disk_space': 204800,  # 200 GB
+                'bandwidth': 0,  # Unlimited (32 TB traffic)
+                'email_accounts': 0,  # Unlimited
+                'databases': 0,  # Unlimited
+                'ftp_accounts': 0,  # Unlimited
+                'subdomains': 0,  # Unlimited
+                'addon_domains': 0,  # Unlimited
+                'parked_domains': 0,  # Unlimited
+                'ssl_certificate': True,
+                'dedicated_ip': True,
+                'cpanel_access': True,
+                'ssh_access': True,
+                'cron_jobs': True,
+                'backups_included': True,
+                'monthly_price': Decimal('25.00'),
+                'quarterly_price': Decimal('67.50'),
+                'annual_price': Decimal('240.00'),
+                'is_featured': False,
+                'sort_order': 7,
+            },
+            {
+                'name': 'VPS XL',
+                'slug': 'vps-xl',
+                'description': '10 vCPU Cores, 60 GB RAM, 400 GB NVMe SSD',
+                'hosting_type': 'vps',
+                'disk_space': 409600,  # 400 GB
+                'bandwidth': 0,  # Unlimited (32 TB traffic)
                 'email_accounts': 0,  # Unlimited
                 'databases': 0,  # Unlimited
                 'ftp_accounts': 0,  # Unlimited
@@ -112,8 +212,8 @@ class Command(BaseCommand):
                 'monthly_price': Decimal('50.00'),
                 'quarterly_price': Decimal('135.00'),
                 'annual_price': Decimal('480.00'),
-                'is_featured': True,
-                'sort_order': 4,
+                'is_featured': False,
+                'sort_order': 8,
             },
         ]
         
@@ -142,7 +242,7 @@ class Command(BaseCommand):
                 'quarterly_price': Decimal('270.00'),
                 'annual_price': Decimal('960.00'),
                 'is_featured': False,
-                'sort_order': 5,
+                'sort_order': 9,
             },
             {
                 'name': 'Dedicated Enterprise',
@@ -167,7 +267,7 @@ class Command(BaseCommand):
                 'quarterly_price': Decimal('540.00'),
                 'annual_price': Decimal('1920.00'),
                 'is_featured': False,
-                'sort_order': 6,
+                'sort_order': 10,
             },
         ]
         

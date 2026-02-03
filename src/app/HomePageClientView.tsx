@@ -35,10 +35,10 @@ const HomePageClientView = () => {
     };
 
     const popularExtensions = [
-        { ext: '.com', price: '$12.99' },
-        { ext: '.co.zw', price: '$25.00' },
-        { ext: '.net', price: '$14.99' },
-        { ext: '.org', price: '$13.99' },
+        { ext: '.com', price: '$20.00' },
+        { ext: '.co.zw', price: '$5.00' },
+        { ext: '.net', price: '$21.00' },
+        { ext: '.org', price: '$16.00' },
         { ext: '.io', price: '$39.99' },
         { ext: '.tech', price: '$29.99' }
     ];
