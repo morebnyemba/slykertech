@@ -2,6 +2,8 @@
 -module(chat_websocket_handler).
 -export([init/2, websocket_init/1, websocket_handle/2, websocket_info/2]).
 
+-define(PING_INTERVAL, 25000).
+
 init(Req0, State) ->
     %% Get the Origin header for CORS validation
     Origin = cowboy_req:header(<<"origin">>, Req0, <<"">>),
@@ -27,6 +29,9 @@ init(Req0, State) ->
 websocket_init(State) ->
     %% Initialize WebSocket connection
     io:format("LiveChat: WebSocket initialized~n", []),
+
+    %% Start heartbeat timer
+    erlang:send_after(?PING_INTERVAL, self(), ping),
     
     %% Send welcome message
     WelcomeMsg = jsx:encode(#{
@@ -49,17 +54,69 @@ websocket_handle({text, Msg}, State) ->
                 %% User message - for now, send a simple response
                 MessageText = maps:get(<<"message">>, Data, <<"">>),
                 VisitorName = maps:get(<<"visitor_name">>, Data, <<"Guest">>),
+                Department = maps:get(<<"department">>, Data, <<"support">>),
+                SessionId = maps:get(<<"session_id">>, Data, null),
+                UserId = maps:get(<<"user_id">>, Data, null),
                 
-                io:format("LiveChat: Message from ~p: ~p~n", [VisitorName, MessageText]),
+                io:format("LiveChat: Message from ~p (session: ~p, user: ~p): ~p~n", 
+                         [VisitorName, SessionId, UserId, MessageText]),
                 
-                %% Create response
-                ResponseMsg = jsx:encode(#{
-                    <<"type">> => <<"message">>,
-                    <<"message">> => <<"Thank you for your message. Our support team will assist you shortly.">>,
-                    <<"sender">> => <<"Support Team">>
+                %% Build request payload for Django
+                RequestPayload = #{
+                    message => MessageText,
+                    visitor_name => VisitorName,
+                    department => Department
+                },
+                
+                %% Add session_id if present
+                RequestPayload2 = case SessionId of
+                    null -> RequestPayload;
+                    _ -> maps:put(session_id, SessionId, RequestPayload)
+                end,
+                
+                %% Add user_id if present
+                RequestPayload3 = case UserId of
+                    null -> RequestPayload2;
+                    _ -> maps:put(user_id, UserId, RequestPayload2)
+                end,
+                
+                %% Call Django AI bridge for response
+                case django_http:call_api(post, "/api/livechat/bridge/ai_response/", RequestPayload3) of
+                    {ok, Body} ->
+                        case jsx:decode(Body, [return_maps]) of
+                            #{<<"type">> := _} = ResponseMap ->
+                                ResponseMsg = jsx:encode(ResponseMap),
+                                {reply, {text, ResponseMsg}, State};
+                            #{<<"response">> := ResponseText} ->
+                                ResponseMsg = jsx:encode(#{
+                                    <<"type">> => <<"message">>,
+                                    <<"message">> => ResponseText,
+                                    <<"sender">> => <<"Support Team">>
+                                }),
+                                {reply, {text, ResponseMsg}, State};
+                            _ ->
+                                FallbackMsg = jsx:encode(#{
+                                    <<"type">> => <<"system">>,
+                                    <<"message">> => <<"Support team will respond shortly">>
+                                }),
+                                {reply, {text, FallbackMsg}, State}
+                        end;
+                    {error, Reason} ->
+                        io:format("LiveChat: Django bridge error: ~p~n", [Reason]),
+                        FallbackMsg = jsx:encode(#{
+                            <<"type">> => <<"system">>,
+                            <<"message">> => <<"Support team will respond shortly">>
+                        }),
+                        {reply, {text, FallbackMsg}, State}
+                end;
+            <<"ping">> ->
+                PongMsg = jsx:encode(#{
+                    <<"type">> => <<"pong">>,
+                    <<"timestamp">> => erlang:system_time(millisecond)
                 }),
-                
-                {reply, {text, ResponseMsg}, State};
+                {reply, {text, PongMsg}, State};
+            <<"pong">> ->
+                {ok, State};
             _ ->
                 io:format("LiveChat: Unknown message type~n", []),
                 {ok, State}
@@ -79,5 +136,13 @@ websocket_handle({text, Msg}, State) ->
 websocket_handle(_Frame, State) ->
     {ok, State}.
 
+websocket_info(ping, State) ->
+    %% Send heartbeat ping
+    PingMsg = jsx:encode(#{
+        <<"type">> => <<"ping">>,
+        <<"timestamp">> => erlang:system_time(millisecond)
+    }),
+    erlang:send_after(?PING_INTERVAL, self(), ping),
+    {reply, {text, PingMsg}, State};
 websocket_info(_Info, State) ->
     {ok, State}.

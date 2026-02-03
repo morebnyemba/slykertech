@@ -4,6 +4,7 @@
 
 start(_StartType, _StartArgs) ->
     % Start HTTP listener on port 4001
+    inets:start(),
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/health", health_handler, []},

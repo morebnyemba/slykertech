@@ -15,6 +15,7 @@ class APIConfiguration(models.Model):
         ('stripe', 'Stripe'),
         ('paypal', 'PayPal'),
         ('paynow', 'Paynow'),
+        ('gemini', 'Google Gemini AI'),
         ('other', 'Other'),
     ]
     

@@ -9,11 +9,20 @@ call_api(Method, Path, Body) ->
     end,
     Url = BaseUrl ++ Path,
     Headers = [{"Content-Type", "application/json"}],
+    RequestOptions = [{timeout, 10000}],
     
     case Method of
         post ->
             JsonBody = jsx:encode(Body),
-            httpc:request(post, {Url, Headers, "application/json", JsonBody}, [], []);
+            case httpc:request(post, {Url, Headers, "application/json", JsonBody}, RequestOptions, []) of
+                {ok, {{_, 200, _}, _RespHeaders, RespBody}} -> {ok, RespBody};
+                {ok, {{_, Status, _}, _RespHeaders, RespBody}} -> {error, {http_error, Status, RespBody}};
+                {error, Reason} -> {error, Reason}
+            end;
         get ->
-            httpc:request(get, {Url, Headers}, [], [])
+            case httpc:request(get, {Url, Headers}, RequestOptions, []) of
+                {ok, {{_, 200, _}, _RespHeaders, RespBody}} -> {ok, RespBody};
+                {ok, {{_, Status, _}, _RespHeaders, RespBody}} -> {error, {http_error, Status, RespBody}};
+                {error, Reason} -> {error, Reason}
+            end
     end.

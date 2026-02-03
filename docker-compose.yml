@@ -67,6 +67,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
+      - GEMINI_TEMPERATURE=${GEMINI_TEMPERATURE:-0.6}
+      - GEMINI_MAX_TOKENS=${GEMINI_MAX_TOKENS:-512}
     depends_on:
       db:
         condition: service_healthy

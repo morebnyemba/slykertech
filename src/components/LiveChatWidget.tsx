@@ -25,6 +25,12 @@ export default function LiveChatWidget() {
   const { isAuthenticated, user } = useAuthStore();
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastPongRef = useRef<number>(Date.now());
+  const isConnectingRef = useRef(false);
+  const sessionIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
   const isStaff = isUserStaff(user);
 
@@ -63,7 +69,57 @@ export default function LiveChatWidget() {
     return url;
   };
 
+  const clearReconnectTimer = () => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  };
+
+  const stopHeartbeat = () => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+  };
+
+  const startHeartbeat = () => {
+    stopHeartbeat();
+    lastPongRef.current = Date.now();
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+
+      const now = Date.now();
+      const elapsed = now - lastPongRef.current;
+      if (elapsed > 60000) {
+        console.warn('Heartbeat timeout. Closing WebSocket.');
+        wsRef.current.close();
+        return;
+      }
+
+      wsRef.current.send(JSON.stringify({ type: 'ping', timestamp: new Date().toISOString() }));
+    }, 25000);
+  };
+
+  const scheduleReconnect = () => {
+    clearReconnectTimer();
+    const attempt = reconnectAttemptsRef.current + 1;
+    reconnectAttemptsRef.current = attempt;
+    const baseDelay = Math.min(30000, 1000 * Math.pow(2, Math.min(5, attempt)));
+    const jitter = Math.floor(Math.random() * 500);
+    const delay = baseDelay + jitter;
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      if (isOpen && selectedDepartment) {
+        console.log('Reconnecting to department:', selectedDepartment, 'attempt:', attempt);
+        connectWebSocket(selectedDepartment);
+      }
+    }, delay);
+  };
+
   const connectWebSocket = (department: string) => {
+    if (isConnectingRef.current) return;
+    if (wsRef.current?.readyState === WebSocket.CONNECTING) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.close();
     }
@@ -77,11 +133,16 @@ export default function LiveChatWidget() {
     console.log('Attempting WebSocket connection to:', wsURL);
     
     try {
+      isConnectingRef.current = true;
       const ws = new WebSocket(wsURL);
       
       ws.onopen = () => {
         console.log('✓ WebSocket connected successfully for department:', department);
+        isConnectingRef.current = false;
         setIsConnected(true);
+        reconnectAttemptsRef.current = 0;
+        clearReconnectTimer();
+        startHeartbeat();
         setMessages([]);
         setMessages(prev => [...prev, {
           type: 'system',
@@ -101,6 +162,10 @@ export default function LiveChatWidget() {
               message: data.message,
               timestamp: new Date().toISOString(),
             }]);
+          } else if (data.type === 'ping') {
+            wsRef.current?.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+          } else if (data.type === 'pong') {
+            lastPongRef.current = Date.now();
           } else if (data.type === 'message') {
             setMessages(prev => [...prev, {
               type: 'chat_message',
@@ -108,6 +173,13 @@ export default function LiveChatWidget() {
               sender: data.sender || 'Support',
               timestamp: new Date().toISOString(),
             }]);
+            if (data.action_result?.message) {
+              setMessages(prev => [...prev, {
+                type: 'system',
+                message: data.action_result.message,
+                timestamp: new Date().toISOString(),
+              }]);
+            }
           } else if (data.type === 'typing') {
             if (data.is_typing) {
               setMessages(prev => [...prev, { type: 'typing', sender: data.sender }]);
@@ -123,6 +195,7 @@ export default function LiveChatWidget() {
       ws.onerror = (error) => {
         console.error('✗ WebSocket error:', error);
         console.error('WebSocket readyState:', ws.readyState);
+        isConnectingRef.current = false;
         setMessages(prev => [...prev, {
           type: 'error',
           message: 'Connection error. Check browser console for details.',
@@ -132,25 +205,22 @@ export default function LiveChatWidget() {
 
       ws.onclose = (closeEvent) => {
         console.log('WebSocket closed. Code:', closeEvent.code, 'Reason:', closeEvent.reason);
+        isConnectingRef.current = false;
+        stopHeartbeat();
         setIsConnected(false);
         setMessages(prev => [...prev, {
           type: 'system',
           message: 'Disconnected. Attempting to reconnect...',
           timestamp: new Date().toISOString(),
         }]);
-        
-        // Attempt to reconnect after 3 seconds
-        setTimeout(() => {
-          if (isOpen && selectedDepartment) {
-            console.log('Reconnecting to department:', selectedDepartment);
-            connectWebSocket(selectedDepartment);
-          }
-        }, 3000);
+
+        scheduleReconnect();
       };
 
       wsRef.current = ws;
     } catch (error) {
       console.error('✗ Failed to create WebSocket:', error);
+      isConnectingRef.current = false;
       setMessages(prev => [...prev, {
         type: 'error',
         message: 'Failed to create connection. Please try again.',
@@ -171,6 +241,9 @@ export default function LiveChatWidget() {
       type: 'message',
       message: inputMessage,
       visitor_name: userName || 'Guest',
+      department: selectedDepartment || 'support',
+      session_id: sessionIdRef.current,
+      user_id: user?.id,
       sender: userName || 'Guest',
       timestamp: new Date().toISOString(),
     };
@@ -205,6 +278,8 @@ export default function LiveChatWidget() {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      stopHeartbeat();
+      clearReconnectTimer();
     };
   }, []);
 
