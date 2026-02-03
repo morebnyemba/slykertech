@@ -53,6 +53,16 @@ export default function Footer() {
             <p className="text-blue-100/90 leading-relaxed">
               Delivering exceptional digital solutions tailored for Zimbabwean businesses and beyond.
             </p>
+            <div className="mt-4">
+              <a href="https://hostadvice.com/hosting-company/slyker-tech-web-services-reviews/" target="_blank" rel="noopener noreferrer">
+                <img 
+                  style={{width: '100%', maxWidth: '200px'}} 
+                  src="https://hostadvice.com/awards/2026-top-25-reseller-hosting.png" 
+                  alt="Slyker Tech Web Services review - Top 25 Reseller Hosting 2026"
+                  className="hover:opacity-90 transition-opacity"
+                />
+              </a>
+            </div>
           </div>
 
           {/* Quick Links */}
