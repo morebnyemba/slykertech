@@ -30,10 +30,19 @@ export function useWebSocket({
   const [lastMessage, setLastMessage] = useState<unknown>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { token, isAuthenticated } = useAuthStore();
+  const reconnectAttemptsRef = useRef<number>(0);
+  const maxReconnectAttempts = 5; // Limit reconnection attempts
+  const { token, isAuthenticated, hasHydrated } = useAuthStore();
 
   const connect = () => {
-    if (!isAuthenticated || !token) {
+    // Don't connect until auth store has rehydrated
+    if (!hasHydrated || !isAuthenticated || !token) {
+      return;
+    }
+
+    // Don't reconnect if max attempts reached
+    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+      console.warn(`WebSocket max reconnection attempts (${maxReconnectAttempts}) reached for ${endpoint}`);
       return;
     }
 
@@ -46,6 +55,7 @@ export function useWebSocket({
       ws.onopen = () => {
         console.log('WebSocket connected:', endpoint);
         setIsConnected(true);
+        reconnectAttemptsRef.current = 0; // Reset on successful connection
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
           reconnectTimeoutRef.current = null;
@@ -64,6 +74,7 @@ export function useWebSocket({
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        reconnectAttemptsRef.current++;
       };
 
       ws.onclose = () => {
@@ -71,18 +82,21 @@ export function useWebSocket({
         setIsConnected(false);
         wsRef.current = null;
 
-        // Auto-reconnect if enabled
-        if (autoReconnect && isAuthenticated) {
+        // Auto-reconnect if enabled and under max attempts
+        if (autoReconnect && isAuthenticated && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('Attempting to reconnect WebSocket...');
+            console.log(`Attempting to reconnect WebSocket (attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})...`);
             connect();
           }, reconnectInterval);
+        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+          console.warn(`WebSocket reconnection stopped after ${maxReconnectAttempts} attempts`);
         }
       };
 
       wsRef.current = ws;
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
+      reconnectAttemptsRef.current++;
     }
   };
 
@@ -109,13 +123,16 @@ export function useWebSocket({
   };
 
   useEffect(() => {
-    connect();
+    // Only connect after hydration is complete
+    if (hasHydrated) {
+      connect();
+    }
 
     return () => {
       disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, token, isAuthenticated]);
+  }, [endpoint, token, isAuthenticated, hasHydrated]);
 
   return {
     isConnected,

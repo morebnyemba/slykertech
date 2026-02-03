@@ -82,6 +82,12 @@ export const useCartStore = create<CartState>()(
             credentials: 'include',
           });
 
+          // Silently handle 401 for unauthenticated users
+          if (response.status === 401) {
+            set({ cart: null, isLoading: false, error: null });
+            return;
+          }
+
           if (!response.ok) {
             throw new Error('Failed to fetch cart');
           }
@@ -89,8 +95,10 @@ export const useCartStore = create<CartState>()(
           const cart = await response.json();
           set({ cart, isLoading: false });
         } catch (error) {
+          // Don't show errors for network issues - just set loading to false
+          console.error('Cart fetch error:', error);
           set({ 
-            error: error instanceof Error ? error.message : 'Failed to fetch cart',
+            error: null, // Don't expose errors to UI for cart fetching
             isLoading: false 
           });
         }

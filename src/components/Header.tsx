@@ -25,7 +25,7 @@ export default function Header() {
       [section]: !prev[section]
     }));
   };
-  const { isAuthenticated, user, logout, token } = useAuthStore();
+  const { isAuthenticated, user, logout, token, hasHydrated } = useAuthStore();
   const { fetchCart, getItemCount } = useCartStore();
   const router = useRouter();
 
@@ -38,10 +38,12 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch cart on mount and when auth state changes
+  // Fetch cart only after auth hydration is complete
   useEffect(() => {
-    fetchCart(token || undefined);
-  }, [fetchCart, token]);
+    if (hasHydrated) {
+      fetchCart(token || undefined);
+    }
+  }, [fetchCart, token, hasHydrated]);
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hi Slyker Tech Web Services! I'm in need of one of your services.");

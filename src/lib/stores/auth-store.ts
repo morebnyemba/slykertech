@@ -298,17 +298,20 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
           
-          try {
-            // Sync token with apiService when store is rehydrated from localStorage
-            if (state?.token) {
-              apiService.setToken(state.token);
+          // Mark hydration as complete first
+          useAuthStore.setState({ hasHydrated: true });
+          
+          // Defer apiService sync to avoid circular dependency issues
+          // Use setTimeout to ensure it happens after the current execution context
+          setTimeout(() => {
+            try {
+              if (state?.token) {
+                apiService.setToken(state.token);
+              }
+            } catch (err) {
+              console.error('Error syncing token after hydration:', err);
             }
-          } catch (err) {
-            console.error('Error syncing token:', err);
-          } finally {
-            // Always mark hydration as complete using proper Zustand pattern
-            useAuthStore.setState({ hasHydrated: true });
-          }
+          }, 0);
         };
       },
       // Don't persist hasHydrated - it should always start as false

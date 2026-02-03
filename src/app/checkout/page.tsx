@@ -10,7 +10,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, fetchCart, getTotal, getItemCount } = useCartStore();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user, token, hasHydrated } = useAuthStore();
 
   const [billingInfo, setBillingInfo] = useState({
     fullName: '',
@@ -27,8 +27,10 @@ export default function CheckoutPage() {
   const [successData, setSuccessData] = useState<{ invoiceNumber: string } | null>(null);
 
   useEffect(() => {
-    fetchCart(token || undefined);
-  }, [fetchCart, token]);
+    if (hasHydrated) {
+      fetchCart(token || undefined);
+    }
+  }, [fetchCart, token, hasHydrated]);
 
   useEffect(() => {
     // Pre-fill form if user is authenticated
