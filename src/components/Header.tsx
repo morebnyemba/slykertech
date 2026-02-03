@@ -7,6 +7,7 @@ import { FaWhatsapp, FaPhone, FaEnvelope, FaFacebook, FaTwitter, FaUserCircle, F
 import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme toggle
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useCartStore } from '@/lib/stores/cart-store';
+import PortalSwitcher from '@/components/PortalSwitcher';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -375,6 +376,7 @@ export default function Header() {
 
           {isAuthenticated ? (
             <>
+              <PortalSwitcher />
               <Link
                 href="/dashboard"
                 className="flex items-center gap-2 text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"

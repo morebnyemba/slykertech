@@ -10,7 +10,7 @@ import {
   FaHome, FaExclamationTriangle, FaUsers, FaServer, FaCog, 
   FaBars, FaTimes, FaSignOutAlt, FaBell, FaTicketAlt, FaComments,
   FaChartBar, FaFileInvoiceDollar, FaMoneyBillWave, FaChevronLeft, FaChevronRight,
-  FaTag
+  FaTag, FaUserCircle, FaUserTie, FaHandshake, FaBriefcase
 } from 'react-icons/fa';
 
 interface AdminLayoutProps {
@@ -120,6 +120,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Settings', href: '/admin/settings', icon: FaCog },
   ];
 
+  const portalLinks = [
+    { name: 'Client Dashboard', href: '/dashboard', icon: FaUserCircle },
+    { name: 'Reseller Portal', href: '/portal/reseller', icon: FaUserTie },
+    { name: 'Partner Portal', href: '/portal/partner', icon: FaHandshake },
+    { name: 'Jobs Portal', href: '/portal/jobs', icon: FaBriefcase },
+  ];
+
   const totalAlerts = pendingFailures + openTickets + activeChats + unpaidInvoices;
 
   const sidebarWidth = sidebarCollapsed ? 'w-20' : 'w-64';
@@ -203,6 +210,42 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       >
                         {item.name}
                         {item.badge && <span className="ml-1 text-red-300">({item.badge})</span>}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+              
+              {/* Portal Links Section */}
+              {!sidebarCollapsed && (
+                <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    Other Portals
+                  </p>
+                </div>
+              )}
+              {portalLinks.map((item, index) => {
+                const tooltipId = `portal-tooltip-${index}`;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    aria-describedby={sidebarCollapsed ? tooltipId : undefined}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative group text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                    {!sidebarCollapsed && (
+                      <span className="flex-1 truncate">{item.name}</span>
+                    )}
+                    {/* Tooltip for collapsed state */}
+                    {sidebarCollapsed && (
+                      <div 
+                        id={tooltipId}
+                        role="tooltip"
+                        className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity"
+                      >
+                        {item.name}
                       </div>
                     )}
                   </Link>
