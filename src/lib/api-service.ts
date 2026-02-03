@@ -53,6 +53,8 @@ class ApiService {
 
       // Handle 401 Unauthorized - try to refresh token once
       if (response.status === 401 && retryCount === 0 && !endpoint.includes('/token/')) {
+        console.log('Received 401, attempting token refresh...');
+        
         // Use existing refresh promise if one is in progress, otherwise create new one
         if (!this.refreshPromise) {
           this.refreshPromise = (async () => {
@@ -71,12 +73,16 @@ class ApiService {
         const refreshSuccess = await this.refreshPromise;
         
         if (refreshSuccess) {
+          console.log('Token refresh successful, retrying request...');
           // Retry the request with the new token
           return this.request<T>(endpoint, options, retryCount + 1);
+        } else {
+          console.warn('Token refresh failed, request will fail');
         }
       }
 
       if (!response.ok) {
+        console.error(`API error on ${endpoint}:`, response.status, data);
         return {
           error: data?.detail || data?.error || 'An error occurred',
           status: response.status,
@@ -88,6 +94,7 @@ class ApiService {
         status: response.status,
       };
     } catch (error) {
+      console.error(`Network error on ${endpoint}:`, error);
       return {
         error: error instanceof Error ? error.message : 'Network error',
         status: 500,

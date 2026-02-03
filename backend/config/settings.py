@@ -86,7 +86,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',  # Disabled - CORS handled by NGINX to avoid duplicate headers
+    'corsheaders.middleware.CorsMiddleware',  # Re-enabled for proper credential handling
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -227,20 +227,20 @@ REST_FRAMEWORK = {
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('JWT_ACCESS_TOKEN_LIFETIME', default=60, cast=int)),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=config('JWT_REFRESH_TOKEN_LIFETIME', default=1440, cast=int)),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=config('JWT_ACCESS_TOKEN_LIFETIME', default=120, cast=int)),  # Increased to 2 hours
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=config('JWT_REFRESH_TOKEN_LIFETIME', default=10080, cast=int)),  # Increased to 7 days
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
 # CORS Settings
-# NOTE: CORS is handled entirely by NGINX (see nginx.conf) to avoid duplicate headers.
-# Django's corsheaders middleware is disabled to prevent duplicate Access-Control-Allow-Origin headers.
-# If DEBUG mode changes, ensure NGINX configuration is appropriately updated.
+# NOTE: CORS middleware is enabled for proper credential handling in authentication.
+# In production with NGINX, ensure NGINX does not add duplicate CORS headers.
 # Allow all origins in development, specific origins in production
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True

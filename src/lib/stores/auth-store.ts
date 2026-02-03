@@ -226,7 +226,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (!response.ok) {
             // Refresh token is invalid, logout user
-            console.warn('Token refresh failed, logging out');
+            const errorData = await response.json().catch(() => ({}));
+            console.warn('Token refresh failed:', errorData.detail || response.statusText);
             get().logout();
             return false;
           }
@@ -240,7 +241,7 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
           
-          // Update access token
+          // Update access token and sync with apiService
           apiService.setToken(data.access);
           set({
             token: data.access,
@@ -248,6 +249,7 @@ export const useAuthStore = create<AuthState>()(
             ...(data.refresh ? { refreshToken: data.refresh } : {}),
           });
           
+          console.log('Token refreshed successfully');
           return true;
         } catch (error) {
           // Network error during refresh - log but don't logout immediately
