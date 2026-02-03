@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @permission_classes([AllowAny])
 def ai_response(request):
     """Get AI response from Gemini"""
+    logger.info(f"Bridge API called: message={request.data.get('message')}, dept={request.data.get('department')}")
     try:
         message = request.data.get('message', '').strip()
         visitor_name = request.data.get('visitor_name', 'Guest')
@@ -62,8 +63,10 @@ def ai_response(request):
         )
 
         persona = get_persona(department)
+        logger.info(f"Calling Gemini for response (session={session_id})")
         try:
             raw_response = generate_gemini_response(message, department, visitor_name)
+            logger.info(f"Gemini response received (length={len(raw_response)})")
         except Exception as gemini_error:
             logger.exception("Gemini response failed")
             raw_response = (
