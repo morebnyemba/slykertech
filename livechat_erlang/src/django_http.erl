@@ -10,12 +10,13 @@ call_api(Method, Path, Body) ->
     Url = BaseUrl ++ Path,
     Headers = [{"Content-Type", "application/json"}],
     RequestOptions = [{timeout, 30000}, {connect_timeout, 5000}],
+    HTTPOptions = [{body_format, binary}],
     
     case Method of
         post ->
             JsonBody = jsx:encode(Body),
             io:format("LiveChat: Calling Django API: ~s~n", [Url]),
-            case httpc:request(post, {Url, Headers, "application/json", JsonBody}, RequestOptions, []) of
+            case httpc:request(post, {Url, Headers, "application/json", JsonBody}, RequestOptions, HTTPOptions) of
                 {ok, {{_, 200, _}, _RespHeaders, RespBody}} -> 
                     io:format("LiveChat: Django API success (200)~n"),
                     {ok, RespBody};
@@ -27,7 +28,7 @@ call_api(Method, Path, Body) ->
                     {error, Reason}
             end;
         get ->
-            case httpc:request(get, {Url, Headers}, RequestOptions, []) of
+            case httpc:request(get, {Url, Headers}, RequestOptions, HTTPOptions) of
                 {ok, {{_, 200, _}, _RespHeaders, RespBody}} -> {ok, RespBody};
                 {ok, {{_, Status, _}, _RespHeaders, RespBody}} -> {error, {http_error, Status, RespBody}};
                 {error, Reason} -> {error, Reason}

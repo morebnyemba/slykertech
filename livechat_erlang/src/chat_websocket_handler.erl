@@ -83,11 +83,20 @@ websocket_handle({text, Msg}, State) ->
                 %% Call Django AI bridge for response
                 case django_http:call_api(post, "/api/livechat/bridge/ai_response/", RequestPayload3) of
                     {ok, Body} ->
-                        case jsx:decode(Body, [return_maps]) of
-                            #{<<"type">> := _} = ResponseMap ->
+                        BodyBin = case is_binary(Body) of
+                            true -> Body;
+                            false -> iolist_to_binary(Body)
+                        end,
+                        Decoded = try jsx:decode(BodyBin, [return_maps]) of
+                            Map -> {ok, Map}
+                        catch
+                            _:_ -> {error, invalid_json}
+                        end,
+                        case Decoded of
+                            {ok, #{<<"type">> := _} = ResponseMap} ->
                                 ResponseMsg = jsx:encode(ResponseMap),
                                 {reply, {text, ResponseMsg}, State};
-                            #{<<"response">> := ResponseText} ->
+                            {ok, #{<<"response">> := ResponseText}} ->
                                 ResponseMsg = jsx:encode(#{
                                     <<"type">> => <<"message">>,
                                     <<"message">> => ResponseText,
