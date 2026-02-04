@@ -93,15 +93,26 @@ websocket_handle({text, Msg}, State) ->
                             _:_ -> {error, invalid_json}
                         end,
                         case Decoded of
-                            {ok, #{<<"type">> := _} = ResponseMap} ->
-                                ResponseMsg = jsx:encode(ResponseMap),
-                                {reply, {text, ResponseMsg}, State};
-                            {ok, #{<<"response">> := ResponseText}} ->
+                            {ok, Response} when is_map(Response) ->
+                                %% Extract reply message from response
+                                ReplyText = case Response of
+                                    #{<<"message">> := Msg} -> Msg;
+                                    #{<<"reply">> := Msg} -> Msg;
+                                    _ -> <<"Thanks for contacting us">>
+                                end,
+                                %% Extract sender name from response
+                                SenderName = case Response of
+                                    #{<<"sender">> := Sender} -> Sender;
+                                    _ -> <<"Slyker Tech">>
+                                end,
+                                %% Build properly formatted response for frontend
                                 ResponseMsg = jsx:encode(#{
                                     <<"type">> => <<"message">>,
-                                    <<"message">> => ResponseText,
-                                    <<"sender">> => <<"Support Team">>
+                                    <<"message">> => ReplyText,
+                                    <<"sender">> => SenderName,
+                                    <<"success">> => true
                                 }),
+                                io:format("LiveChat: Sending response to frontend: ~p~n", [ReplyText]),
                                 {reply, {text, ResponseMsg}, State};
                             _ ->
                                 FallbackMsg = jsx:encode(#{
