@@ -106,12 +106,18 @@ def ai_response(request):
             reply_text = response_payload.get('reply') or response_payload.get('message')
             action_name = response_payload.get('action')
             action_payload = response_payload.get('action_payload') or {}
+            logger.info(f"Parsed Gemini response: action={action_name}, has_payload={bool(action_payload)}")
         else:
             reply_text = raw_response
+            logger.info("Gemini response is plain text (not JSON)")
 
         action_result = None
         if action_name in {'create_ticket', 'transfer_human', 'manage_service', 'request_callback', 'query_database'}:
+            logger.info(f"Executing action: {action_name} with payload: {action_payload}")
             action_result = _handle_action(action_name, action_payload, session, visitor_name)
+            logger.info(f"Action execution result: {action_result}")
+        elif action_name:
+            logger.warning(f"Unknown action received from Gemini: {action_name}")
 
         ChatMessage.objects.create(
             session=session,
@@ -141,19 +147,35 @@ def ai_response(request):
 
 def _handle_action(action_name, payload, session, visitor_name):
     payload = payload or {}
+    logger.info(f"_handle_action called: action={action_name}")
     try:
         if action_name == 'create_ticket':
-            return create_ticket_from_chat_payload(payload, session, visitor_name)
+            logger.info(f"Creating ticket from chat: visitor={visitor_name}, payload={payload}")
+            result = create_ticket_from_chat_payload(payload, session, visitor_name)
+            logger.info(f"Ticket created: {result}")
+            return result
         if action_name == 'transfer_human':
-            return transfer_to_human_payload(payload)
+            logger.info(f"Transferring to human: {payload}")
+            result = transfer_to_human_payload(payload)
+            logger.info(f"Transfer initiated: {result}")
+            return result
         if action_name == 'manage_service':
-            return manage_service_payload(payload)
+            logger.info(f"Managing service: {payload}")
+            result = manage_service_payload(payload)
+            logger.info(f"Service managed: {result}")
+            return result
         if action_name == 'request_callback':
-            return request_callback_payload(payload, session, visitor_name)
+            logger.info(f"Requesting callback: visitor={visitor_name}, {payload}")
+            result = request_callback_payload(payload, session, visitor_name)
+            logger.info(f"Callback requested: {result}")
+            return result
         if action_name == 'query_database':
-            return query_database_payload(payload, session, visitor_name)
+            logger.info(f"Querying database: query={payload.get('query')}, params={payload.get('params')}")
+            result = query_database_payload(payload, session, visitor_name)
+            logger.info(f"Database query result: {result}")
+            return result
     except Exception as error:
-        logger.exception("Action handling failed")
+        logger.exception(f"Action handling failed for {action_name}: {error}")
         return {'success': False, 'error': str(error)}
     return None
 
