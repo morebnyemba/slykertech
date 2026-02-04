@@ -276,6 +276,7 @@ def generate_gemini_response(message: str, department: str, visitor_name: str, h
         "Return a JSON object with keys: reply, action, action_payload.\n"
         "Allowed actions: create_ticket, transfer_human, manage_service, request_callback, query_database.\n"
         "If no action is needed, set action to null.\n"
+        "IMPORTANT: If you take an action, mention it in the reply text (e.g., 'I've created a support ticket for you.').\n"
         "Return ONLY valid JSON, no markdown."
     )
 
