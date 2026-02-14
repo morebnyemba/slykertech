@@ -4,12 +4,13 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.utils import timezone
 from .models import (Service, ServiceSubscription, DNSRecord,
-                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
+                    ProjectPackage, ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
                     DomainTransferRequest, ProvisioningFailure)
 from .serializers import (
     ServiceSerializer, ServiceSubscriptionSerializer, 
     ServiceSubscriptionCreateSerializer, DNSRecordSerializer,
+    ProjectPackageSerializer,
     ProjectTrackerSerializer, ProjectTrackerCreateSerializer,
     ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectCommentSerializer,
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
@@ -118,6 +119,20 @@ class DNSRecordViewSet(viewsets.ModelViewSet):
             if subscription.client.user != user:
                 raise PermissionDenied("You do not have permission to add DNS records to this subscription.")
         serializer.save()
+
+
+class ProjectPackageViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for ProjectPackage model - Read only for clients"""
+    
+    queryset = ProjectPackage.objects.filter(is_active=True)
+    serializer_class = ProjectPackageSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        """Allow all users to view active project packages"""
+        if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.user_type == 'admin'):
+            return ProjectPackage.objects.all()
+        return ProjectPackage.objects.filter(is_active=True)
 
 
 class ProjectTrackerViewSet(viewsets.ModelViewSet):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (Service, ServiceSubscription, DNSRecord,
-                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
+                    ProjectPackage, ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
                     DomainTransferRequest, ProvisioningFailure)
 from clients.serializers import ClientSerializer
@@ -74,6 +74,17 @@ class ServiceSubscriptionCreateSerializer(serializers.ModelSerializer):
                   'start_date', 'end_date', 'auto_renew', 'notes', 'metadata']
 
 
+class ProjectPackageSerializer(serializers.ModelSerializer):
+    """Serializer for ProjectPackage model"""
+    
+    class Meta:
+        model = ProjectPackage
+        fields = ['id', 'name', 'slug', 'description', 'project_type', 'deliverables',
+                  'estimated_duration_days', 'max_revisions', 'base_price',
+                  'is_featured', 'sort_order', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
 class ProjectTaskSerializer(serializers.ModelSerializer):
     """Serializer for ProjectTask model"""
     
@@ -81,8 +92,8 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProjectTask
-        fields = ['id', 'milestone', 'project', 'title', 'description', 'status', 
-                  'assigned_to', 'estimated_hours', 'actual_hours', 'due_date', 
+        fields = ['id', 'milestone', 'project', 'title', 'description', 'status', 'priority',
+                  'assigned_to', 'depends_on', 'estimated_hours', 'actual_hours', 'due_date', 
                   'completed_date', 'order', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -94,7 +105,8 @@ class ProjectMilestoneSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProjectMilestone
-        fields = ['id', 'project', 'title', 'description', 'status', 'due_date', 
+        fields = ['id', 'project', 'title', 'description', 'status', 'deliverables',
+                  'is_billable', 'amount', 'payment_status', 'due_date', 
                   'completed_date', 'order', 'tasks', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -115,6 +127,8 @@ class ProjectTrackerSerializer(serializers.ModelSerializer):
     """Serializer for ProjectTracker model"""
     
     subscription = ServiceSubscriptionSerializer(read_only=True)
+    project_package = ProjectPackageSerializer(read_only=True)
+    client = ClientSerializer(read_only=True)
     assigned_to = UserSerializer(read_only=True)
     milestones = ProjectMilestoneSerializer(many=True, read_only=True)
     tasks = ProjectTaskSerializer(many=True, read_only=True)
@@ -122,8 +136,10 @@ class ProjectTrackerSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProjectTracker
-        fields = ['id', 'subscription', 'title', 'description', 'status', 'priority', 
-                  'progress_percentage', 'estimated_hours', 'actual_hours', 'start_date', 
+        fields = ['id', 'subscription', 'project_package', 'client', 'title', 'description', 
+                  'project_type', 'status', 'priority', 
+                  'progress_percentage', 'estimated_hours', 'actual_hours', 
+                  'budget', 'amount_spent', 'start_date', 
                   'estimated_completion_date', 'actual_completion_date', 'assigned_to', 
                   'metadata', 'milestones', 'tasks', 'comments', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -134,8 +150,9 @@ class ProjectTrackerCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProjectTracker
-        fields = ['subscription', 'title', 'description', 'status', 'priority', 
-                  'estimated_hours', 'start_date', 'estimated_completion_date', 
+        fields = ['subscription', 'project_package', 'client', 'title', 'description', 
+                  'project_type', 'status', 'priority', 
+                  'estimated_hours', 'budget', 'start_date', 'estimated_completion_date', 
                   'assigned_to', 'metadata']
 
 
