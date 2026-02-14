@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.utils import timezone
 from .models import (Service, ServiceSubscription, DNSRecord,
@@ -87,12 +88,36 @@ class DNSRecordViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        """Filter DNS records based on user"""
+        """Filter DNS records based on user, with optional domain and subscription filters"""
         user = self.request.user
         if user.is_superuser or user.user_type == 'admin':
-            return DNSRecord.objects.all()
-        # Clients can only see DNS records for their subscriptions
-        return DNSRecord.objects.filter(subscription__client__user=user)
+            qs = DNSRecord.objects.all()
+        else:
+            # Clients can only see DNS records for their subscriptions
+            qs = DNSRecord.objects.filter(subscription__client__user=user)
+
+        domain = self.request.query_params.get('domain')
+        if domain:
+            qs = qs.filter(domain=domain)
+
+        subscription_id = self.request.query_params.get('subscription')
+        if subscription_id:
+            qs = qs.filter(subscription_id=subscription_id)
+
+        record_type = self.request.query_params.get('record_type')
+        if record_type:
+            qs = qs.filter(record_type=record_type.upper())
+
+        return qs
+
+    def perform_create(self, serializer):
+        """Ensure the subscription belongs to the requesting user"""
+        user = self.request.user
+        subscription = serializer.validated_data.get('subscription')
+        if subscription and not (user.is_superuser or user.user_type == 'admin'):
+            if subscription.client.user != user:
+                raise PermissionDenied("You do not have permission to add DNS records to this subscription.")
+        serializer.save()
 
 
 class ProjectTrackerViewSet(viewsets.ModelViewSet):
