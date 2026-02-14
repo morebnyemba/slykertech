@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.utils import timezone
 from .models import (Service, ServiceSubscription, DNSRecord,
@@ -115,7 +116,6 @@ class DNSRecordViewSet(viewsets.ModelViewSet):
         subscription = serializer.validated_data.get('subscription')
         if subscription and not (user.is_superuser or user.user_type == 'admin'):
             if subscription.client.user != user:
-                from rest_framework.exceptions import PermissionDenied
                 raise PermissionDenied("You do not have permission to add DNS records to this subscription.")
         serializer.save()
 

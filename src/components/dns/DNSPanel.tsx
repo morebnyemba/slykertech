@@ -19,6 +19,8 @@ interface DNSRecord {
 }
 
 const RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'CAA'];
+const MIN_TTL = 60;
+const MAX_TTL = 86400;
 
 export default function DNSPanel() {
   const router = useRouter();
@@ -418,8 +420,8 @@ function DNSRecordModal({ title, initialData, onClose, onSubmit }: DNSRecordModa
               type="number"
               value={ttl}
               onChange={(e) => setTtl(e.target.value)}
-              min={60}
-              max={86400}
+              min={MIN_TTL}
+              max={MAX_TTL}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
