@@ -33,9 +33,21 @@ class DNSRecordSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = DNSRecord
-        fields = ['id', 'domain', 'record_type', 'name', 'content', 'ttl', 'priority', 
+        fields = ['id', 'subscription', 'domain', 'record_type', 'name', 'content', 'ttl', 'priority', 
                   'is_active', 'external_id', 'created_at', 'updated_at']
         read_only_fields = ['id', 'external_id', 'created_at', 'updated_at']
+
+    def validate_ttl(self, value):
+        if value < 60 or value > 86400:
+            raise serializers.ValidationError("TTL must be between 60 and 86400 seconds.")
+        return value
+
+    def validate(self, data):
+        record_type = data.get('record_type', getattr(self.instance, 'record_type', None))
+        priority = data.get('priority', getattr(self.instance, 'priority', None))
+        if record_type == 'MX' and priority is None:
+            raise serializers.ValidationError({'priority': 'Priority is required for MX records.'})
+        return data
 
 
 class ServiceSubscriptionSerializer(serializers.ModelSerializer):
