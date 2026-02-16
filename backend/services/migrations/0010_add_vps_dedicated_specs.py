@@ -9,31 +9,51 @@ def add_vps_dedicated_fields(apps, schema_editor):
     vendor = connection.vendor
 
     # Get existing columns in a database-agnostic way
+    table_name = 'services_hostingproduct'
     if vendor == 'sqlite':
+        # SQLite PRAGMA does not support parameterized queries;
+        # table_name is a hardcoded constant so this is safe.
         with connection.cursor() as cursor:
-            cursor.execute("PRAGMA table_info('services_hostingproduct');")
+            cursor.execute("PRAGMA table_info('%s');" % table_name)
             existing_columns = {row[1] for row in cursor.fetchall()}
     else:
         with connection.cursor() as cursor:
             cursor.execute(
                 "SELECT column_name FROM information_schema.columns "
-                "WHERE table_name = 'services_hostingproduct';"
+                "WHERE table_name = %s;",
+                [table_name],
             )
             existing_columns = {row[0] for row in cursor.fetchall()}
 
-    fields_to_add = {
-        'cpu_cores': "integer NOT NULL DEFAULT 0",
-        'ram_gb': "integer NOT NULL DEFAULT 0",
-        'cpu_type': "varchar(200) NULL",
-        'storage_type': "varchar(50) NOT NULL DEFAULT 'SSD'",
-    }
+    HostingProduct = apps.get_model('services', 'HostingProduct')
 
-    with connection.cursor() as cursor:
-        for col_name, col_def in fields_to_add.items():
-            if col_name not in existing_columns:
-                cursor.execute(
-                    f'ALTER TABLE "services_hostingproduct" ADD COLUMN "{col_name}" {col_def};'
-                )
+    fields_to_add = [
+        ('cpu_cores', models.IntegerField(
+            default=0,
+            help_text='Number of CPU cores (for VPS/Dedicated), 0 for shared hosting',
+        )),
+        ('ram_gb', models.IntegerField(
+            default=0,
+            help_text='RAM in GB (for VPS/Dedicated), 0 for shared hosting',
+        )),
+        ('cpu_type', models.CharField(
+            max_length=200,
+            blank=True,
+            null=True,
+            help_text='CPU type/model (for Dedicated servers)',
+        )),
+        ('storage_type', models.CharField(
+            max_length=50,
+            default='SSD',
+            choices=[('HDD', 'HDD'), ('SSD', 'SSD'), ('NVMe', 'NVMe SSD')],
+            help_text='Storage type',
+        )),
+    ]
+
+    for col_name, field in fields_to_add:
+        if col_name not in existing_columns:
+            field.set_attributes_from_name(col_name)
+            schema_editor.add_field(HostingProduct, field)
 
 
 class Migration(migrations.Migration):
