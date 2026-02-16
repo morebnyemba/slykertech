@@ -1,15 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (ServiceViewSet, ServiceSubscriptionViewSet, DNSRecordViewSet,
-                   ProjectTrackerViewSet, ProjectMilestoneViewSet, ProjectTaskViewSet,
-                   ProjectCommentViewSet, HostingProductViewSet, DomainProductViewSet,
-                   ServiceAddonViewSet, DomainRegistrationViewSet, DomainTransferRequestViewSet,
-                   ProvisioningFailureViewSet, whois_check, whois_cache)
+                   ProjectPackageViewSet, ProjectTrackerViewSet, ProjectMilestoneViewSet, 
+                   ProjectTaskViewSet, ProjectCommentViewSet, HostingProductViewSet, 
+                   DomainProductViewSet, ServiceAddonViewSet, DomainRegistrationViewSet, 
+                   DomainTransferRequestViewSet, ProvisioningFailureViewSet, whois_check, whois_cache)
 
 router = DefaultRouter()
 router.register(r'services', ServiceViewSet, basename='service')
 router.register(r'subscriptions', ServiceSubscriptionViewSet, basename='subscription')
 router.register(r'dns-records', DNSRecordViewSet, basename='dns-record')
+router.register(r'project-packages', ProjectPackageViewSet, basename='project-package')
 router.register(r'projects', ProjectTrackerViewSet, basename='project')
 router.register(r'milestones', ProjectMilestoneViewSet, basename='milestone')
 router.register(r'tasks', ProjectTaskViewSet, basename='task')

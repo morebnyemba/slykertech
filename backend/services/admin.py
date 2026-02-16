@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import (Service, ServiceSubscription, DNSRecord, 
+                    ProjectPackage, PackageFreeService,
                     ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
                     DomainTransferRequest, ProvisioningFailure)
@@ -79,33 +80,75 @@ class DNSRecordAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 
+class PackageFreeServiceInline(admin.TabularInline):
+    model = PackageFreeService
+    extra = 1
+    fields = ('service', 'duration_value', 'duration_unit', 'description')
+
+
+@admin.register(ProjectPackage)
+class ProjectPackageAdmin(admin.ModelAdmin):
+    """Admin for managing project packages/tiers"""
+    list_display = ('name', 'project_type', 'base_price', 'estimated_duration_days', 
+                   'is_featured', 'is_active', 'sort_order')
+    list_filter = ('project_type', 'is_active', 'is_featured', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    prepopulated_fields = {'slug': ('name',)}
+    list_editable = ('sort_order', 'is_featured', 'is_active')
+    inlines = [PackageFreeServiceInline]
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'description', 'project_type')
+        }),
+        ('Package Details', {
+            'fields': ('deliverables', 'estimated_duration_days', 'max_revisions')
+        }),
+        ('Pricing', {
+            'fields': ('base_price',)
+        }),
+        ('Display Settings', {
+            'fields': ('is_featured', 'sort_order', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
 class ProjectMilestoneInline(admin.TabularInline):
     model = ProjectMilestone
     extra = 1
-    fields = ('title', 'status', 'due_date', 'order')
+    fields = ('title', 'status', 'is_billable', 'amount', 'payment_status', 'due_date', 'order')
 
 
 class ProjectTaskInline(admin.TabularInline):
     model = ProjectTask
     extra = 1
-    fields = ('title', 'status', 'assigned_to', 'due_date')
+    fields = ('title', 'status', 'priority', 'assigned_to', 'due_date')
 
 
 @admin.register(ProjectTracker)
 class ProjectTrackerAdmin(admin.ModelAdmin):
-    list_display = ('title', 'subscription', 'status', 'priority', 'progress_percentage', 
+    list_display = ('title', 'subscription', 'project_type', 'status', 'priority', 'progress_percentage', 
                    'assigned_to', 'estimated_completion_date')
-    list_filter = ('status', 'priority', 'created_at')
+    list_filter = ('status', 'priority', 'project_type', 'created_at')
     search_fields = ('title', 'description', 'subscription__client__company_name')
     readonly_fields = ('created_at', 'updated_at')
     inlines = [ProjectMilestoneInline, ProjectTaskInline]
     
     fieldsets = (
         ('Project Information', {
-            'fields': ('subscription', 'title', 'description', 'status', 'priority')
+            'fields': ('subscription', 'project_package', 'client', 'title', 'description', 
+                      'project_type', 'status', 'priority')
         }),
         ('Progress Tracking', {
             'fields': ('progress_percentage', 'estimated_hours', 'actual_hours')
+        }),
+        ('Budget', {
+            'fields': ('budget', 'amount_spent')
         }),
         ('Dates', {
             'fields': ('start_date', 'estimated_completion_date', 'actual_completion_date')
@@ -125,16 +168,16 @@ class ProjectTrackerAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectMilestone)
 class ProjectMilestoneAdmin(admin.ModelAdmin):
-    list_display = ('title', 'project', 'status', 'due_date', 'order')
-    list_filter = ('status', 'created_at')
+    list_display = ('title', 'project', 'status', 'is_billable', 'amount', 'payment_status', 'due_date', 'order')
+    list_filter = ('status', 'is_billable', 'payment_status', 'created_at')
     search_fields = ('title', 'project__title')
     readonly_fields = ('created_at', 'updated_at')
 
 
 @admin.register(ProjectTask)
 class ProjectTaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'project', 'milestone', 'status', 'assigned_to', 'due_date')
-    list_filter = ('status', 'created_at')
+    list_display = ('title', 'project', 'milestone', 'status', 'priority', 'assigned_to', 'due_date')
+    list_filter = ('status', 'priority', 'created_at')
     search_fields = ('title', 'project__title')
     readonly_fields = ('created_at', 'updated_at')
 
