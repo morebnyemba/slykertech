@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Service, ServiceSubscription, DNSRecord,
-                    ProjectPackage, ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
+                    ProjectPackage, PackageFreeService,
+                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
                     DomainTransferRequest, ProvisioningFailure)
 from clients.serializers import ClientSerializer
@@ -74,14 +75,31 @@ class ServiceSubscriptionCreateSerializer(serializers.ModelSerializer):
                   'start_date', 'end_date', 'auto_renew', 'notes', 'metadata']
 
 
+class PackageFreeServiceSerializer(serializers.ModelSerializer):
+    """Serializer for PackageFreeService model"""
+    
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    service_category = serializers.CharField(source='service.category', read_only=True)
+    
+    class Meta:
+        model = PackageFreeService
+        fields = ['id', 'package', 'service', 'service_name', 'service_category',
+                  'duration_value', 'duration_unit', 'description',
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
 class ProjectPackageSerializer(serializers.ModelSerializer):
     """Serializer for ProjectPackage model"""
+    
+    free_services = PackageFreeServiceSerializer(many=True, read_only=True)
     
     class Meta:
         model = ProjectPackage
         fields = ['id', 'name', 'slug', 'description', 'project_type', 'deliverables',
                   'estimated_duration_days', 'max_revisions', 'base_price',
-                  'is_featured', 'sort_order', 'is_active', 'created_at', 'updated_at']
+                  'is_featured', 'sort_order', 'is_active', 'free_services',
+                  'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 

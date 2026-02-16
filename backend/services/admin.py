@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (Service, ServiceSubscription, DNSRecord, 
-                    ProjectPackage, ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
+                    ProjectPackage, PackageFreeService,
+                    ProjectTracker, ProjectMilestone, ProjectTask, ProjectComment,
                     HostingProduct, DomainProduct, ServiceAddon, DomainRegistration,
                     DomainTransferRequest, ProvisioningFailure)
 
@@ -79,6 +80,12 @@ class DNSRecordAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 
+class PackageFreeServiceInline(admin.TabularInline):
+    model = PackageFreeService
+    extra = 1
+    fields = ('service', 'duration_value', 'duration_unit', 'description')
+
+
 @admin.register(ProjectPackage)
 class ProjectPackageAdmin(admin.ModelAdmin):
     """Admin for managing project packages/tiers"""
@@ -89,6 +96,7 @@ class ProjectPackageAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('sort_order', 'is_featured', 'is_active')
+    inlines = [PackageFreeServiceInline]
     
     fieldsets = (
         ('Basic Information', {

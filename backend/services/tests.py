@@ -11,7 +11,8 @@ from decimal import Decimal
 from accounts.models import User
 from clients.models import Client
 from services.models import (Service, ServiceSubscription, DNSRecord,
-                            ProjectPackage, ProjectTracker, ProjectMilestone, 
+                            ProjectPackage, PackageFreeService,
+                            ProjectTracker, ProjectMilestone, 
                             ProjectTask, ProjectComment)
 
 
@@ -1001,3 +1002,215 @@ class MilestoneViewSetPermissionTest(TestCase):
         self.assertTrue(milestone.is_billable)
         self.assertEqual(milestone.amount, Decimal('500.00'))
         self.assertEqual(milestone.payment_status, 'pending')
+
+
+class PackageFreeServiceModelTest(TestCase):
+    """Test PackageFreeService model"""
+
+    def setUp(self):
+        self.package = ProjectPackage.objects.create(
+            name='Basic Website',
+            slug='basic-website-fs',
+            description='A simple 5-page website',
+            base_price=Decimal('500.00'),
+        )
+        self.hosting_service = Service.objects.create(
+            name='Web Hosting',
+            category='hosting',
+            description='Shared hosting',
+            base_price=Decimal('10.00'),
+        )
+        self.domain_service = Service.objects.create(
+            name='Domain Registration',
+            category='domain',
+            description='.com domain registration',
+            base_price=Decimal('15.00'),
+        )
+
+    def test_create_free_hosting(self):
+        """Package can include free hosting for a period"""
+        free_hosting = PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+            description='Free shared hosting',
+        )
+        self.assertEqual(free_hosting.package, self.package)
+        self.assertEqual(free_hosting.service, self.hosting_service)
+        self.assertEqual(free_hosting.duration_value, 2)
+        self.assertEqual(free_hosting.duration_unit, 'months')
+
+    def test_create_free_domain(self):
+        """Package can include free domain for a period"""
+        free_domain = PackageFreeService.objects.create(
+            package=self.package,
+            service=self.domain_service,
+            duration_value=1,
+            duration_unit='years',
+        )
+        self.assertEqual(free_domain.duration_value, 1)
+        self.assertEqual(free_domain.duration_unit, 'years')
+
+    def test_multiple_free_services_per_package(self):
+        """Package can include multiple different free services"""
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+        )
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.domain_service,
+            duration_value=1,
+            duration_unit='years',
+        )
+        self.assertEqual(self.package.free_services.count(), 2)
+
+    def test_unique_together_constraint(self):
+        """Same service cannot be added to a package twice"""
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+        )
+        from django.db import IntegrityError
+        with self.assertRaises(IntegrityError):
+            PackageFreeService.objects.create(
+                package=self.package,
+                service=self.hosting_service,
+                duration_value=3,
+                duration_unit='months',
+            )
+
+    def test_str_representation(self):
+        """String representation is readable"""
+        free_service = PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+        )
+        result = str(free_service)
+        self.assertIn('Basic Website', result)
+        self.assertIn('2', result)
+        self.assertIn('Months', result)
+
+    def test_str_with_custom_description(self):
+        """Custom description appears in string representation"""
+        free_service = PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+            description='Free shared hosting',
+        )
+        result = str(free_service)
+        self.assertIn('Free shared hosting', result)
+
+    def test_cascade_delete_with_package(self):
+        """Free services are deleted when the package is deleted"""
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+        )
+        self.assertEqual(PackageFreeService.objects.count(), 1)
+        self.package.delete()
+        self.assertEqual(PackageFreeService.objects.count(), 0)
+
+    def test_duration_unit_days(self):
+        """Can use days as duration unit"""
+        free_service = PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=30,
+            duration_unit='days',
+        )
+        self.assertEqual(free_service.duration_unit, 'days')
+
+
+class PackageFreeServiceAPITest(TestCase):
+    """Test PackageFreeService via ProjectPackage API"""
+
+    def setUp(self):
+        self.api_client = APIClient()
+        self.package = ProjectPackage.objects.create(
+            name='Premium Website',
+            slug='premium-website',
+            description='Full-featured website',
+            base_price=Decimal('1500.00'),
+            is_active=True,
+        )
+        self.hosting_service = Service.objects.create(
+            name='Web Hosting',
+            category='hosting',
+            description='Shared hosting',
+            base_price=Decimal('10.00'),
+        )
+        self.domain_service = Service.objects.create(
+            name='Domain Registration',
+            category='domain',
+            description='.com domain registration',
+            base_price=Decimal('15.00'),
+        )
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.hosting_service,
+            duration_value=2,
+            duration_unit='months',
+            description='Free shared hosting for 2 months',
+        )
+        PackageFreeService.objects.create(
+            package=self.package,
+            service=self.domain_service,
+            duration_value=1,
+            duration_unit='years',
+        )
+
+    def test_list_packages_includes_free_services(self):
+        """Package list API includes free_services"""
+        url = reverse('project-package-list')
+        response = self.api_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        package_data = response.data['results'][0]
+        self.assertIn('free_services', package_data)
+        self.assertEqual(len(package_data['free_services']), 2)
+
+    def test_retrieve_package_shows_free_service_details(self):
+        """Package detail API shows full free service details"""
+        url = reverse('project-package-detail', args=[self.package.id])
+        response = self.api_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        free_services = response.data['free_services']
+        self.assertEqual(len(free_services), 2)
+        
+        # Check hosting free service
+        hosting_fs = next(fs for fs in free_services if fs['service_name'] == 'Web Hosting')
+        self.assertEqual(hosting_fs['duration_value'], 2)
+        self.assertEqual(hosting_fs['duration_unit'], 'months')
+        self.assertEqual(hosting_fs['description'], 'Free shared hosting for 2 months')
+        self.assertEqual(hosting_fs['service_category'], 'hosting')
+        
+        # Check domain free service
+        domain_fs = next(fs for fs in free_services if fs['service_name'] == 'Domain Registration')
+        self.assertEqual(domain_fs['duration_value'], 1)
+        self.assertEqual(domain_fs['duration_unit'], 'years')
+        self.assertEqual(domain_fs['service_category'], 'domain')
+
+    def test_package_without_free_services_shows_empty_list(self):
+        """Package with no free services returns empty list"""
+        basic = ProjectPackage.objects.create(
+            name='Basic Package',
+            slug='basic-package',
+            description='No extras',
+            base_price=Decimal('100.00'),
+            is_active=True,
+        )
+        url = reverse('project-package-detail', args=[basic.id])
+        response = self.api_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['free_services'], [])

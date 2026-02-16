@@ -221,6 +221,47 @@ class ProjectPackage(models.Model):
         return self.name
 
 
+class PackageFreeService(models.Model):
+    """Free services included with a project package for a limited period.
+    
+    For example, a 'Basic Website' package might include:
+    - Free hosting for 2 months
+    - Free domain registration for 1 year
+    """
+    
+    DURATION_UNIT_CHOICES = [
+        ('days', 'Days'),
+        ('months', 'Months'),
+        ('years', 'Years'),
+    ]
+    
+    package = models.ForeignKey(ProjectPackage, on_delete=models.CASCADE,
+                               related_name='free_services',
+                               help_text="The project package this free service belongs to")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,
+                               related_name='free_in_packages',
+                               help_text="The service offered for free (e.g., Web Hosting, Domain Registration)")
+    duration_value = models.PositiveIntegerField(
+        help_text="Number of time units the free period lasts (e.g., 2 for '2 months')")
+    duration_unit = models.CharField(max_length=10, choices=DURATION_UNIT_CHOICES, default='months',
+                                    help_text="Unit of the free period (days, months, or years)")
+    description = models.CharField(max_length=255, blank=True,
+                                  help_text="Optional description override (e.g., 'Free shared hosting for 2 months')")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('package free service')
+        verbose_name_plural = _('package free services')
+        unique_together = ['package', 'service']
+        ordering = ['package', 'service']
+    
+    def __str__(self):
+        desc = self.description or self.service.name
+        return f"{self.package.name} — Free {desc} for {self.duration_value} {self.get_duration_unit_display()}"
+
+
 class ProjectTracker(models.Model):
     """Track progress for projects like web development, SEO, design, etc."""
     
@@ -520,6 +561,7 @@ __all__ = [
     'ServiceSubscription',
     'DNSRecord',
     'ProjectPackage',
+    'PackageFreeService',
     'ProjectTracker',
     'ProjectTask',
     'ProjectMilestone',
