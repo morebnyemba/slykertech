@@ -759,13 +759,8 @@ class ProjectTaskValidationTest(TestCase):
             'depends_on': other_task.id,
         }
         serializer = ProjectTaskSerializer(data=data)
-        self.assertTrue(serializer.is_valid() is False or 'depends_on' in serializer.errors)
-        if serializer.is_valid():
-            # If it passed field validation, check via model clean
-            from django.core.exceptions import ValidationError as DjangoValidationError
-            task = ProjectTask(project=self.project, title='My Task', depends_on=other_task)
-            with self.assertRaises(DjangoValidationError):
-                task.clean()
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('depends_on', serializer.errors)
 
     def test_valid_same_project_dependency(self):
         """Valid same-project dependency passes validation"""

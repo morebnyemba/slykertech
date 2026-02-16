@@ -109,10 +109,12 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
                     'depends_on': 'A task cannot depend on itself.'
                 })
             # Prevent cross-project dependency
-            if project and depends_on.project_id != project.pk:
-                raise serializers.ValidationError({
-                    'depends_on': 'A task can only depend on another task within the same project.'
-                })
+            if project is not None:
+                project_id = project.pk if hasattr(project, 'pk') else project
+                if depends_on.project_id != project_id:
+                    raise serializers.ValidationError({
+                        'depends_on': 'A task can only depend on another task within the same project.'
+                    })
         
         return attrs
 
@@ -223,9 +225,9 @@ class ProjectTrackerCreateSerializer(serializers.ModelSerializer):
                 if subscription_client is not None:
                     user_client = getattr(user, 'client_profile', None)
                     if user_client is not None and subscription_client.pk != user_client.pk:
-                        raise serializers.ValidationError(
-                            "You do not have permission to create a project for this subscription."
-                        )
+                        raise serializers.ValidationError({
+                            'subscription': 'You do not have permission to create a project for this subscription.'
+                        })
 
         # Ensure the selected project package is active
         if project_package is not None and not project_package.is_active:
