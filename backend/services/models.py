@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from accounts.models import AuditMixin
 
 
 # Shared choices used by both ProjectPackage and ProjectTracker
@@ -262,7 +263,7 @@ class PackageFreeService(models.Model):
         return f"{self.package.name} — Free {desc} for {self.duration_value} {self.get_duration_unit_display()}"
 
 
-class ProjectTracker(models.Model):
+class ProjectTracker(AuditMixin, models.Model):
     """Track progress for projects like web development, SEO, design, etc."""
     
     STATUS_CHOICES = [
@@ -341,7 +342,7 @@ class ProjectTracker(models.Model):
             self.save()
 
 
-class ProjectMilestone(models.Model):
+class ProjectMilestone(AuditMixin, models.Model):
     """Milestones for project tracking"""
     
     STATUS_CHOICES = [
@@ -404,7 +405,7 @@ class ProjectMilestone(models.Model):
                 })
 
 
-class ProjectTask(models.Model):
+class ProjectTask(AuditMixin, models.Model):
     """Tasks within project milestones"""
     
     STATUS_CHOICES = [
