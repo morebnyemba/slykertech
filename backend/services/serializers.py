@@ -96,10 +96,29 @@ class ProjectTaskSerializer(serializers.ModelSerializer):
                   'assigned_to', 'depends_on', 'estimated_hours', 'actual_hours', 'due_date', 
                   'completed_date', 'order', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def validate(self, attrs):
+        """Validate depends_on is within the same project and not self-referencing"""
+        depends_on = attrs.get('depends_on')
+        project = attrs.get('project', getattr(self.instance, 'project', None))
+        
+        if depends_on is not None:
+            # Prevent self-dependency
+            if self.instance and depends_on.pk == self.instance.pk:
+                raise serializers.ValidationError({
+                    'depends_on': 'A task cannot depend on itself.'
+                })
+            # Prevent cross-project dependency
+            if project and depends_on.project_id != project.pk:
+                raise serializers.ValidationError({
+                    'depends_on': 'A task can only depend on another task within the same project.'
+                })
+        
+        return attrs
 
 
 class ProjectMilestoneSerializer(serializers.ModelSerializer):
-    """Serializer for ProjectMilestone model"""
+    """Serializer for ProjectMilestone model - billing fields are read-only for non-admin users"""
     
     tasks = ProjectTaskSerializer(many=True, read_only=True)
     
@@ -108,6 +127,36 @@ class ProjectMilestoneSerializer(serializers.ModelSerializer):
         fields = ['id', 'project', 'title', 'description', 'status', 'deliverables',
                   'is_billable', 'amount', 'payment_status', 'due_date', 
                   'completed_date', 'order', 'tasks', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'is_billable', 'amount', 'payment_status', 'created_at', 'updated_at']
+    
+    def validate(self, attrs):
+        """Validate billing field consistency"""
+        is_billable = attrs.get('is_billable', getattr(self.instance, 'is_billable', False))
+        amount = attrs.get('amount', getattr(self.instance, 'amount', None))
+        payment_status = attrs.get('payment_status', getattr(self.instance, 'payment_status', 'not_applicable'))
+        
+        if is_billable:
+            if amount is None:
+                raise serializers.ValidationError({
+                    'amount': 'Amount is required for billable milestones.'
+                })
+            if payment_status == 'not_applicable':
+                raise serializers.ValidationError({
+                    'payment_status': 'Payment status cannot be "Not Applicable" for billable milestones.'
+                })
+        else:
+            if payment_status != 'not_applicable':
+                raise serializers.ValidationError({
+                    'payment_status': 'Payment status must be "Not Applicable" for non-billable milestones.'
+                })
+        
+        return attrs
+
+
+class ProjectMilestoneAdminSerializer(ProjectMilestoneSerializer):
+    """Serializer for ProjectMilestone model - admin users can modify billing fields"""
+    
+    class Meta(ProjectMilestoneSerializer.Meta):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -150,10 +199,51 @@ class ProjectTrackerCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProjectTracker
-        fields = ['subscription', 'project_package', 'client', 'title', 'description', 
+        fields = ['id', 'subscription', 'project_package', 'client', 'title', 'description', 
                   'project_type', 'status', 'priority', 
                   'estimated_hours', 'budget', 'start_date', 'estimated_completion_date', 
                   'assigned_to', 'metadata']
+        # Prevent clients from arbitrarily assigning ProjectTracker to any client
+        read_only_fields = ['id', 'client']
+
+    def validate(self, attrs):
+        """
+        Enforce that non-admin users can only create project trackers for
+        subscriptions they own, and ensure any selected project package is active.
+        """
+        request = self.context.get('request')
+        subscription = attrs.get('subscription')
+        project_package = attrs.get('project_package')
+
+        # Validate ownership of the subscription for non-admin users
+        if request is not None and subscription is not None:
+            user = getattr(request, 'user', None)
+            if user is not None and not (user.is_staff or user.is_superuser):
+                subscription_client = getattr(subscription, 'client', None)
+                if subscription_client is not None:
+                    user_client = getattr(user, 'client_profile', None)
+                    if user_client is not None and subscription_client.pk != user_client.pk:
+                        raise serializers.ValidationError(
+                            "You do not have permission to create a project for this subscription."
+                        )
+
+        # Ensure the selected project package is active
+        if project_package is not None and not project_package.is_active:
+            raise serializers.ValidationError({
+                'project_package': 'The selected project package is not active.'
+            })
+
+        return attrs
+
+    def create(self, validated_data):
+        """
+        Derive client from the associated subscription to avoid mismatched or
+        forged client relationships.
+        """
+        subscription = validated_data.get('subscription')
+        if subscription is not None:
+            validated_data['client'] = subscription.client
+        return super().create(validated_data)
 
 
 class HostingProductSerializer(serializers.ModelSerializer):

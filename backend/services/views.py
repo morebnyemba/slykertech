@@ -12,7 +12,8 @@ from .serializers import (
     ServiceSubscriptionCreateSerializer, DNSRecordSerializer,
     ProjectPackageSerializer,
     ProjectTrackerSerializer, ProjectTrackerCreateSerializer,
-    ProjectMilestoneSerializer, ProjectTaskSerializer, ProjectCommentSerializer,
+    ProjectMilestoneSerializer, ProjectMilestoneAdminSerializer,
+    ProjectTaskSerializer, ProjectCommentSerializer,
     HostingProductSerializer, DomainProductSerializer, ServiceAddonSerializer,
     DomainRegistrationSerializer, DomainTransferRequestSerializer,
     DomainTransferRequestCreateSerializer, ProvisioningFailureSerializer,
@@ -194,6 +195,13 @@ class ProjectMilestoneViewSet(viewsets.ModelViewSet):
         if user.is_superuser or user.user_type == 'admin':
             return ProjectMilestone.objects.all()
         return ProjectMilestone.objects.filter(project__subscription__client__user=user)
+    
+    def get_serializer_class(self):
+        """Use admin serializer for staff/admin users so they can modify billing fields"""
+        user = self.request.user
+        if user.is_superuser or user.is_staff or user.user_type == 'admin':
+            return ProjectMilestoneAdminSerializer
+        return ProjectMilestoneSerializer
 
 
 class ProjectTaskViewSet(viewsets.ModelViewSet):

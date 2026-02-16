@@ -596,3 +596,413 @@ class ProjectPackageViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Basic Website')
         self.assertEqual(response.data['project_type'], 'web_development')
+
+
+class ProjectMilestoneValidationTest(TestCase):
+    """Test ProjectMilestone billing field validation"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='client@example.com',
+            password='testpass123',
+            user_type='client',
+        )
+        self.client_obj = Client.objects.create(
+            user=self.user,
+            company_name='Test Corp',
+        )
+        self.service = Service.objects.create(
+            name='Web Development',
+            category='development',
+            description='Web dev service',
+            base_price=Decimal('1000.00'),
+        )
+        self.subscription = ServiceSubscription.objects.create(
+            client=self.client_obj,
+            service=self.service,
+            status='active',
+            billing_cycle='one_time',
+            price=Decimal('1000.00'),
+            start_date=date.today(),
+        )
+        self.project = ProjectTracker.objects.create(
+            subscription=self.subscription,
+            title='Test Project',
+        )
+
+    def test_billable_milestone_requires_amount(self):
+        """Billable milestone without amount should fail validation"""
+        from services.serializers import ProjectMilestoneAdminSerializer
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': True,
+            'payment_status': 'pending',
+            # No amount
+        }
+        serializer = ProjectMilestoneAdminSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('amount', serializer.errors)
+
+    def test_billable_milestone_rejects_not_applicable_status(self):
+        """Billable milestone with not_applicable payment_status should fail"""
+        from services.serializers import ProjectMilestoneAdminSerializer
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': True,
+            'amount': '250.00',
+            'payment_status': 'not_applicable',
+        }
+        serializer = ProjectMilestoneAdminSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('payment_status', serializer.errors)
+
+    def test_non_billable_rejects_non_na_payment_status(self):
+        """Non-billable milestone with payment_status != not_applicable should fail"""
+        from services.serializers import ProjectMilestoneAdminSerializer
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': False,
+            'payment_status': 'paid',
+        }
+        serializer = ProjectMilestoneAdminSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('payment_status', serializer.errors)
+
+    def test_valid_billable_milestone(self):
+        """Valid billable milestone passes validation"""
+        from services.serializers import ProjectMilestoneAdminSerializer
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': True,
+            'amount': '250.00',
+            'payment_status': 'pending',
+        }
+        serializer = ProjectMilestoneAdminSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    def test_client_cannot_modify_billing_fields(self):
+        """Client serializer has billing fields as read-only"""
+        from services.serializers import ProjectMilestoneSerializer
+        serializer = ProjectMilestoneSerializer()
+        read_only = serializer.Meta.read_only_fields
+        self.assertIn('is_billable', read_only)
+        self.assertIn('amount', read_only)
+        self.assertIn('payment_status', read_only)
+
+
+class ProjectTaskValidationTest(TestCase):
+    """Test ProjectTask dependency validation"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='client@example.com',
+            password='testpass123',
+            user_type='client',
+        )
+        self.client_obj = Client.objects.create(
+            user=self.user,
+            company_name='Test Corp',
+        )
+        self.service = Service.objects.create(
+            name='Web Development',
+            category='development',
+            description='Web dev service',
+            base_price=Decimal('1000.00'),
+        )
+        self.subscription = ServiceSubscription.objects.create(
+            client=self.client_obj,
+            service=self.service,
+            status='active',
+            billing_cycle='one_time',
+            price=Decimal('1000.00'),
+            start_date=date.today(),
+        )
+        self.project = ProjectTracker.objects.create(
+            subscription=self.subscription,
+            title='Test Project',
+        )
+        self.project2 = ProjectTracker.objects.create(
+            subscription=self.subscription,
+            title='Other Project',
+        )
+
+    def test_task_cannot_depend_on_itself(self):
+        """Task self-dependency should fail serializer validation"""
+        from services.serializers import ProjectTaskSerializer
+        task = ProjectTask.objects.create(
+            project=self.project,
+            title='Design Homepage',
+        )
+        data = {
+            'project': self.project.id,
+            'title': 'Design Homepage',
+            'depends_on': task.id,
+        }
+        serializer = ProjectTaskSerializer(instance=task, data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('depends_on', serializer.errors)
+
+    def test_task_cannot_depend_on_task_from_other_project(self):
+        """Cross-project dependency should fail serializer validation"""
+        from services.serializers import ProjectTaskSerializer
+        other_task = ProjectTask.objects.create(
+            project=self.project2,
+            title='Other Task',
+        )
+        data = {
+            'project': self.project.id,
+            'title': 'My Task',
+            'depends_on': other_task.id,
+        }
+        serializer = ProjectTaskSerializer(data=data)
+        self.assertTrue(serializer.is_valid() is False or 'depends_on' in serializer.errors)
+        if serializer.is_valid():
+            # If it passed field validation, check via model clean
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            task = ProjectTask(project=self.project, title='My Task', depends_on=other_task)
+            with self.assertRaises(DjangoValidationError):
+                task.clean()
+
+    def test_valid_same_project_dependency(self):
+        """Valid same-project dependency passes validation"""
+        from services.serializers import ProjectTaskSerializer
+        task1 = ProjectTask.objects.create(
+            project=self.project,
+            title='Design Homepage',
+        )
+        data = {
+            'project': self.project.id,
+            'title': 'Develop Homepage',
+            'depends_on': task1.id,
+        }
+        serializer = ProjectTaskSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    def test_model_clean_prevents_self_dependency(self):
+        """Model-level clean prevents self-dependency"""
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        task = ProjectTask.objects.create(
+            project=self.project,
+            title='A Task',
+        )
+        task.depends_on = task
+        with self.assertRaises(DjangoValidationError):
+            task.clean()
+
+    def test_model_clean_prevents_cross_project_dependency(self):
+        """Model-level clean prevents cross-project dependency"""
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        task1 = ProjectTask.objects.create(
+            project=self.project,
+            title='Task in Project 1',
+        )
+        task2 = ProjectTask.objects.create(
+            project=self.project2,
+            title='Task in Project 2',
+        )
+        task1.depends_on = task2
+        with self.assertRaises(DjangoValidationError):
+            task1.clean()
+
+
+class ProjectTrackerCreateValidationTest(TestCase):
+    """Test ProjectTrackerCreateSerializer validation"""
+
+    def setUp(self):
+        self.api_client = APIClient()
+        self.user = User.objects.create_user(
+            email='client@example.com',
+            password='testpass123',
+            user_type='client',
+        )
+        self.client_obj = Client.objects.create(
+            user=self.user,
+            company_name='Test Corp',
+        )
+        self.other_user = User.objects.create_user(
+            email='other@example.com',
+            password='testpass123',
+            user_type='client',
+        )
+        self.other_client = Client.objects.create(
+            user=self.other_user,
+            company_name='Other Corp',
+        )
+        self.service = Service.objects.create(
+            name='Web Development',
+            category='development',
+            description='Web dev service',
+            base_price=Decimal('1000.00'),
+        )
+        self.subscription = ServiceSubscription.objects.create(
+            client=self.client_obj,
+            service=self.service,
+            status='active',
+            billing_cycle='one_time',
+            price=Decimal('1000.00'),
+            start_date=date.today(),
+        )
+        self.other_subscription = ServiceSubscription.objects.create(
+            client=self.other_client,
+            service=self.service,
+            status='active',
+            billing_cycle='one_time',
+            price=Decimal('1000.00'),
+            start_date=date.today(),
+        )
+        self.package = ProjectPackage.objects.create(
+            name='Basic Website',
+            slug='basic-website',
+            description='A basic website',
+            base_price=Decimal('500.00'),
+            is_active=True,
+        )
+        self.inactive_package = ProjectPackage.objects.create(
+            name='Old Package',
+            slug='old-package',
+            description='Discontinued',
+            base_price=Decimal('100.00'),
+            is_active=False,
+        )
+
+    def test_client_cannot_create_project_for_other_subscription(self):
+        """Client cannot create a project for another client's subscription"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('project-list')
+        data = {
+            'subscription': self.other_subscription.id,
+            'title': 'Stolen Project',
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_client_can_create_project_for_own_subscription(self):
+        """Client can create a project for their own subscription"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('project-list')
+        data = {
+            'subscription': self.subscription.id,
+            'title': 'My Project',
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Client should be auto-derived from subscription
+        project = ProjectTracker.objects.get(pk=response.data['id'])
+        self.assertEqual(project.client, self.client_obj)
+
+    def test_inactive_package_rejected(self):
+        """Cannot create project with inactive package"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('project-list')
+        data = {
+            'subscription': self.subscription.id,
+            'title': 'My Project',
+            'project_package': self.inactive_package.id,
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_active_package_accepted(self):
+        """Can create project with active package"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('project-list')
+        data = {
+            'subscription': self.subscription.id,
+            'title': 'My Project',
+            'project_package': self.package.id,
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_client_field_is_readonly(self):
+        """Client field cannot be forged by the caller"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('project-list')
+        data = {
+            'subscription': self.subscription.id,
+            'title': 'My Project',
+            'client': self.other_client.id,  # Try to forge client
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Client should be derived from subscription, not from the forged value
+        project = ProjectTracker.objects.get(pk=response.data['id'])
+        self.assertEqual(project.client, self.client_obj)
+
+
+class MilestoneViewSetPermissionTest(TestCase):
+    """Test that milestone billing fields are read-only for clients"""
+
+    def setUp(self):
+        self.api_client = APIClient()
+        self.user = User.objects.create_user(
+            email='client@example.com',
+            password='testpass123',
+            user_type='client',
+        )
+        self.admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            password='testpass123',
+        )
+        self.client_obj = Client.objects.create(
+            user=self.user,
+            company_name='Test Corp',
+        )
+        self.service = Service.objects.create(
+            name='Web Development',
+            category='development',
+            description='Web dev service',
+            base_price=Decimal('1000.00'),
+        )
+        self.subscription = ServiceSubscription.objects.create(
+            client=self.client_obj,
+            service=self.service,
+            status='active',
+            billing_cycle='one_time',
+            price=Decimal('1000.00'),
+            start_date=date.today(),
+        )
+        self.project = ProjectTracker.objects.create(
+            subscription=self.subscription,
+            title='Test Project',
+        )
+
+    def test_client_cannot_set_billing_fields_on_create(self):
+        """Client creating a milestone cannot set billing fields"""
+        self.api_client.force_authenticate(user=self.user)
+        url = reverse('milestone-list')
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': True,
+            'amount': '500.00',
+            'payment_status': 'pending',
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Billing fields should be ignored (read-only for clients)
+        milestone = ProjectMilestone.objects.get(pk=response.data['id'])
+        self.assertFalse(milestone.is_billable)
+        self.assertEqual(milestone.payment_status, 'not_applicable')
+
+    def test_admin_can_set_billing_fields(self):
+        """Admin creating a milestone can set billing fields"""
+        self.api_client.force_authenticate(user=self.admin_user)
+        url = reverse('milestone-list')
+        data = {
+            'project': self.project.id,
+            'title': 'Design Phase',
+            'is_billable': True,
+            'amount': '500.00',
+            'payment_status': 'pending',
+        }
+        response = self.api_client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        milestone = ProjectMilestone.objects.get(pk=response.data['id'])
+        self.assertTrue(milestone.is_billable)
+        self.assertEqual(milestone.amount, Decimal('500.00'))
+        self.assertEqual(milestone.payment_status, 'pending')

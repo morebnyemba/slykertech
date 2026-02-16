@@ -1,6 +1,20 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+
+# Shared choices used by both ProjectPackage and ProjectTracker
+PROJECT_TYPE_CHOICES = [
+    ('web_development', 'Web Development'),
+    ('mobile_app', 'Mobile App Development'),
+    ('ecommerce', 'E-Commerce'),
+    ('seo', 'SEO & Marketing'),
+    ('design', 'Graphic Design'),
+    ('branding', 'Branding'),
+    ('maintenance', 'Maintenance & Support'),
+    ('custom', 'Custom Project'),
+]
 
 
 class Service(models.Model):
@@ -174,17 +188,6 @@ class DNSRecord(models.Model):
 class ProjectPackage(models.Model):
     """Predefined project packages/tiers (e.g., Basic Website, E-commerce, Custom App)"""
     
-    PROJECT_TYPE_CHOICES = [
-        ('web_development', 'Web Development'),
-        ('mobile_app', 'Mobile App Development'),
-        ('ecommerce', 'E-Commerce'),
-        ('seo', 'SEO & Marketing'),
-        ('design', 'Graphic Design'),
-        ('branding', 'Branding'),
-        ('maintenance', 'Maintenance & Support'),
-        ('custom', 'Custom Project'),
-    ]
-    
     name = models.CharField(max_length=255, help_text="e.g., Basic Website, E-commerce Store")
     slug = models.SlugField(unique=True)
     description = models.TextField()
@@ -236,17 +239,6 @@ class ProjectTracker(models.Model):
         ('medium', 'Medium'),
         ('high', 'High'),
         ('urgent', 'Urgent'),
-    ]
-    
-    PROJECT_TYPE_CHOICES = [
-        ('web_development', 'Web Development'),
-        ('mobile_app', 'Mobile App Development'),
-        ('ecommerce', 'E-Commerce'),
-        ('seo', 'SEO & Marketing'),
-        ('design', 'Graphic Design'),
-        ('branding', 'Branding'),
-        ('maintenance', 'Maintenance & Support'),
-        ('custom', 'Custom Project'),
     ]
     
     subscription = models.ForeignKey(ServiceSubscription, on_delete=models.CASCADE, related_name='project_trackers')
@@ -353,6 +345,22 @@ class ProjectMilestone(models.Model):
     
     def __str__(self):
         return f"{self.project.title} - {self.title}"
+    
+    def clean(self):
+        """Validate billing field consistency"""
+        if self.is_billable:
+            if self.amount is None:
+                raise ValidationError({'amount': 'Amount is required for billable milestones.'})
+            if self.payment_status == 'not_applicable':
+                raise ValidationError({
+                    'payment_status': 'Payment status cannot be "Not Applicable" for billable milestones.'
+                })
+        else:
+            # Non-billable milestones should have not_applicable payment_status
+            if self.payment_status != 'not_applicable':
+                raise ValidationError({
+                    'payment_status': 'Payment status must be "Not Applicable" for non-billable milestones.'
+                })
 
 
 class ProjectTask(models.Model):
@@ -408,6 +416,18 @@ class ProjectTask(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.get_status_display()}"
+    
+    def clean(self):
+        """Validate task dependency constraints"""
+        if self.depends_on is not None:
+            if self.pk and self.depends_on_id == self.pk:
+                raise ValidationError({
+                    'depends_on': 'A task cannot depend on itself.'
+                })
+            if self.depends_on.project_id != self.project_id:
+                raise ValidationError({
+                    'depends_on': 'A task can only depend on another task within the same project.'
+                })
 
 
 class ProjectComment(models.Model):
