@@ -42,6 +42,21 @@ app.conf.beat_schedule = {
         'task': 'reseller.tasks.process_commissions',
         'schedule': crontab(day_of_month=1, hour=10, minute=0),  # Monthly
     },
+    # Database backup - daily at 2 AM
+    'daily-database-backup': {
+        'task': 'services.tasks.run_database_backup',
+        'schedule': crontab(hour=2, minute=0),
+    },
+    # Cleanup old backups - weekly on Sunday at 3 AM
+    'weekly-backup-cleanup': {
+        'task': 'services.tasks.cleanup_old_backups',
+        'schedule': crontab(day_of_week=0, hour=3, minute=0),
+    },
+    # Service health check - every 5 minutes
+    'service-health-check': {
+        'task': 'services.tasks.check_service_health',
+        'schedule': crontab(minute='*/5'),
+    },
 }
 
 app.conf.timezone = 'UTC'

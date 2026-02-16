@@ -1,5 +1,8 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
 
@@ -68,4 +71,141 @@ class User(AbstractUser):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.email
+
+
+class AuditMixin(models.Model):
+    """Abstract mixin that adds created_by and updated_by tracking to any model."""
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_created',
+        help_text='User who created this record',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_updated',
+        help_text='User who last updated this record',
+    )
+
+    class Meta:
+        abstract = True
+
+
+class StatusChangeLog(models.Model):
+    """Tracks status transitions on any model that has a status field."""
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    old_status = models.CharField(max_length=50, blank=True, null=True)
+    new_status = models.CharField(max_length=50)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='status_changes',
+    )
+    reason = models.TextField(blank=True, help_text='Reason for the status change')
+    metadata = models.JSONField(default=dict, blank=True, help_text='Additional context data')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('status change log')
+        verbose_name_plural = _('status change logs')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.content_type} #{self.object_id}: {self.old_status} → {self.new_status}'
+
+
+class ActivityLog(models.Model):
+    """Tracks user actions across the platform for auditing and analytics."""
+
+    ACTION_CHOICES = [
+        ('create', 'Created'),
+        ('update', 'Updated'),
+        ('delete', 'Deleted'),
+        ('login', 'Logged In'),
+        ('logout', 'Logged Out'),
+        ('view', 'Viewed'),
+        ('export', 'Exported'),
+        ('provision', 'Provisioned'),
+        ('backup', 'Backed Up'),
+        ('restore', 'Restored'),
+        ('payment', 'Payment'),
+        ('status_change', 'Status Change'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_logs',
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    description = models.TextField(help_text='Human-readable description of the action')
+
+    # Generic relation to the target object
+    content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True, help_text='Additional context data')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('activity log')
+        verbose_name_plural = _('activity logs')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['action', '-created_at']),
+            models.Index(fields=['content_type', 'object_id']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.email if self.user else 'System'
+        return f'{user_str} - {self.get_action_display()} - {self.description[:50]}'
+
+
+class BackupLog(models.Model):
+    """Tracks database backup history and status."""
+
+    STATUS_CHOICES = [
+        ('started', 'Started'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    filename = models.CharField(max_length=500)
+    file_size = models.BigIntegerField(null=True, blank=True, help_text='File size in bytes')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='started')
+    database_name = models.CharField(max_length=255, default='slykertech')
+    error_message = models.TextField(blank=True)
+    duration_seconds = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('backup log')
+        verbose_name_plural = _('backup logs')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.filename} - {self.get_status_display()}'
 
