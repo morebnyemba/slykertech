@@ -67,18 +67,40 @@ fi
 
 echo ""
 echo "Running database migrations..."
-python manage.py migrate --noinput
+migration_output=$(python manage.py migrate --noinput 2>&1) && migration_exit_code=0 || migration_exit_code=$?
 
-if [ $? -eq 0 ]; then
+if [ $migration_exit_code -eq 0 ]; then
+    echo "$migration_output"
     echo "✅ Migrations completed"
 else
-    echo "❌ WARNING: Migrations failed or partially completed"
-    echo "The application will still start, but database may not be up to date"
-    echo ""
-    echo "If you see 'duplicate key' or 'pg_type' errors:"
-    echo "  1. See MIGRATION_ERROR_FIX.md for automatic fix details"
-    echo "  2. Or run: docker-compose exec backend python /app/cleanup_db_types.py"
-    echo "  3. Or reset database: ./fix-db-auth.sh"
+    if echo "$migration_output" | grep -q "Conflicting migrations detected"; then
+        echo "⚠️  Conflicting migrations detected. Attempting to auto-merge..."
+        python manage.py makemigrations --merge --noinput
+        if [ $? -eq 0 ]; then
+            echo "✅ Migrations merged successfully"
+            echo "Running database migrations..."
+            python manage.py migrate --noinput
+            if [ $? -eq 0 ]; then
+                echo "✅ Migrations completed"
+            else
+                echo "❌ WARNING: Migrations failed after merge"
+                echo "The application will still start, but database may not be up to date"
+            fi
+        else
+            echo "❌ WARNING: Migration merge failed"
+            echo "Please run 'python manage.py makemigrations --merge' manually"
+        fi
+    else
+        echo "Migration error details:"
+        echo "$migration_output"
+        echo "❌ WARNING: Migrations failed or partially completed"
+        echo "The application will still start, but database may not be up to date"
+        echo ""
+        echo "If you see 'duplicate key' or 'pg_type' errors:"
+        echo "  1. See MIGRATION_ERROR_FIX.md for automatic fix details"
+        echo "  2. Or run: docker-compose exec backend python /app/cleanup_db_types.py"
+        echo "  3. Or reset database: ./fix-db-auth.sh"
+    fi
 fi
 
 echo ""
