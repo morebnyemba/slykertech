@@ -5,7 +5,16 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { apiService } from '@/lib/api-service';
+
+// Lazy accessor for apiService to break circular dependency.
+// api-service.ts dynamically imports auth-store for token refresh,
+// so importing apiService eagerly here can cause a TDZ error during
+// module initialization / Zustand persist rehydration.
+const getApiService = () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { apiService } = require('@/lib/api-service');
+  return apiService as { setToken: (token: string) => void; clearToken: () => void };
+};
 
 // API URL constant
 const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'https://api.slykertech.co.zw/api';
@@ -110,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
           if (profileResponse.ok) {
             const userData = await profileResponse.json();
             // Sync token with apiService for authenticated API requests
-            apiService.setToken(data.access);
+            getApiService().setToken(data.access);
             set({
               user: userData,
               token: data.access,
@@ -123,7 +132,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Sync token with apiService for authenticated API requests
-          apiService.setToken(data.access);
+          getApiService().setToken(data.access);
           set({
             token: data.access,
             refreshToken: data.refresh,
@@ -185,7 +194,7 @@ export const useAuthStore = create<AuthState>()(
           // Auto-login after registration if token is provided
           if (data.access && data.refresh) {
             // Sync token with apiService for authenticated API requests
-            apiService.setToken(data.access);
+            getApiService().setToken(data.access);
             set({
               user: data.user,
               token: data.access,
@@ -242,7 +251,7 @@ export const useAuthStore = create<AuthState>()(
           }
           
           // Update access token and sync with apiService
-          apiService.setToken(data.access);
+          getApiService().setToken(data.access);
           set({
             token: data.access,
             // Update refresh token if it's rotated
@@ -261,7 +270,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         // Clear token from apiService
-        apiService.clearToken();
+        getApiService().clearToken();
         set({
           user: null,
           token: null,
@@ -280,9 +289,9 @@ export const useAuthStore = create<AuthState>()(
 
       setToken: (token) => {
         if (token) {
-          apiService.setToken(token);
+          getApiService().setToken(token);
         } else {
-          apiService.clearToken();
+          getApiService().clearToken();
         }
         set({ token, isAuthenticated: !!token });
       },
@@ -308,7 +317,7 @@ export const useAuthStore = create<AuthState>()(
           setTimeout(() => {
             try {
               if (state?.token) {
-                apiService.setToken(state.token);
+                getApiService().setToken(state.token);
               }
             } catch (err) {
               console.error('Error syncing token after hydration:', err);
