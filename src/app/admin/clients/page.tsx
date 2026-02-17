@@ -21,6 +21,17 @@ interface Client {
   created_at: string;
 }
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,10 +59,13 @@ export default function ClientsPage() {
     try {
       const response = await apiService.getAllClients();
       if (response.data) {
-        setClients(response.data as Client[]);
+        setClients(normalizeList<Client>(response.data));
+      } else {
+        setClients([]);
       }
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      setClients([]);
     } finally {
       setLoading(false);
     }
