@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaServer, FaCheck, FaArrowLeft } from 'react-icons/fa';
+import { FaServer, FaCheck, FaArrowLeft, FaGlobe } from 'react-icons/fa';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
@@ -52,6 +52,8 @@ export default function SharedHostingPage() {
   const [selectedProduct, setSelectedProduct] = useState<HostingProduct | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const [domainOption, setDomainOption] = useState<'existing' | 'register'>('existing');
+  const [existingDomain, setExistingDomain] = useState('');
   
   const { addItem } = useCartStore();
   const { token } = useAuthStore();
@@ -147,11 +149,25 @@ export default function SharedHostingPage() {
       return;
     }
 
+    if (domainOption === 'existing' && !existingDomain.trim()) {
+      alert('Please enter your existing domain name');
+      return;
+    }
+
+    if (domainOption === 'register') {
+      // Redirect to domain registration with a return parameter
+      setSelectedProduct(null);
+      window.location.href = `/services/domains/register?hosting_product=${product.id}&region=${selectedRegion}&billing_cycle=${billingCycle}`;
+      return;
+    }
+
     const cartItem = {
       hosting_product: product.id,
       service_metadata: {
         type: product.hosting_type,
         region: selectedRegion,
+        domain: existingDomain.trim(),
+        domain_option: domainOption,
       },
       quantity: 1,
       unit_price: parseFloat(getPrice(product)),
@@ -164,6 +180,8 @@ export default function SharedHostingPage() {
       alert('Added to cart successfully!');
       setSelectedProduct(null);
       setSelectedRegion('');
+      setExistingDomain('');
+      setDomainOption('existing');
     } else {
       alert(`Failed to add to cart: ${result.error}`);
     }
@@ -287,10 +305,66 @@ export default function SharedHostingPage() {
         {/* Configuration Modal */}
         {selectedProduct && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Configure {selectedProduct.name}
               </h3>
+
+              {/* Domain Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <FaGlobe className="inline mr-1" />
+                  Domain Name
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <input
+                      type="radio"
+                      name="domainOption"
+                      value="existing"
+                      checked={domainOption === 'existing'}
+                      onChange={() => setDomainOption('existing')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <div>
+                      <span className="font-medium text-gray-900 dark:text-white">I already have a domain</span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Use a domain you already own</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <input
+                      type="radio"
+                      name="domainOption"
+                      value="register"
+                      checked={domainOption === 'register'}
+                      onChange={() => setDomainOption('register')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <div>
+                      <span className="font-medium text-gray-900 dark:text-white">Register a new domain</span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Search and register a new domain name</p>
+                    </div>
+                  </label>
+                </div>
+
+                {domainOption === 'existing' && (
+                  <div className="mt-3">
+                    <input
+                      type="text"
+                      value={existingDomain}
+                      onChange={(e) => setExistingDomain(e.target.value.toLowerCase())}
+                      placeholder="e.g. yourdomain.com"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                )}
+
+                {domainOption === 'register' && (
+                  <p className="mt-3 text-sm text-blue-600 dark:text-blue-400">
+                    You will be redirected to register a new domain after selecting your hosting options.
+                  </p>
+                )}
+              </div>
 
               {/* Region Selection */}
               <div className="mb-6">
@@ -344,6 +418,8 @@ export default function SharedHostingPage() {
                   onClick={() => {
                     setSelectedProduct(null);
                     setSelectedRegion('');
+                    setExistingDomain('');
+                    setDomainOption('existing');
                   }}
                   className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
@@ -353,7 +429,7 @@ export default function SharedHostingPage() {
                   onClick={() => handleAddToCart(selectedProduct)}
                   className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Add to Cart
+                  {domainOption === 'register' ? 'Continue to Domain Registration' : 'Add to Cart'}
                 </button>
               </div>
             </div>

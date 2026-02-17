@@ -1,26 +1,34 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaPlus, FaEdit, FaTrash, FaSync, FaWifi, FaGlobe } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSync, FaWifi, FaGlobe, FaTimes } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useWebSocket } from '@/lib/hooks/use-websocket';
 
 interface DNSRecord {
   id: number;
-  type: string;
+  record_type: string;
   name: string;
   content: string;
   ttl: number;
-  priority: number;
-  service__name?: string;
+  priority: number | null;
+  domain?: string;
+  is_active?: boolean;
+  subscription__service__name?: string;
 }
 
+const RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'CAA'];
+const MIN_TTL = 60;
+const MAX_TTL = 86400;
+
 export default function DNSPanel() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<DNSRecord | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // WebSocket connection for real-time DNS updates
   const { isConnected, sendMessage } = useWebSocket({
@@ -33,18 +41,49 @@ export default function DNSPanel() {
           setRecords(message.data as DNSRecord[]);
           setLoading(false);
         } else if (message.type === 'dns_update') {
-          // Handle real-time updates
+          // Refresh records on any mutation
           requestRecords();
+        } else if (message.type === 'record_created') {
+          const result = message.data as { success: boolean; error?: string };
+          if (result.success) {
+            setSuccessMessage('DNS record created successfully');
+            setShowAddModal(false);
+          } else {
+            setError(result.error || 'Failed to create record');
+          }
+        } else if (message.type === 'record_updated') {
+          const result = message.data as { success: boolean; error?: string };
+          if (result.success) {
+            setSuccessMessage('DNS record updated successfully');
+            setEditingRecord(null);
+          } else {
+            setError(result.error || 'Failed to update record');
+          }
+        } else if (message.type === 'record_deleted') {
+          const result = message.data as { success: boolean; error?: string };
+          if (result.success) {
+            setSuccessMessage('DNS record deleted successfully');
+          } else {
+            setError(result.error || 'Failed to delete record');
+          }
+        } else if (message.type === 'error') {
+          const result = message.data as { message?: string };
+          setError(result.message || 'An error occurred');
         }
       }
     },
   });
 
+  // Auto-dismiss messages
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+    if (error || successMessage) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [error, successMessage]);
 
   const requestRecords = useCallback(() => {
     setLoading(true);
@@ -63,20 +102,39 @@ export default function DNSPanel() {
     }
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+  const handleCreate = (formData: Omit<DNSRecord, 'id'> & { subscription_id?: number }) => {
+    sendMessage({ type: 'create_record', record: formData });
+  };
+
+  const handleUpdate = (id: number, formData: Partial<DNSRecord>) => {
+    sendMessage({ type: 'update_record', id, record: formData });
+  };
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-24 pb-12 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* Notification banners */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between">
+            <span className="text-red-800 dark:text-red-200">{error}</span>
+            <button onClick={() => setError(null)} className="text-red-600 dark:text-red-400 hover:opacity-70">
+              <FaTimes />
+            </button>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center justify-between">
+            <span className="text-green-800 dark:text-green-200">{successMessage}</span>
+            <button onClick={() => setSuccessMessage(null)} className="text-green-600 dark:text-green-400 hover:opacity-70">
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -139,7 +197,7 @@ export default function DNSPanel() {
                     Priority
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Service
+                    Domain
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Actions
@@ -166,7 +224,7 @@ export default function DNSPanel() {
                     <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                          {record.type}
+                          {record.record_type}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -179,10 +237,10 @@ export default function DNSPanel() {
                         {record.ttl}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {record.priority || '-'}
+                        {record.priority ?? '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {record.service__name || '-'}
+                        {record.domain || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
@@ -232,6 +290,158 @@ export default function DNSPanel() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Add Record Modal */}
+      {showAddModal && (
+        <DNSRecordModal
+          title="Add DNS Record"
+          onClose={() => setShowAddModal(false)}
+          onSubmit={(data) => handleCreate(data)}
+        />
+      )}
+
+      {/* Edit Record Modal */}
+      {editingRecord && (
+        <DNSRecordModal
+          title="Edit DNS Record"
+          initialData={editingRecord}
+          onClose={() => setEditingRecord(null)}
+          onSubmit={(data) => handleUpdate(editingRecord.id, data)}
+        />
+      )}
+    </div>
+  );
+}
+
+interface DNSRecordModalProps {
+  title: string;
+  initialData?: Partial<DNSRecord>;
+  onClose: () => void;
+  onSubmit: (data: Record<string, unknown>) => void;
+}
+
+function DNSRecordModal({ title, initialData, onClose, onSubmit }: DNSRecordModalProps) {
+  const [recordType, setRecordType] = useState(initialData?.record_type || 'A');
+  const [name, setName] = useState(initialData?.name || '');
+  const [content, setContent] = useState(initialData?.content || '');
+  const [ttl, setTtl] = useState(String(initialData?.ttl ?? 3600));
+  const [priority, setPriority] = useState(String(initialData?.priority ?? ''));
+  const [domain, setDomain] = useState(initialData?.domain || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data: Record<string, unknown> = {
+      record_type: recordType,
+      name,
+      content,
+      ttl: parseInt(ttl, 10),
+      domain,
+    };
+    if (priority) {
+      data.priority = parseInt(priority, 10);
+    }
+    onSubmit(data);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <FaTimes />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Domain</label>
+            <input
+              type="text"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              required
+              placeholder="example.com"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Record Type</label>
+            <select
+              value={recordType}
+              onChange={(e) => setRecordType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              {RECORD_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="@ or subdomain"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content</label>
+            <input
+              type="text"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              placeholder="IP address or value"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">TTL</label>
+            <input
+              type="number"
+              value={ttl}
+              onChange={(e) => setTtl(e.target.value)}
+              min={MIN_TTL}
+              max={MAX_TTL}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          {(recordType === 'MX' || recordType === 'SRV') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Priority {recordType === 'MX' && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="number"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                required={recordType === 'MX'}
+                min={0}
+                placeholder="10"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {initialData ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

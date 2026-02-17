@@ -6,75 +6,10 @@ from django.db import migrations, models
 
 def create_domain_transfer_request_if_not_exists(apps, schema_editor):
     """
-    Safely create the DomainTransferRequest table only if it doesn't already exist.
-    This handles cases where a previous migration attempt may have partially created the table.
+    No-op: Table creation is now handled by migration 0010.
+    Kept for migration history compatibility on databases where this already ran.
     """
-    connection = schema_editor.connection
-    table_name = 'services_domaintransferrequest'
-    
-    # Check if the table already exists
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = %s
-            );
-        """, [table_name])
-        table_exists = cursor.fetchone()[0]
-    
-    if table_exists:
-        # Table already exists, nothing to do
-        return
-    
-    # Also check and clean up any orphaned sequences that might exist
-    sequence_name = 'services_domaintransferrequest_id_seq'
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM pg_sequences 
-                WHERE schemaname = 'public' 
-                AND sequencename = %s
-            );
-        """, [sequence_name])
-        sequence_exists = cursor.fetchone()[0]
-        
-        if sequence_exists:
-            # Drop the orphaned sequence before creating the table
-            cursor.execute(f'DROP SEQUENCE IF EXISTS "{sequence_name}" CASCADE;')
-    
-    # Now create the table using raw SQL
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            CREATE TABLE "services_domaintransferrequest" (
-                "id" bigserial NOT NULL PRIMARY KEY,
-                "domain_name" varchar(255) NOT NULL,
-                "contact_email" varchar(254) NOT NULL,
-                "contact_name" varchar(255) NOT NULL,
-                "contact_phone" varchar(50) NULL,
-                "epp_code" varchar(100) NULL,
-                "current_registrar" varchar(255) NULL,
-                "admin_email" varchar(254) NULL,
-                "owns_domain" boolean NOT NULL,
-                "status" varchar(20) NOT NULL,
-                "status_message" text NULL,
-                "update_nameservers" boolean NOT NULL,
-                "nameserver1" varchar(255) NULL,
-                "nameserver2" varchar(255) NULL,
-                "whois_privacy" boolean NOT NULL,
-                "auto_renew" boolean NOT NULL,
-                "admin_notes" text NULL,
-                "created_at" timestamp with time zone NOT NULL,
-                "updated_at" timestamp with time zone NOT NULL,
-                "completed_at" timestamp with time zone NULL,
-                "client_id" bigint NULL REFERENCES "clients_client" ("id") ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
-            );
-        """)
-        # Create index for the foreign key
-        cursor.execute("""
-            CREATE INDEX "services_domaintransferrequest_client_id_idx" 
-            ON "services_domaintransferrequest" ("client_id");
-        """)
+    pass
 
 
 def reverse_create_domain_transfer_request(apps, schema_editor):

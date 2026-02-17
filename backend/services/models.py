@@ -1,6 +1,21 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from accounts.models import AuditMixin
+
+
+# Shared choices used by both ProjectPackage and ProjectTracker
+PROJECT_TYPE_CHOICES = [
+    ('web_development', 'Web Development'),
+    ('mobile_app', 'Mobile App Development'),
+    ('ecommerce', 'E-Commerce'),
+    ('seo', 'SEO & Marketing'),
+    ('design', 'Graphic Design'),
+    ('branding', 'Branding'),
+    ('maintenance', 'Maintenance & Support'),
+    ('custom', 'Custom Project'),
+]
 
 
 class Service(models.Model):
@@ -171,7 +186,84 @@ class DNSRecord(models.Model):
         return f"{self.domain} - {self.record_type} - {self.name}"
 
 
-class ProjectTracker(models.Model):
+class ProjectPackage(models.Model):
+    """Predefined project packages/tiers (e.g., Basic Website, E-commerce, Custom App)"""
+    
+    name = models.CharField(max_length=255, help_text="e.g., Basic Website, E-commerce Store")
+    slug = models.SlugField(unique=True)
+    description = models.TextField()
+    project_type = models.CharField(max_length=30, choices=PROJECT_TYPE_CHOICES, default='web_development')
+    
+    # Deliverables included in this package
+    deliverables = models.JSONField(default=list, blank=True,
+                                   help_text="List of deliverables included (e.g., ['5-page website', 'Contact form', 'SEO setup'])")
+    
+    # Scope and timeline
+    estimated_duration_days = models.IntegerField(default=30, help_text="Estimated project duration in days")
+    max_revisions = models.IntegerField(default=3, help_text="Maximum number of revisions included")
+    
+    # Pricing
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Base package price")
+    
+    # Display settings
+    is_featured = models.BooleanField(default=False)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('project package')
+        verbose_name_plural = _('project packages')
+        ordering = ['sort_order', 'name']
+    
+    def __str__(self):
+        return self.name
+
+
+class PackageFreeService(models.Model):
+    """Free services included with a project package for a limited period.
+    
+    For example, a 'Basic Website' package might include:
+    - Free hosting for 2 months
+    - Free domain registration for 1 year
+    """
+    
+    DURATION_UNIT_CHOICES = [
+        ('days', 'Days'),
+        ('months', 'Months'),
+        ('years', 'Years'),
+    ]
+    
+    package = models.ForeignKey(ProjectPackage, on_delete=models.CASCADE,
+                               related_name='free_services',
+                               help_text="The project package this free service belongs to")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,
+                               related_name='free_in_packages',
+                               help_text="The service offered for free (e.g., Web Hosting, Domain Registration)")
+    duration_value = models.PositiveIntegerField(
+        help_text="Number of time units the free period lasts (e.g., 2 for '2 months')")
+    duration_unit = models.CharField(max_length=10, choices=DURATION_UNIT_CHOICES, default='months',
+                                    help_text="Unit of the free period (days, months, or years)")
+    description = models.CharField(max_length=255, blank=True,
+                                  help_text="Optional description override (e.g., 'Free shared hosting for 2 months')")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('package free service')
+        verbose_name_plural = _('package free services')
+        unique_together = ['package', 'service']
+        ordering = ['package', 'service']
+    
+    def __str__(self):
+        desc = self.description or self.service.name
+        return f"{self.package.name} — Free {desc} for {self.duration_value} {self.get_duration_unit_display()}"
+
+
+class ProjectTracker(AuditMixin, models.Model):
     """Track progress for projects like web development, SEO, design, etc."""
     
     STATUS_CHOICES = [
@@ -192,8 +284,16 @@ class ProjectTracker(models.Model):
     ]
     
     subscription = models.ForeignKey(ServiceSubscription, on_delete=models.CASCADE, related_name='project_trackers')
+    project_package = models.ForeignKey(ProjectPackage, on_delete=models.SET_NULL,
+                                       null=True, blank=True, related_name='projects',
+                                       help_text="Package/tier this project is based on")
+    client = models.ForeignKey('clients.Client', on_delete=models.CASCADE,
+                              related_name='projects', null=True, blank=True,
+                              help_text="Direct client reference for easier querying")
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    project_type = models.CharField(max_length=30, choices=PROJECT_TYPE_CHOICES, 
+                                   default='web_development', help_text="Type/category of project")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
     
@@ -201,6 +301,12 @@ class ProjectTracker(models.Model):
     progress_percentage = models.IntegerField(default=0, help_text="Progress from 0 to 100")
     estimated_hours = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     actual_hours = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    
+    # Budget tracking
+    budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                help_text="Total project budget")
+    amount_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                      help_text="Amount spent so far")
     
     # Dates
     start_date = models.DateField(null=True, blank=True)
@@ -236,7 +342,7 @@ class ProjectTracker(models.Model):
             self.save()
 
 
-class ProjectMilestone(models.Model):
+class ProjectMilestone(AuditMixin, models.Model):
     """Milestones for project tracking"""
     
     STATUS_CHOICES = [
@@ -250,6 +356,21 @@ class ProjectMilestone(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Deliverables for this milestone
+    deliverables = models.JSONField(default=list, blank=True,
+                                   help_text="List of deliverables for this milestone")
+    
+    # Payment milestone tracking
+    is_billable = models.BooleanField(default=False, help_text="Whether this milestone triggers a payment")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                help_text="Payment amount due upon completion of this milestone")
+    payment_status = models.CharField(max_length=20, choices=[
+        ('not_applicable', 'Not Applicable'),
+        ('pending', 'Payment Pending'),
+        ('invoiced', 'Invoiced'),
+        ('paid', 'Paid'),
+    ], default='not_applicable', help_text="Payment status for billable milestones")
     
     due_date = models.DateField(null=True, blank=True)
     completed_date = models.DateField(null=True, blank=True)
@@ -266,9 +387,25 @@ class ProjectMilestone(models.Model):
     
     def __str__(self):
         return f"{self.project.title} - {self.title}"
+    
+    def clean(self):
+        """Validate billing field consistency"""
+        if self.is_billable:
+            if self.amount is None:
+                raise ValidationError({'amount': 'Amount is required for billable milestones.'})
+            if self.payment_status == 'not_applicable':
+                raise ValidationError({
+                    'payment_status': 'Payment status cannot be "Not Applicable" for billable milestones.'
+                })
+        else:
+            # Non-billable milestones should have not_applicable payment_status
+            if self.payment_status != 'not_applicable':
+                raise ValidationError({
+                    'payment_status': 'Payment status must be "Not Applicable" for non-billable milestones.'
+                })
 
 
-class ProjectTask(models.Model):
+class ProjectTask(AuditMixin, models.Model):
     """Tasks within project milestones"""
     
     STATUS_CHOICES = [
@@ -278,6 +415,13 @@ class ProjectTask(models.Model):
         ('blocked', 'Blocked'),
     ]
     
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
+    
     milestone = models.ForeignKey(ProjectMilestone, on_delete=models.CASCADE, related_name='tasks', 
                                  null=True, blank=True)
     project = models.ForeignKey(ProjectTracker, on_delete=models.CASCADE, related_name='tasks')
@@ -285,9 +429,16 @@ class ProjectTask(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium',
+                               help_text="Task priority level")
     
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, 
                                    null=True, blank=True, related_name='assigned_tasks')
+    
+    # Dependencies
+    depends_on = models.ForeignKey('self', on_delete=models.SET_NULL,
+                                  null=True, blank=True, related_name='dependents',
+                                  help_text="Task that must be completed before this one")
     
     estimated_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     actual_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0)
@@ -307,6 +458,18 @@ class ProjectTask(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.get_status_display()}"
+    
+    def clean(self):
+        """Validate task dependency constraints"""
+        if self.depends_on is not None:
+            if self.pk and self.depends_on_id == self.pk:
+                raise ValidationError({
+                    'depends_on': 'A task cannot depend on itself.'
+                })
+            if self.depends_on.project_id != self.project_id:
+                raise ValidationError({
+                    'depends_on': 'A task can only depend on another task within the same project.'
+                })
 
 
 class ProjectComment(models.Model):
@@ -398,6 +561,8 @@ __all__ = [
     'Service',
     'ServiceSubscription',
     'DNSRecord',
+    'ProjectPackage',
+    'PackageFreeService',
     'ProjectTracker',
     'ProjectTask',
     'ProjectMilestone',

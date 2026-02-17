@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.db import connection
 from django.core.cache import cache
+import os
 import sys
 
 
@@ -28,6 +29,7 @@ def readiness_check(request):
     checks = {
         'database': False,
         'migrations': False,
+        'redis': False,
     }
     
     # Database check
@@ -53,6 +55,17 @@ def readiness_check(request):
             'checks': checks,
             'error': f'Migration check error: {str(e)}'
         }, status=503)
+    
+    # Redis check
+    try:
+        import redis as redis_lib
+        redis_host = os.environ.get('REDIS_HOST', 'redis')
+        redis_port = int(os.environ.get('REDIS_PORT', 6379))
+        r = redis_lib.Redis(host=redis_host, port=redis_port, socket_timeout=5)
+        r.ping()
+        checks['redis'] = True
+    except Exception:
+        checks['redis'] = False
     
     if all(checks.values()):
         return JsonResponse({

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaBell, FaSync, FaCheckCircle, FaEnvelope, FaEnvelopeOpen } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -17,17 +16,10 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -77,15 +69,8 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
