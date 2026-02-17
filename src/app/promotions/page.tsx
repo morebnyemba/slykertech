@@ -107,14 +107,14 @@ export default function PromotionsPage() {
 
   const getPromotionTypeStyles = (type: string) => {
     switch (type) {
-      case 'coupon':
+      case 'discount':
         return 'from-blue-500 to-blue-700';
-      case 'sale':
-        return 'from-green-500 to-green-700';
       case 'bundle':
         return 'from-purple-500 to-purple-700';
       case 'free_service':
         return 'from-yellow-500 to-orange-600';
+      case 'referral':
+        return 'from-green-500 to-green-700';
       default:
         return 'from-gray-500 to-gray-700';
     }

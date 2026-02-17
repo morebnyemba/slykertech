@@ -41,16 +41,15 @@ interface Service {
 }
 
 const PROMOTION_TYPES = [
-  { value: 'coupon', label: 'Coupon Code' },
-  { value: 'sale', label: 'Sale/Discount' },
+  { value: 'discount', label: 'Discount/Coupon' },
   { value: 'bundle', label: 'Bundle Deal' },
   { value: 'free_service', label: 'Free Service with Purchase' },
+  { value: 'referral', label: 'Referral Bonus' },
 ];
 
 const DISCOUNT_TYPES = [
   { value: 'percentage', label: 'Percentage Off' },
   { value: 'fixed', label: 'Fixed Amount Off' },
-  { value: 'free', label: 'Free Item' },
 ];
 
 const CATEGORIES = [
@@ -93,7 +92,7 @@ export default function PromotionsPage() {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
-    promotion_type: 'coupon',
+    promotion_type: 'discount',
     discount_type: 'percentage',
     discount_value: '',
     description: '',
@@ -257,7 +256,7 @@ export default function PromotionsPage() {
     setFormData({
       name: '',
       code: '',
-      promotion_type: 'coupon',
+      promotion_type: 'discount',
       discount_type: 'percentage',
       discount_value: '',
       description: '',
