@@ -12,23 +12,25 @@ interface AdminGuardProps {
 export default function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isStaff, isLoading, user } = useAuthStore();
+  const { isAuthenticated, isStaff, isLoading, user, hasHydrated } = useAuthStore();
 
   useEffect(() => {
     // Don't redirect if we're on the admin login page
     if (pathname === '/admin/login') return;
     
-    if (!isLoading && !isAuthenticated) {
+    // Wait for hydration before making auth decisions
+    if (hasHydrated && !isLoading && !isAuthenticated) {
       router.push('/admin/login');
     }
-  }, [isAuthenticated, isLoading, router, pathname]);
+  }, [isAuthenticated, isLoading, hasHydrated, router, pathname]);
 
   // Don't guard the login page
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
-  if (isLoading) {
+  // Show loading while store is hydrating
+  if (!hasHydrated || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
