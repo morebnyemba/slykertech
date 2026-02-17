@@ -143,7 +143,6 @@ export default function LiveChatWidget() {
         reconnectAttemptsRef.current = 0;
         clearReconnectTimer();
         startHeartbeat();
-        setMessages([]);
         setMessages(prev => [...prev, {
           type: 'system',
           message: 'Connected to live support. How can we help you today?',
@@ -166,11 +165,21 @@ export default function LiveChatWidget() {
             wsRef.current?.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
           } else if (data.type === 'pong') {
             lastPongRef.current = Date.now();
-          } else if (data.type === 'message') {
+          } else if (
+            data.type === 'message' ||
+            data.type === 'ai_response' ||
+            data.reply ||
+            data.content
+          ) {
+            const incomingMessage = data.text || data.message || data.reply || data.content;
+            if (!incomingMessage) {
+              return;
+            }
+
             setMessages(prev => [...prev, {
               type: 'chat_message',
-              message: data.text || data.message,
-              sender: data.sender || 'Support',
+              message: incomingMessage,
+              sender: data.sender || data.agent_name || 'Support',
               timestamp: new Date().toISOString(),
             }]);
             if (data.action_result?.message) {

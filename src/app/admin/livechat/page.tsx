@@ -66,6 +66,7 @@ export default function LiveChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState<string>('active');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
     // Only fetch sessions if hydration is complete and user is authenticated with a valid token
@@ -121,6 +122,11 @@ export default function LiveChatPage() {
   const loadSessionDetails = async (sessionId: number) => {
     try {
       const response = await apiService.getChatSession(sessionId);
+      if (response.error) {
+        setActionError(response.error);
+        return;
+      }
+
       if (response.data) {
         const session = response.data as ChatSession;
         setSelectedSession({
@@ -137,12 +143,19 @@ export default function LiveChatPage() {
     if (!selectedSession || !newMessage.trim()) return;
     
     setSending(true);
+    setActionError(null);
     try {
-      await apiService.sendChatMessage(selectedSession.id, newMessage);
+      const response = await apiService.sendChatMessage(selectedSession.id, newMessage);
+      if (response.error) {
+        setActionError(response.error);
+        return;
+      }
+
       setNewMessage('');
       await loadSessionDetails(selectedSession.id);
     } catch (error) {
       console.error('Failed to send message:', error);
+      setActionError('Failed to send message');
     } finally {
       setSending(false);
     }
@@ -150,13 +163,28 @@ export default function LiveChatPage() {
 
   const handleCloseSession = async (sessionId: number) => {
     try {
-      await apiService.closeChatSession(sessionId);
-      fetchSessions();
+      setActionError(null);
+      const response = await apiService.closeChatSession(sessionId);
+      if (response.error) {
+        setActionError(response.error);
+        return;
+      }
+
+      await fetchSessions();
       if (selectedSession?.id === sessionId) {
-        setSelectedSession(null);
+        if (filter === 'active') {
+          setSelectedSession(null);
+        } else {
+          setSelectedSession({
+            ...selectedSession,
+            status: 'closed',
+            closed_at: new Date().toISOString(),
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to close session:', error);
+      setActionError('Failed to close session');
     }
   };
 
@@ -201,6 +229,12 @@ export default function LiveChatPage() {
         </div>
 
         {/* Filter Tabs */}
+        {actionError && (
+          <div className="px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm">
+            {actionError}
+          </div>
+        )}
+
         <div className="flex gap-2">
           {['active', 'closed', ''].map((status) => (
             <button

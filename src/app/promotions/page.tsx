@@ -27,6 +27,16 @@ interface Promotion {
   free_service_duration?: number;
 }
 
+// Normalize API responses that can be arrays or paginated objects
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+  return [];
+};
+
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +46,7 @@ export default function PromotionsPage() {
     try {
       const response = await apiService.getActivePromotions();
       if (response.data) {
-        setPromotions(response.data as Promotion[]);
+        setPromotions(normalizeList<Promotion>(response.data));
       }
     } catch (error) {
       console.error('Failed to fetch promotions:', error);

@@ -325,3 +325,84 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.name} - {self.amount} ({self.expense_date})"
 
+
+class Promotion(models.Model):
+    """Promotions, discounts, and coupon codes"""
+    
+    TYPE_CHOICES = [
+        ('discount', 'Discount'),
+        ('bundle', 'Bundle'),
+        ('free_service', 'Free Service'),
+        ('referral', 'Referral'),
+    ]
+    
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed Amount'),
+    ]
+    
+    name = models.CharField(max_length=255, help_text="Promotion name")
+    code = models.CharField(max_length=50, unique=True, blank=True, null=True, 
+                           help_text="Coupon/promo code (leave blank if not a coupon)")
+    promotion_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='discount')
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, default='percentage')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, 
+                                        help_text="Discount amount (% or fixed currency)")
+    
+    description = models.TextField(blank=True, null=True)
+    
+    # Date range
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    
+    # Constraints
+    is_active = models.BooleanField(default=True)
+    usage_limit = models.IntegerField(null=True, blank=True, help_text="Max number of uses (null = unlimited)")
+    usage_count = models.IntegerField(default=0, help_text="Number of times used")
+    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, 
+                                              blank=True, help_text="Minimum order total to apply")
+    
+    # Multi-select relationships
+    applicable_services = models.ManyToManyField('services.Service', blank=True, 
+                                                related_name='promotions',
+                                                help_text="Leave blank to apply to all services")
+    applicable_categories = models.JSONField(default=list, blank=True, 
+                                            help_text="Service categories (domain, hosting, dev, etc.)")
+    
+    # Bundle-specific
+    bundle_services = models.ManyToManyField('services.Service', blank=True, 
+                                           related_name='bundled_in_promotions',
+                                           help_text="Services in this bundle")
+    
+    # Free service specific
+    free_service = models.ForeignKey('services.Service', on_delete=models.SET_NULL, 
+                                    null=True, blank=True, related_name='+',
+                                    help_text="Service given for free (free_service type)")
+    free_service_duration = models.IntegerField(null=True, blank=True, 
+                                               help_text="Duration in months")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('promotion')
+        verbose_name_plural = _('promotions')
+        ordering = ['-start_date']
+    
+    def __str__(self):
+        return f"{self.name} ({self.code or 'no code'})"
+    
+    def is_valid(self):
+        """Check if promotion is currently valid"""
+        from django.utils import timezone
+        now = timezone.now()
+        return self.is_active and self.start_date <= now <= self.end_date
+    
+    def can_be_used(self):
+        """Check if promotion can still be used"""
+        if not self.is_valid():
+            return False
+        if self.usage_limit and self.usage_count >= self.usage_limit:
+            return False
+        return True
+

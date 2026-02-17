@@ -86,6 +86,8 @@ export default function PromotionsPage() {
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -147,6 +149,8 @@ export default function PromotionsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(-1);
+    setFormError(null);
+    setFormSuccess(null);
 
     try {
       const data = {
@@ -168,16 +172,24 @@ export default function PromotionsPage() {
         free_service_duration: formData.free_service_duration ? parseInt(formData.free_service_duration) : undefined,
       };
 
+      let response;
       if (editingPromotion) {
-        await apiService.updatePromotion(editingPromotion.id, data);
+        response = await apiService.updatePromotion(editingPromotion.id, data);
       } else {
-        await apiService.createPromotion(data);
+        response = await apiService.createPromotion(data);
       }
 
+      if (response.error) {
+        setFormError(response.error);
+        return;
+      }
+
+      setFormSuccess(editingPromotion ? 'Promotion updated successfully' : 'Promotion created successfully');
       fetchPromotions();
-      resetForm();
+      setTimeout(() => resetForm(), 1500);
     } catch (error) {
       console.error('Failed to save promotion:', error);
+      setFormError(error instanceof Error ? error.message : 'Failed to save promotion');
     } finally {
       setActionLoading(null);
     }
@@ -240,6 +252,8 @@ export default function PromotionsPage() {
   const resetForm = () => {
     setShowForm(false);
     setEditingPromotion(null);
+    setFormError(null);
+    setFormSuccess(null);
     setFormData({
       name: '',
       code: '',
@@ -507,6 +521,20 @@ export default function PromotionsPage() {
                     <FaTimes />
                   </button>
                 </div>
+
+                {/* Error Message */}
+                {formError && (
+                  <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-red-800 dark:text-red-300 text-sm">{formError}</p>
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {formSuccess && (
+                  <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-green-800 dark:text-green-300 text-sm">{formSuccess}</p>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">

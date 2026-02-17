@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense, Promotion
 from clients.serializers import ClientSerializer
 
 
@@ -259,3 +259,33 @@ class ExpenseSerializer(serializers.ModelSerializer):
                   'next_due_date', 'reference_number', 'notes', 'is_paid', 
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class PromotionSerializer(serializers.ModelSerializer):
+    """Serializer for Promotion model"""
+    
+    is_valid = serializers.SerializerMethodField()
+    can_be_used = serializers.SerializerMethodField()
+    applicable_services_data = serializers.SerializerMethodField()
+    free_service_name = serializers.CharField(source='free_service.name', read_only=True)
+    
+    class Meta:
+        model = Promotion
+        fields = ['id', 'name', 'code', 'promotion_type', 'discount_type', 'discount_value',
+                  'description', 'start_date', 'end_date', 'is_active', 'usage_limit',
+                  'usage_count', 'minimum_order_amount', 'applicable_services',
+                  'applicable_services_data', 'applicable_categories', 'bundle_services',
+                  'free_service', 'free_service_name', 'free_service_duration',
+                  'is_valid', 'can_be_used', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'usage_count', 'is_valid', 'can_be_used', 'created_at', 'updated_at']
+    
+    def get_is_valid(self, obj):
+        return obj.is_valid()
+    
+    def get_can_be_used(self, obj):
+        return obj.can_be_used()
+    
+    def get_applicable_services_data(self, obj):
+        """Return service names and IDs for applicable services"""
+        return [{'id': s.id, 'name': s.name} for s in obj.applicable_services.all()]
+

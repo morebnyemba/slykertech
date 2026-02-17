@@ -1,11 +1,11 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense
+from .models import Invoice, InvoiceItem, Payment, BillingProfile, Cart, CartItem, Expense, Promotion
 from .serializers import (
     InvoiceSerializer, InvoiceCreateSerializer,
     PaymentSerializer, BillingProfileSerializer,
-    CartSerializer, CartItemSerializer, ExpenseSerializer
+    CartSerializer, CartItemSerializer, ExpenseSerializer, PromotionSerializer
 )
 
 
@@ -922,3 +922,64 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         }
         
         return Response(stats)
+
+
+class PromotionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing promotions and discount codes"""
+    
+    queryset = Promotion.objects.all()
+    serializer_class = PromotionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_permissions(self):
+        """Allow unauthenticated users to view active promotions"""
+        if self.action in ['list', 'retrieve', 'active']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """Get all currently active promotions"""
+        promotions = Promotion.objects.filter(is_active=True)
+        # Filter by valid date range
+        from django.utils import timezone
+        now = timezone.now()
+        promotions = promotions.filter(start_date__lte=now, end_date__gte=now)
+        
+        serializer = self.get_serializer(promotions, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def validate_code(self, request):
+        """Validate a promotion code and return details"""
+        code = request.data.get('code')
+        if not code:
+            return Response(
+                {'error': 'Code is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            promo = Promotion.objects.get(code__iexact=code)
+        except Promotion.DoesNotExist:
+            return Response(
+                {'error': 'Promotion code not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if not promo.can_be_used():
+            return Response(
+                {'error': 'This promotion code is no longer valid or has reached usage limit'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        return Response(PromotionSerializer(promo).data)
+    
+    @action(detail=True, methods=['post'])
+    def increment_usage(self, request, pk=None):
+        """Increment usage count when promotion is applied"""
+        promo = self.get_object()
+        promo.usage_count += 1
+        promo.save()
+        return Response(PromotionSerializer(promo).data)
+
