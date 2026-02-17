@@ -223,7 +223,7 @@ const HomePageClientView = () => {
                 <section className="relative py-16 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
-                        <div className="absolute inset-0 bg-[url('https://bgvault.tech/wave.svg')] bg-[length:100px_100px]"></div>
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.45)_1px,transparent_0)] bg-[length:24px_24px]"></div>
                     </div>
 
                     <div className="relative max-w-6xl mx-auto">

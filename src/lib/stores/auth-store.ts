@@ -30,6 +30,7 @@ interface AuthState {
   isLoading: boolean;
   isStaff: boolean;
   hasHydrated: boolean;
+  setHasHydrated: (hydrated: boolean) => void;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: {
     email: string;
@@ -72,6 +73,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       isStaff: false,
       hasHydrated: false,
+
+      setHasHydrated: (hydrated: boolean) => {
+        set({ hasHydrated: hydrated });
+      },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true });
@@ -294,12 +299,12 @@ export const useAuthStore = create<AuthState>()(
           if (error) {
             console.error('Error rehydrating auth store:', error);
             // Mark as hydrated even on error to prevent infinite loading
-            useAuthStore.setState({ hasHydrated: true });
+            state?.setHasHydrated(true);
             return;
           }
           
           // Mark hydration as complete first
-          useAuthStore.setState({ hasHydrated: true });
+          state?.setHasHydrated(true);
           
           // Defer apiService sync to avoid circular dependency issues
           // Use setTimeout to ensure it happens after the current execution context
