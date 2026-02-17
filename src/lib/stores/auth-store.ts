@@ -5,15 +5,19 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type ApiService from '@/lib/api-service';
 
 // Lazy accessor for apiService to break circular dependency.
 // api-service.ts dynamically imports auth-store for token refresh,
 // so importing apiService eagerly here can cause a TDZ error during
 // module initialization / Zustand persist rehydration.
-const getApiService = () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { apiService } = require('@/lib/api-service');
-  return apiService as { setToken: (token: string) => void; clearToken: () => void };
+let _apiService: ApiService | null = null;
+const getApiService = (): ApiService => {
+  if (!_apiService) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    _apiService = require('@/lib/api-service').apiService;
+  }
+  return _apiService!;
 };
 
 // API URL constant
