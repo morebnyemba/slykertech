@@ -268,7 +268,9 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           isAuthenticated: false,
           isStaff: false,
-          hasHydrated: false,
+          // Keep hasHydrated true - it should only be false before initial hydration.
+          // Setting it to false after logout causes the dashboard auth guard to show
+          // an infinite loading spinner if the user logs back in without a page refresh.
         });
       },
 
