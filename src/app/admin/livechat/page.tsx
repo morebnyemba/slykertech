@@ -41,6 +41,22 @@ interface ChatStats {
   ai_messages: number;
 }
 
+const normalizeSessions = (data: unknown): ChatSession[] => {
+  if (Array.isArray(data)) return data as ChatSession[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as ChatSession[]) : [];
+  }
+
+  return [];
+};
+
+const normalizeMessages = (messages: unknown): ChatMessage[] => {
+  if (Array.isArray(messages)) return messages as ChatMessage[];
+  return [];
+};
+
 export default function LiveChatPage() {
   const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -61,10 +77,13 @@ export default function LiveChatPage() {
     try {
       const response = await apiService.getChatSessions(filter || undefined);
       if (response.data) {
-        setSessions(response.data as ChatSession[]);
+        setSessions(normalizeSessions(response.data));
+      } else {
+        setSessions([]);
       }
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
+      setSessions([]);
     } finally {
       setLoading(false);
     }
@@ -103,7 +122,11 @@ export default function LiveChatPage() {
     try {
       const response = await apiService.getChatSession(sessionId);
       if (response.data) {
-        setSelectedSession(response.data as ChatSession);
+        const session = response.data as ChatSession;
+        setSelectedSession({
+          ...session,
+          messages: normalizeMessages(session.messages),
+        });
       }
     } catch (error) {
       console.error('Failed to load session:', error);
@@ -286,7 +309,7 @@ export default function LiveChatPage() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {selectedSession.messages?.map((message) => (
+                  {normalizeMessages(selectedSession.messages).map((message) => (
                     <div
                       key={message.id}
                       className={`rounded-lg p-4 ${senderColors[message.sender_type]} ${
