@@ -195,6 +195,12 @@ function RegisterPageContent() {
         setError('Please enter at least 2 nameservers');
         return;
       }
+      const hostnameRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+      const invalidNs = filledNameservers.find(ns => !hostnameRegex.test(ns.trim()));
+      if (invalidNs) {
+        setError(`Invalid nameserver format: "${invalidNs.trim()}". Use a valid hostname like ns1.example.com`);
+        return;
+      }
     }
 
     setAddingToCart(true);
@@ -528,7 +534,7 @@ function RegisterPageContent() {
                             value={ns}
                             onChange={(e) => {
                               const updated = [...customNameservers];
-                              updated[index] = e.target.value.toLowerCase().trim();
+                              updated[index] = e.target.value.toLowerCase();
                               setCustomNameservers(updated);
                             }}
                             placeholder={`ns${index + 1}.example.com`}
