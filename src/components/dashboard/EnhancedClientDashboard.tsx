@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   FaServer, FaFileInvoiceDollar, FaProjectDiagram, 
-  FaBell, FaWallet, FaSync, FaWifi, FaGift, FaGlobe, FaUser
+  FaBell, FaWallet, FaSync, FaWifi, FaGift, FaGlobe, FaUser,
+  FaTicketAlt
 } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { apiService } from '@/lib/api-service';
@@ -23,8 +23,7 @@ interface DashboardStats {
 }
 
 export default function EnhancedClientDashboard() {
-  const router = useRouter();
-  const { isAuthenticated, user, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats>({
     subscriptions: 0,
     invoices: {
@@ -94,18 +93,11 @@ export default function EnhancedClientDashboard() {
   });
 
   useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, authLoading, router]);
-
-  useEffect(() => {
-    // Fetch data when authenticated
-    if (isAuthenticated && !authLoading) {
+    // Fetch data when authenticated (auth guard handles redirect)
+    if (isAuthenticated) {
       fetchDashboardStats();
     }
-  }, [isAuthenticated, authLoading, fetchDashboardStats]);
+  }, [isAuthenticated, fetchDashboardStats]);
 
   useEffect(() => {
     // Request WebSocket update when connected (for real-time updates)
@@ -121,15 +113,8 @@ export default function EnhancedClientDashboard() {
     }
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
@@ -327,7 +312,7 @@ export default function EnhancedClientDashboard() {
           </Link>
 
           <Link
-            href="/dashboard/dns"
+            href="/dashboard/domains"
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
           >
             <div className="flex items-center gap-3 sm:gap-4">
@@ -336,10 +321,29 @@ export default function EnhancedClientDashboard() {
               </div>
               <div className="min-w-0">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  DNS Panel
+                  My Domains
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                  Manage DNS records
+                  Manage domains &amp; DNS records
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard/tickets"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex-shrink-0">
+                <FaTicketAlt className="text-lg sm:text-2xl text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                  Support Tickets
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                  Get help from our team
                 </p>
               </div>
             </div>

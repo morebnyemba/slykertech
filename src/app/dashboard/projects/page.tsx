@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaProjectDiagram, FaSync, FaEye, FaTasks, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -18,16 +17,9 @@ interface Project {
 }
 
 export default function ProjectsPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -74,15 +66,8 @@ export default function ProjectsPage() {
     return 'bg-red-600';
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
