@@ -14,8 +14,18 @@ import type ApiService from '@/lib/api-service';
 let _apiService: ApiService | null = null;
 const getApiService = (): ApiService => {
   if (!_apiService) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    _apiService = require('@/lib/api-service').apiService;
+    // Use a try-catch to guard against TDZ errors during module init.
+    // In production webpack bundles, require() can trigger
+    // "Cannot access '<var>' before initialization" if the api-service
+    // module hasn't finished evaluating yet.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      _apiService = require('@/lib/api-service').apiService;
+    } catch {
+      // Module not ready yet – return a no-op stub so callers don't crash.
+      // The real apiService will be resolved on the next call.
+      return { setToken: () => {}, clearToken: () => {}, getToken: () => null } as unknown as ApiService;
+    }
   }
   return _apiService!;
 };
@@ -308,25 +318,28 @@ export const useAuthStore = create<AuthState>()(
         return (state, error) => {
           if (error) {
             console.error('Error rehydrating auth store:', error);
-            // Mark as hydrated even on error to prevent infinite loading
-            useAuthStore.setState({ hasHydrated: true });
-            return;
           }
-          
-          // Mark hydration as complete first
+
+          // Mark hydration as complete first (even on error to prevent infinite loading)
           useAuthStore.setState({ hasHydrated: true });
           
-          // Defer apiService sync to avoid circular dependency issues
-          // Use setTimeout to ensure it happens after the current execution context
-          setTimeout(() => {
-            try {
-              if (state?.token) {
-                getApiService().setToken(state.token);
-              }
-            } catch (err) {
-              console.error('Error syncing token after hydration:', err);
-            }
-          }, 0);
+          // Defer apiService sync to avoid circular dependency / TDZ issues.
+          // Use dynamic import() so the module is resolved asynchronously,
+          // completely sidestepping any TDZ that require() might hit during
+          // the initial module evaluation pass.
+          if (state?.token) {
+            setTimeout(() => {
+              import('@/lib/api-service')
+                .then(({ apiService }) => {
+                  apiService.setToken(state.token!);
+                  // Also update the cached reference for future sync calls
+                  _apiService = apiService;
+                })
+                .catch((err) => {
+                  console.error('Error syncing token after hydration:', err);
+                });
+            }, 0);
+          }
         };
       },
       // Don't persist hasHydrated - it should always start as false
