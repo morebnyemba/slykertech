@@ -24,6 +24,7 @@ const getApiService = (): ApiService => {
     } catch {
       // Module not ready yet – return a no-op stub so callers don't crash.
       // The real apiService will be resolved on the next call.
+      console.warn('apiService not yet available (TDZ during module init), using stub');
       return { setToken: () => {}, clearToken: () => {}, getToken: () => null } as unknown as ApiService;
     }
   }

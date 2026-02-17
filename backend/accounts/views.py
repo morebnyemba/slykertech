@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions, mixins
 from rest_framework.decorators import action, api_view, permission_classes as perm_classes
 from rest_framework.response import Response
+from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -93,24 +94,22 @@ def password_reset_request(request):
 
     email = serializer.validated_data['email']
     # Always return success to avoid leaking which emails are registered
+    response_data = {
+        "message": "If an account with that email exists, a password reset link has been generated.",
+    }
     try:
         user = User.objects.get(email=email)
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        # In production, send an email with the reset link.
-        # For now, return the uid and token directly so the frontend can
-        # construct the reset URL (useful during development).
-        return Response({
-            "message": "If an account with that email exists, a password reset link has been generated.",
-            "uid": uid,
-            "token": token,
-        }, status=status.HTTP_200_OK)
+        # TODO: Send an email with the reset link in production.
+        # In DEBUG mode, return uid and token directly for development.
+        if django_settings.DEBUG:
+            response_data["uid"] = uid
+            response_data["token"] = token
     except User.DoesNotExist:
         pass
 
-    return Response({
-        "message": "If an account with that email exists, a password reset link has been generated.",
-    }, status=status.HTTP_200_OK)
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
