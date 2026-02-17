@@ -8,7 +8,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { FaGlobe, FaCheckCircle, FaArrowLeft, FaShoppingCart, FaShieldAlt, FaLock } from 'react-icons/fa';
+import { FaGlobe, FaCheckCircle, FaArrowLeft, FaShoppingCart, FaShieldAlt, FaLock, FaServer } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { apiService } from '@/lib/api-service';
@@ -46,6 +46,11 @@ function RegisterPageContent() {
   const [registrationYears, setRegistrationYears] = useState<1 | 2 | 3>(1);
   const [whoisPrivacy, setWhoisPrivacy] = useState(false);
   const [autoRenew, setAutoRenew] = useState(true);
+  const [nameserverOption, setNameserverOption] = useState<'default' | 'custom'>('default');
+  const [customNameservers, setCustomNameservers] = useState(['', '']);
+  const [isWithHosting, setIsWithHosting] = useState(false);
+
+  const DEFAULT_NAMESERVERS = ['ns1.slykertech.co.zw', 'ns2.slykertech.co.zw'];
   
   const [domainProduct, setDomainProduct] = useState<DomainProduct | null>(null);
   const [allProducts, setAllProducts] = useState<DomainProduct[]>([]);
@@ -56,16 +61,23 @@ function RegisterPageContent() {
   const [availabilityStatus, setAvailabilityStatus] = useState<WhoisSearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-fill domain from URL query parameter
+  // Pre-fill domain from URL query parameter and detect hosting context
   useEffect(() => {
     const domainParam = searchParams.get('domain');
     const tldParam = searchParams.get('tld');
+    const hostingProductParam = searchParams.get('hosting_product');
     
     if (domainParam) {
       setDomainName(domainParam.toLowerCase());
     } else if (tldParam) {
       // If only TLD is provided, leave domain name empty for user to fill in
       // The domain will be validated when user enters it
+    }
+
+    // If coming from hosting purchase, mark as with-hosting and use default nameservers
+    if (hostingProductParam) {
+      setIsWithHosting(true);
+      setNameserverOption('default');
     }
   }, [searchParams]);
 
@@ -176,10 +188,23 @@ function RegisterPageContent() {
       return;
     }
 
+    // Validate custom nameservers if selected
+    if (nameserverOption === 'custom' && !isWithHosting) {
+      const filledNameservers = customNameservers.filter(ns => ns.trim() !== '');
+      if (filledNameservers.length < 2) {
+        setError('Please enter at least 2 nameservers');
+        return;
+      }
+    }
+
     setAddingToCart(true);
     setError(null);
 
     try {
+      const nameservers = nameserverOption === 'custom' 
+        ? customNameservers.filter(ns => ns.trim() !== '')
+        : DEFAULT_NAMESERVERS;
+
       const cartItem = {
         domain_product: domainProduct.id,
         service_metadata: {
@@ -188,6 +213,8 @@ function RegisterPageContent() {
           registration_years: registrationYears,
           whois_privacy: whoisPrivacy,
           auto_renew: autoRenew,
+          nameservers: nameservers,
+          with_hosting: isWithHosting,
         },
         quantity: 1,
         unit_price: getTotalPrice(),
@@ -444,6 +471,84 @@ function RegisterPageContent() {
                   </label>
                 </div>
               </div>
+
+              {/* Nameserver Configuration - shown when not purchased with hosting */}
+              {!isWithHosting && (
+                <div className="mb-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <FaServer className="inline mr-2" />
+                    Nameservers
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Nameservers control where your domain points. Use our defaults or enter your own.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <input
+                        type="radio"
+                        name="nameserverOption"
+                        value="default"
+                        checked={nameserverOption === 'default'}
+                        onChange={() => setNameserverOption('default')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900 dark:text-white">Use our default nameservers</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {DEFAULT_NAMESERVERS.join(', ')}
+                        </p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <input
+                        type="radio"
+                        name="nameserverOption"
+                        value="custom"
+                        checked={nameserverOption === 'custom'}
+                        onChange={() => setNameserverOption('custom')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div>
+                        <span className="font-medium text-gray-900 dark:text-white">Use custom nameservers</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Enter your own nameserver addresses</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {nameserverOption === 'custom' && (
+                    <div className="mt-4 space-y-3">
+                      {customNameservers.map((ns, index) => (
+                        <div key={index}>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Nameserver {index + 1} {index < 2 && '*'}
+                          </label>
+                          <input
+                            type="text"
+                            value={ns}
+                            onChange={(e) => {
+                              const updated = [...customNameservers];
+                              updated[index] = e.target.value.toLowerCase().trim();
+                              setCustomNameservers(updated);
+                            }}
+                            placeholder={`ns${index + 1}.example.com`}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          />
+                        </div>
+                      ))}
+                      {customNameservers.length < 4 && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomNameservers([...customNameservers, ''])}
+                          className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          + Add another nameserver
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Order Summary */}
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">

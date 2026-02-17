@@ -41,12 +41,13 @@ export default function EnhancedClientDashboard() {
     try {
       setLoading(true);
       
-      // Fetch all required data in parallel
+      // Fetch all required data in parallel, with individual error handling
+      // so a single failing endpoint doesn't break the entire dashboard
       const [subsResponse, invoicesResponse, walletsResponse, notificationsResponse] = await Promise.all([
-        apiService.getSubscriptions(),
-        apiService.getInvoices(),
-        apiService.getWallets(),
-        apiService.getUnreadCount(),
+        apiService.getSubscriptions().catch(() => ({ data: [], status: 500 })),
+        apiService.getInvoices().catch(() => ({ data: [], status: 500 })),
+        apiService.getWallets().catch(() => ({ data: [], status: 500 })),
+        apiService.getUnreadCount().catch(() => ({ data: { count: 0 }, status: 500 })),
       ]);
 
       const subscriptions = subsResponse.data?.results || subsResponse.data || [];
