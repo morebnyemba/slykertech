@@ -41,6 +41,17 @@ const BILLING_OPTIONS = [
   { value: 'triennial', label: 'Triennial' },
 ];
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
 export default function SubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +75,13 @@ export default function SubscriptionsPage() {
     try {
       const response = await apiService.getAllSubscriptions();
       if (response.data) {
-        setSubscriptions(response.data as Subscription[]);
+        setSubscriptions(normalizeList<Subscription>(response.data));
+      } else {
+        setSubscriptions([]);
       }
     } catch (error) {
       console.error('Failed to fetch subscriptions:', error);
+      setSubscriptions([]);
     } finally {
       setLoading(false);
     }

@@ -49,6 +49,17 @@ interface TicketStats {
   };
 }
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
 export default function TicketsPage() {
   const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -76,10 +87,13 @@ export default function TicketsPage() {
       
       const response = await apiService.getTickets(params);
       if (response.data) {
-        setTickets(response.data as Ticket[]);
+        setTickets(normalizeList<Ticket>(response.data));
+      } else {
+        setTickets([]);
       }
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
+      setTickets([]);
     } finally {
       setLoading(false);
     }
@@ -110,7 +124,11 @@ export default function TicketsPage() {
     try {
       const response = await apiService.getTicket(ticketId);
       if (response.data) {
-        setSelectedTicket(response.data as Ticket);
+        const ticket = response.data as Ticket;
+        setSelectedTicket({
+          ...ticket,
+          replies: normalizeList<TicketReply>(ticket.replies),
+        });
       }
     } catch (error) {
       console.error('Failed to load ticket:', error);
@@ -372,7 +390,7 @@ export default function TicketsPage() {
                   </div>
 
                   {/* Replies */}
-                  {selectedTicket.replies?.map((reply) => (
+                  {normalizeList<TicketReply>(selectedTicket.replies).map((reply) => (
                     <div
                       key={reply.id}
                       className={`rounded-lg p-4 ${

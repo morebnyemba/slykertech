@@ -66,6 +66,17 @@ const RECURRING_OPTIONS = [
   { value: 'annual', label: 'Annual' },
 ];
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [stats, setStats] = useState<ExpenseStats | null>(null);
@@ -94,10 +105,13 @@ export default function ExpensesPage() {
     try {
       const response = await apiService.getExpenses(filter || undefined);
       if (response.data) {
-        setExpenses(response.data as Expense[]);
+        setExpenses(normalizeList<Expense>(response.data));
+      } else {
+        setExpenses([]);
       }
     } catch (error) {
       console.error('Failed to fetch expenses:', error);
+      setExpenses([]);
     } finally {
       setLoading(false);
     }

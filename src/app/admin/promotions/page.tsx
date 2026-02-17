@@ -64,6 +64,17 @@ const CATEGORIES = [
 // Characters for generating coupon codes (excludes ambiguous chars like 0/O, 1/I/L)
 const COUPON_CODE_CHARACTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -102,10 +113,13 @@ export default function PromotionsPage() {
       if (typeFilter) params.promotion_type = typeFilter;
       const response = await apiService.getPromotions(params);
       if (response.data) {
-        setPromotions(response.data as Promotion[]);
+        setPromotions(normalizeList<Promotion>(response.data));
+      } else {
+        setPromotions([]);
       }
     } catch (error) {
       console.error('Failed to fetch promotions:', error);
+      setPromotions([]);
     } finally {
       setLoading(false);
     }
@@ -115,10 +129,13 @@ export default function PromotionsPage() {
     try {
       const response = await apiService.getServices();
       if (response.data) {
-        setServices(response.data as Service[]);
+        setServices(normalizeList<Service>(response.data));
+      } else {
+        setServices([]);
       }
     } catch (error) {
       console.error('Failed to fetch services:', error);
+      setServices([]);
     }
   }, []);
 

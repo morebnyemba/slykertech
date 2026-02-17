@@ -61,6 +61,22 @@ interface InvoiceStats {
   recent_count: number;
 }
 
+const normalizeList = <T,>(data: unknown): T[] => {
+  if (Array.isArray(data)) return data as T[];
+
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+
+  return [];
+};
+
+const normalizeInvoice = (invoice: Invoice): Invoice => ({
+  ...invoice,
+  items: normalizeList<InvoiceItem>(invoice.items),
+});
+
 export default function InvoicesPage() {
   const { isAuthenticated, token, hasHydrated } = useAuthStore();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -96,10 +112,13 @@ export default function InvoicesPage() {
     try {
       const response = await apiService.getAllClients();
       if (response.data) {
-        setClients(response.data as Client[]);
+        setClients(normalizeList<Client>(response.data));
+      } else {
+        setClients([]);
       }
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      setClients([]);
     }
   }, [hasHydrated, isAuthenticated, token]);
 
@@ -113,10 +132,13 @@ export default function InvoicesPage() {
     try {
       const response = await apiService.getInvoices(filter || undefined);
       if (response.data) {
-        setInvoices(response.data as Invoice[]);
+        setInvoices(normalizeList<Invoice>(response.data).map(normalizeInvoice));
+      } else {
+        setInvoices([]);
       }
     } catch (error) {
       console.error('Failed to fetch invoices:', error);
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
@@ -238,7 +260,9 @@ export default function InvoicesPage() {
       fetchStats();
       if (selectedInvoice?.id === id) {
         const response = await apiService.getInvoice(id);
-        setSelectedInvoice(response.data as Invoice);
+        if (response.data) {
+          setSelectedInvoice(normalizeInvoice(response.data as Invoice));
+        }
       }
     } catch (error) {
       console.error('Failed to mark paid:', error);
@@ -381,7 +405,7 @@ export default function InvoicesPage() {
                         className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer ${
                           selectedInvoice?.id === invoice.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                         }`}
-                        onClick={() => setSelectedInvoice(invoice)}
+                        onClick={() => setSelectedInvoice(normalizeInvoice(invoice))}
                       >
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                           {invoice.invoice_number}
@@ -474,7 +498,7 @@ export default function InvoicesPage() {
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Items</h3>
                   <div className="space-y-2">
-                    {selectedInvoice.items?.map((item) => (
+                    {normalizeList<InvoiceItem>(selectedInvoice.items).map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
                         <span className="text-gray-900 dark:text-white">{formatCurrency(item.amount)}</span>
