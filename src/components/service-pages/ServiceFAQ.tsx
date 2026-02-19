@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 
 interface FAQItem {
   question: string;
@@ -33,32 +33,43 @@ export default function ServiceFAQ({ faqs, serviceName }: ServiceFAQProps) {
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:border-blue-300"
-            >
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-4 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div
+                key={index}
+                className={`border rounded-lg overflow-hidden transition-all duration-300 ${isOpen
+                    ? 'border-blue-300 shadow-md'
+                    : 'border-gray-200 hover:border-blue-200'
+                  }`}
               >
-                <span className="font-semibold text-gray-900 pr-4">
-                  {faq.question}
-                </span>
-                {openIndex === index ? (
-                  <FaChevronUp className="text-blue-600 flex-shrink-0" />
-                ) : (
-                  <FaChevronDown className="text-gray-400 flex-shrink-0" />
-                )}
-              </button>
-              
-              {openIndex === index && (
-                <div className="px-6 py-4 bg-white">
-                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                <button
+                  onClick={() => toggleFAQ(index)}
+                  className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors duration-300 ${isOpen
+                      ? 'bg-blue-50 dark:bg-blue-900/20'
+                      : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                >
+                  <span className={`font-semibold pr-4 transition-colors duration-300 ${isOpen ? 'text-blue-900' : 'text-gray-900'
+                    }`}>
+                    {faq.question}
+                  </span>
+                  <FaChevronDown
+                    className={`accordion-chevron flex-shrink-0 transition-colors duration-300 ${isOpen ? 'rotated text-blue-600' : 'text-gray-400'
+                      }`}
+                  />
+                </button>
+
+                <div className={`accordion-content ${isOpen ? 'expanded' : ''}`}>
+                  <div className="accordion-inner">
+                    <div className="px-6 py-4 bg-white">
+                      <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

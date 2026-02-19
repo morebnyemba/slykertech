@@ -13,6 +13,7 @@ import { apiService } from '@/lib/api-service';
 import ServiceFAQ from '@/components/service-pages/ServiceFAQ';
 import PromotionsCTA from '@/components/service-pages/PromotionsCTA';
 import { companyFAQs } from '@/components/service-pages/companyFAQData';
+import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
 
 const HomePageClientView = () => {
     const [dynamicStats, setDynamicStats] = useState({
@@ -24,6 +25,14 @@ const HomePageClientView = () => {
 
     const [domainSearch, setDomainSearch] = useState('');
     const [selectedExtension, setSelectedExtension] = useState('.com');
+
+    // Scroll reveal refs
+    const domainRef = useScrollReveal();
+    const statsRef = useStaggerReveal();
+    const servicesRef = useStaggerReveal();
+    const benefitsRef = useStaggerReveal();
+    const paymentRef = useStaggerReveal();
+    const ctaRef = useScrollReveal();
 
     const handleWhatsAppClick = () => {
         const message = encodeURIComponent("Hi Slyker Tech Web Services! I'm interested in your services.");
@@ -178,14 +187,14 @@ const HomePageClientView = () => {
                     {/* Content Container */}
                     <div className="relative max-w-5xl mx-auto">
                         {/* Animated headline with gradient text */}
-                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6">
+                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6 animate-hero-entrance">
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-400 dark:to-blue-200 animate-text-shimmer">
                                 Next-Gen Tech Solutions
                             </span>
                         </h1>
 
                         {/* Subheading with subtle animation */}
-                        <p className="mt-8 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto animate-fade-in-up">
+                        <p className="mt-8 text-lg sm:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto animate-hero-entrance-delay">
                             Powering digital transformation across Africa and beyond. From Cape Town to Cairo, Lagos to Nairobi, we deliver enterprise-grade cloud solutions, AI integration, and custom software development that drives business growth globally.
                         </p>
 
@@ -193,7 +202,7 @@ const HomePageClientView = () => {
                         <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
                             <button
                                 onClick={handleWhatsAppClick}
-                                className="flex items-center justify-center gap-3 px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl animate-pulse-slow"
+                                className="flex items-center justify-center gap-3 px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl animate-glow-pulse"
                             >
                                 <FaWhatsapp className="w-5 h-5" />
                                 Start Your Journey
@@ -220,7 +229,7 @@ const HomePageClientView = () => {
                 </section>
 
                 {/* Domain Search Section */}
-                <section className="relative py-16 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 overflow-hidden">
+                <section ref={domainRef} className="scroll-reveal relative py-16 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.45)_1px,transparent_0)] bg-[length:24px_24px]"></div>
@@ -283,11 +292,10 @@ const HomePageClientView = () => {
                                     <button
                                         key={item.ext}
                                         onClick={() => setSelectedExtension(item.ext)}
-                                        className={`p-4 bg-white/10 backdrop-blur-sm rounded-xl border-2 transition-all hover:bg-white/20 hover:scale-105 ${
-                                            selectedExtension === item.ext
+                                        className={`p-4 bg-white/10 backdrop-blur-sm rounded-xl border-2 transition-all hover:bg-white/20 hover:scale-105 ${selectedExtension === item.ext
                                                 ? 'border-white bg-white/20'
                                                 : 'border-white/30'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="text-white font-bold text-lg mb-1">
                                             {item.ext}
@@ -315,7 +323,7 @@ const HomePageClientView = () => {
 
                 {/* Stats Section */}
                 <section className="relative py-20 bg-gray-50 dark:bg-gray-900 overflow-hidden">
-                    <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
+                    <div ref={statsRef} className="relative max-w-6xl mx-auto px-4 sm:px-8">
                         <h2 className="text-3xl font-bold text-center text-blue-900 dark:text-blue-300 mb-16">
                             <span className="relative inline-block">
                                 <span className="relative z-10 px-4">Our Impact in Numbers</span>
@@ -327,7 +335,7 @@ const HomePageClientView = () => {
                             {stats.map((stat, index) => (
                                 <div
                                     key={index}
-                                    className="relative p-6 text-center bg-white dark:bg-gray-800 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-700"
+                                    className="scroll-reveal-child relative p-6 text-center bg-white dark:bg-gray-800 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-700"
                                 >
                                     <div className="text-4xl text-blue-600 dark:text-blue-400 mb-4 flex justify-center">
                                         {stat.icon}
@@ -348,7 +356,7 @@ const HomePageClientView = () => {
 
                 {/* Featured Services */}
                 <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
-                    <div className="max-w-6xl mx-auto">
+                    <div ref={servicesRef} className="max-w-6xl mx-auto">
                         <div className="text-center mb-16">
                             <h2 className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-4">
                                 Our Services
@@ -363,7 +371,7 @@ const HomePageClientView = () => {
                                 <Link
                                     key={index}
                                     href={service.href}
-                                    className="group p-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                                    className="scroll-reveal-child group p-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
                                 >
                                     <div className="text-blue-600 dark:text-blue-400 mb-6 transition-transform group-hover:scale-110">
                                         {service.icon}
@@ -396,7 +404,7 @@ const HomePageClientView = () => {
 
                 {/* Why Choose Us */}
                 <section className="py-24 px-4 sm:px-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-blue-950">
-                    <div className="max-w-6xl mx-auto">
+                    <div ref={benefitsRef} className="max-w-6xl mx-auto">
                         <div className="text-center mb-16">
                             <h2 className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-4">
                                 Why Choose Slyker Tech Web Services
@@ -410,7 +418,7 @@ const HomePageClientView = () => {
                             {benefits.map((benefit, index) => (
                                 <div
                                     key={index}
-                                    className="flex gap-6 p-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg"
+                                    className="scroll-reveal-child flex gap-6 p-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                                 >
                                     <div className="flex-shrink-0 text-blue-600 dark:text-blue-400">
                                         {benefit.icon}
@@ -439,8 +447,8 @@ const HomePageClientView = () => {
                             <rect width="100%" height="100%" fill="url(#payment-pattern)" />
                         </svg>
                     </div>
-                    
-                    <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
+
+                    <div ref={paymentRef} className="relative max-w-6xl mx-auto px-4 sm:px-8">
                         <div className="text-center mb-12">
                             <h3 className="text-3xl font-bold text-blue-900 dark:text-blue-300 mb-4">
                                 Flexible Payment Options
@@ -452,7 +460,7 @@ const HomePageClientView = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {/* Card Payments */}
-                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                            <div className="scroll-reveal-child p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                                 <div className="flex justify-center gap-4 mb-6">
                                     <FaCcVisa className="text-5xl text-blue-600 dark:text-blue-400" />
                                     <FaCcMastercard className="text-5xl text-orange-500 dark:text-orange-400" />
@@ -467,7 +475,7 @@ const HomePageClientView = () => {
                             </div>
 
                             {/* Mobile Payments */}
-                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                            <div className="scroll-reveal-child p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                                 <div className="flex justify-center mb-6">
                                     <FaMobileAlt className="text-6xl text-green-600 dark:text-green-400" />
                                 </div>
@@ -480,7 +488,7 @@ const HomePageClientView = () => {
                             </div>
 
                             {/* Cryptocurrency */}
-                            <div className="p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all hover:shadow-lg">
+                            <div className="scroll-reveal-child p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                                 <div className="flex justify-center mb-6">
                                     <FaBitcoin className="text-6xl text-orange-500 dark:text-orange-400" />
                                 </div>
@@ -506,7 +514,7 @@ const HomePageClientView = () => {
 
                 {/* FAQ Section */}
                 <div className="bg-gray-50 dark:bg-gray-900">
-                    <ServiceFAQ 
+                    <ServiceFAQ
                         faqs={companyFAQs}
                         serviceName="Slyker Tech"
                     />
@@ -523,7 +531,7 @@ const HomePageClientView = () => {
 
                 {/* Final CTA */}
                 <section className="py-24 px-4 sm:px-8 bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950">
-                    <div className="max-w-4xl mx-auto text-center">
+                    <div ref={ctaRef} className="scroll-reveal max-w-4xl mx-auto text-center">
                         <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                             Ready to Transform Your Business?
                         </h2>

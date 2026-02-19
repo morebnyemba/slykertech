@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaChevronRight,FaEnvelope,FaPhone } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaChevronRight, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { useStaggerReveal } from '@/lib/useScrollReveal';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const columnsRef = useStaggerReveal();
 
   return (
     <footer className="relative bg-blue-700 text-white py-16 px-4 sm:px-8 overflow-hidden">
@@ -13,12 +15,12 @@ export default function Footer() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-800 to-blue-700" />
         <div className="absolute inset-0 opacity-15">
           <svg width="100%" height="100%">
-            <pattern 
-              id="footer-pattern" 
-              x="0" 
-              y="0" 
-              width="120" 
-              height="120" 
+            <pattern
+              id="footer-pattern"
+              x="0"
+              y="0"
+              width="120"
+              height="120"
               patternUnits="userSpaceOnUse"
             >
               <path
@@ -43,9 +45,9 @@ export default function Footer() {
 
       {/* Content Container */}
       <div className="relative max-w-7xl mx-auto z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
+        <div ref={columnsRef} className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
           {/* Company Info */}
-          <div className="space-y-5">
+          <div className="scroll-reveal-child space-y-5">
             <h3 className="text-2xl font-bold text-white tracking-tight">
               Slyker Tech
               <span className="block text-blue-200 font-medium text-lg mt-1">Web Services</span>
@@ -56,7 +58,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="scroll-reveal-child">
             <h4 className="text-lg font-semibold text-white mb-6 pb-2 border-b border-blue-600/30">
               Quick Links
             </h4>
@@ -68,7 +70,7 @@ export default function Footer() {
                 { name: 'Contact', href: '/contact' }
               ].map((item) => (
                 <li key={item.name}>
-                  <Link 
+                  <Link
                     href={item.href}
                     className="flex items-center text-blue-100/90 hover:text-white transition-all group"
                   >
@@ -83,7 +85,7 @@ export default function Footer() {
           </div>
 
           {/* Legal Links */}
-          <div>
+          <div className="scroll-reveal-child">
             <h4 className="text-lg font-semibold text-white mb-6 pb-2 border-b border-blue-600/30">
               Legal
             </h4>
@@ -93,7 +95,7 @@ export default function Footer() {
                 { name: 'Terms & Conditions', href: '/terms-and-conditions' }
               ].map((item) => (
                 <li key={item.name}>
-                  <Link 
+                  <Link
                     href={item.href}
                     className="flex items-center text-blue-100/90 hover:text-white transition-all group"
                   >
@@ -108,7 +110,7 @@ export default function Footer() {
           </div>
 
           {/* Social Media & Contact */}
-          <div>
+          <div className="scroll-reveal-child">
             <h4 className="text-lg font-semibold text-white mb-6 pb-2 border-b border-blue-600/30">
               Connect With Us
             </h4>
@@ -122,7 +124,7 @@ export default function Footer() {
                 <a
                   key={index}
                   href={social.href}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-800/50 hover:bg-blue-600 text-blue-100 hover:text-white transition-all transform hover:-translate-y-1"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-800/50 hover:bg-blue-600 text-blue-100 hover:text-white transition-all duration-300 transform hover:-translate-y-1.5 hover:shadow-lg hover:shadow-blue-500/20"
                   aria-label={`${social.icon.name} page`}
                 >
                   <social.icon className="w-5 h-5" />

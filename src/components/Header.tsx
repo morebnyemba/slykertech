@@ -208,8 +208,8 @@ export default function Header() {
         {/* Mobile Navigation Controls */}
         <div className="sm:hidden flex items-center gap-1.5 min-[400px]:gap-2 sm:gap-3">
           {/* Cart Icon for Mobile */}
-          <Link 
-            href="/cart" 
+          <Link
+            href="/cart"
             className="relative text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors p-2"
             aria-label="Shopping cart"
           >
@@ -231,15 +231,12 @@ export default function Header() {
             aria-label="Toggle menu"
           >
             <div className="relative w-6 h-6">
-              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${
-                menuOpen ? 'rotate-45 top-3' : 'top-1'
-              }`}></span>
-              <span className={`absolute h-0.5 w-6 bg-current top-3 transition-all duration-200 ${
-                menuOpen ? 'opacity-0' : 'opacity-100'
-              }`}></span>
-              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${
-                menuOpen ? '-rotate-45 top-3' : 'top-5'
-              }`}></span>
+              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${menuOpen ? 'rotate-45 top-3' : 'top-1'
+                }`}></span>
+              <span className={`absolute h-0.5 w-6 bg-current top-3 transition-all duration-200 ${menuOpen ? 'opacity-0' : 'opacity-100'
+                }`}></span>
+              <span className={`absolute h-0.5 w-6 bg-current transform transition-all duration-300 ease-in-out ${menuOpen ? '-rotate-45 top-3' : 'top-5'
+                }`}></span>
             </div>
           </button>
         </div>
@@ -249,7 +246,7 @@ export default function Header() {
           <NavLink href="/" label="Home" />
 
           {/* Company Dropdown */}
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowCompanyDropdown(true)}
             onMouseLeave={() => setShowCompanyDropdown(false)}
@@ -261,12 +258,12 @@ export default function Header() {
             </button>
 
             {showCompanyDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+              <div className={`absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 dropdown-menu ${showCompanyDropdown ? 'open' : ''}`}>
                 {companyLinks.map((link, idx) => (
                   <div key={link.name}>
                     <Link
                       href={link.href}
-                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100"
                     >
                       <div className="font-medium">{link.name}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">{link.description}</div>
@@ -279,7 +276,7 @@ export default function Header() {
           </div>
 
           {/* Products Dropdown */}
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowProductsDropdown(true)}
             onMouseLeave={() => setShowProductsDropdown(false)}
@@ -291,12 +288,12 @@ export default function Header() {
             </button>
 
             {showProductsDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+              <div className={`absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 dropdown-menu ${showProductsDropdown ? 'open' : ''}`}>
                 {productLinks.map((product, idx) => (
                   <div key={product.name}>
                     <Link
                       href={product.href}
-                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
+                      className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100"
                     >
                       <div className="font-medium">{product.name}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">{product.description}</div>
@@ -309,7 +306,7 @@ export default function Header() {
           </div>
 
           {/* Services Dropdown */}
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowServicesDropdown(true)}
             onMouseLeave={() => setShowServicesDropdown(false)}
@@ -319,14 +316,14 @@ export default function Header() {
               <FaChevronDown className="w-3 h-3" />
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </button>
-            
+
             {showServicesDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+              <div className={`absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 dropdown-menu ${showServicesDropdown ? 'open' : ''}`}>
                 {serviceCategories.map((category, idx) => (
                   <div key={category.name}>
                     <Link
                       href={category.href}
-                      className="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                      className="block px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200"
                     >
                       <div className="font-medium text-gray-900 dark:text-gray-100">{category.name}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">{category.description}</div>
@@ -337,9 +334,9 @@ export default function Header() {
               </div>
             )}
           </div>
-          
+
           {/* Contact Dropdown */}
-          <div 
+          <div
             className="relative"
             onMouseEnter={() => setShowContactDropdown(true)}
             onMouseLeave={() => setShowContactDropdown(false)}
@@ -351,11 +348,11 @@ export default function Header() {
             </button>
 
             {showContactDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                <Link href="/contact" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Contact Page</Link>
-                <a href="tel:+263787211325" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Call +263 78 721 1325</a>
-                <a href="mailto:support@slykertech.co.zw" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">Email Support</a>
-                <a href="https://wa.me/263787211325" target="_blank" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100">WhatsApp Chat</a>
+              <div className={`absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 dropdown-menu ${showContactDropdown ? 'open' : ''}`}>
+                <Link href="/contact" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100">Contact Page</Link>
+                <a href="tel:+263787211325" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100">Call +263 78 721 1325</a>
+                <a href="mailto:support@slykertech.co.zw" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100">Email Support</a>
+                <a href="https://wa.me/263787211325" target="_blank" className="block px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-900 dark:text-gray-100">WhatsApp Chat</a>
               </div>
             )}
           </div>
@@ -364,8 +361,8 @@ export default function Header() {
           <ThemeToggle />
 
           {/* Cart Icon with Badge */}
-          <Link 
-            href="/cart" 
+          <Link
+            href="/cart"
             className="relative text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
           >
             <FaShoppingCart className="text-xl" />
@@ -414,9 +411,8 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-        menuOpen ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
-      }`}>
+      <div className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? 'max-h-[70vh] opacity-100' : 'max-h-0 opacity-0'
+        }`}>
         <nav className="flex flex-col items-stretch bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm dark:backdrop-blur-sm shadow-inner py-2 overflow-y-auto max-h-[calc(70vh-140px)]">
           <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
 
@@ -492,8 +488,8 @@ export default function Header() {
               <MobileNavLink href="https://wa.me/263787211325" label="WhatsApp Chat" onClick={() => setMenuOpen(false)} />
             </>
           )}
-          
-          
+
+
           {isAuthenticated ? (
             <>
               <MobileNavLink href="/dashboard" label="Dashboard" onClick={() => setMenuOpen(false)} />
