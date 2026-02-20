@@ -7,9 +7,14 @@ import { FaWhatsapp, FaEnvelope, FaArrowRight, FaCloud, FaCode, FaPalette } from
 import { MdSupport } from 'react-icons/md';
 import servicesData from './servicesData';
 import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
+import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
 
 export default function ServicesClientView() {
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const heroRef = useScrollReveal();
+  const categoriesRef = useStaggerReveal();
+  const gridRef = useStaggerReveal();
+  const ctaRef = useScrollReveal();
 
   const handleContact = (serviceTitle: string) => {
     const whatsappMessage = encodeURIComponent(
@@ -66,7 +71,7 @@ export default function ServicesClientView() {
     <div className="relative z-10">
       {/* Hero Section */}
       <section aria-labelledby="services-heading" className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div className="max-w-5xl mx-auto">
+        <div ref={heroRef} className="scroll-reveal max-w-5xl mx-auto">
           <h1 id="services-heading" className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Our <span className="text-darkgoldenrod dark:text-yellow-400">Digital Services</span>
           </h1>
@@ -82,10 +87,10 @@ export default function ServicesClientView() {
           <h2 className="text-2xl font-bold text-center text-blue-900 dark:text-blue-300 mb-8">
             Explore Our Service Categories
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Link 
+          <div ref={categoriesRef} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Link
               href="/services/hosting"
-              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+              className="scroll-reveal-child group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <FaCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -99,9 +104,9 @@ export default function ServicesClientView() {
               </div>
             </Link>
 
-            <Link 
+            <Link
               href="/services/domains"
-              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+              className="scroll-reveal-child group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <FaCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -115,9 +120,9 @@ export default function ServicesClientView() {
               </div>
             </Link>
 
-            <Link 
+            <Link
               href="/services/development"
-              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+              className="scroll-reveal-child group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <FaCode className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -131,9 +136,9 @@ export default function ServicesClientView() {
               </div>
             </Link>
 
-            <Link 
+            <Link
               href="/services/design"
-              className="group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg"
+              className="scroll-reveal-child group p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <FaPalette className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -153,18 +158,18 @@ export default function ServicesClientView() {
       {/* Services Grid */}
       <section aria-labelledby="services-grid-heading" className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <h2 id="services-grid-heading" className="sr-only">Our Service Catalog</h2>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div ref={gridRef} className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {servicesData.map((service, index) => {
             const ServiceWrapper = service.href ? Link : 'article';
-            const wrapperProps = service.href 
+            const wrapperProps = service.href
               ? { href: service.href }
               : { onClick: () => setSelectedService(service.title) };
-            
+
             return (
               <ServiceWrapper
                 key={`service-${index}`}
                 {...wrapperProps}
-                className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all cursor-pointer group block"
+                className="scroll-reveal-child p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all duration-300 cursor-pointer group block hover:-translate-y-1"
                 aria-labelledby={`service-${index}-title`}
               >
                 <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 transition-transform group-hover:scale-110" aria-hidden="true">
@@ -191,7 +196,7 @@ export default function ServicesClientView() {
                 </ul>
                 <div className="flex flex-wrap gap-2 mb-4" aria-label="Service tags">
                   {service.keywords.split(', ').map((keyword, i) => (
-                    <span 
+                    <span
                       key={`keyword-${i}`}
                       className="px-3 py-1 bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 rounded-full text-sm"
                     >
@@ -214,7 +219,7 @@ export default function ServicesClientView() {
       {/* CTA Section */}
       <section aria-label="Service inquiry" className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
-          <div className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+          <div ref={ctaRef} className="scroll-reveal p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
             <MdSupport className="text-4xl text-darkgoldenrod dark:text-yellow-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-2">
               Need a Custom Solution?
@@ -222,7 +227,7 @@ export default function ServicesClientView() {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               We specialize in creating tailored digital solutions for unique business challenges
             </p>
-            <button 
+            <button
               onClick={() => setSelectedService('Custom Digital Solution')}
               className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:shadow-lg transition-all"
               type="button"

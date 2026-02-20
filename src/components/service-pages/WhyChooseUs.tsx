@@ -2,6 +2,7 @@
 
 import { FaCheck, FaRocket, FaShieldAlt, FaHeadset, FaClock } from 'react-icons/fa';
 import { ReactNode } from 'react';
+import { useStaggerReveal } from '@/lib/useScrollReveal';
 
 interface Benefit {
   icon?: ReactNode;
@@ -18,6 +19,8 @@ interface WhyChooseUsProps {
 const defaultIcons = [FaRocket, FaShieldAlt, FaHeadset, FaClock];
 
 export default function WhyChooseUs({ serviceName, benefits, className = '' }: WhyChooseUsProps) {
+  const gridRef = useStaggerReveal();
+
   return (
     <section className={`py-16 bg-gradient-to-br from-blue-50 to-indigo-50 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,14 +33,14 @@ export default function WhyChooseUs({ serviceName, benefits, className = '' }: W
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {benefits.map((benefit, index) => {
             const IconComponent = defaultIcons[index % defaultIcons.length];
-            
+
             return (
               <div
                 key={index}
-                className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow duration-300"
+                className="scroll-reveal-child bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 border border-transparent"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
                   {benefit.icon || <IconComponent className="text-blue-600 text-2xl" />}

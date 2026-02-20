@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { FaGift, FaArrowRight, FaTags, FaPercent } from 'react-icons/fa';
+import { useStaggerReveal } from '@/lib/useScrollReveal';
 
 interface PromotionsCTAProps {
   serviceName?: string;
@@ -9,6 +10,8 @@ interface PromotionsCTAProps {
 }
 
 export default function PromotionsCTA({ serviceName, className = '' }: PromotionsCTAProps) {
+  const cardsRef = useStaggerReveal();
+
   return (
     <section className={`py-16 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 ${className}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,14 +23,14 @@ export default function PromotionsCTA({ serviceName, className = '' }: Promotion
             Special Offers & Promotions
           </h2>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            {serviceName 
-              ? `Don't miss out on exclusive deals for ${serviceName}` 
+            {serviceName
+              ? `Don't miss out on exclusive deals for ${serviceName}`
               : 'Save more with our current promotional offers'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="scroll-reveal-child bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:-translate-y-1">
             <FaPercent className="text-3xl text-white mb-3" />
             <h3 className="text-xl font-semibold text-white mb-2">
               Limited Time Discounts
@@ -37,7 +40,7 @@ export default function PromotionsCTA({ serviceName, className = '' }: Promotion
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div className="scroll-reveal-child bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:-translate-y-1">
             <FaTags className="text-3xl text-white mb-3" />
             <h3 className="text-xl font-semibold text-white mb-2">
               Bundle & Save
@@ -47,7 +50,7 @@ export default function PromotionsCTA({ serviceName, className = '' }: Promotion
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div className="scroll-reveal-child bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 transition-all duration-300 hover:bg-white/20 hover:-translate-y-1">
             <FaGift className="text-3xl text-white mb-3" />
             <h3 className="text-xl font-semibold text-white mb-2">
               Free Extras
