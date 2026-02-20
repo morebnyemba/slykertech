@@ -71,6 +71,7 @@ export function useStaggerReveal<T extends HTMLElement = HTMLDivElement>(
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
+      container.classList.add('revealed');
       container.querySelectorAll('.scroll-reveal-child').forEach((child) => {
         child.classList.add('revealed');
       });
@@ -81,6 +82,8 @@ export function useStaggerReveal<T extends HTMLElement = HTMLDivElement>(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            // Reveal the container itself (if it has scroll-reveal)
+            entry.target.classList.add('revealed');
             // Stagger each child with increasing delay
             const children = entry.target.querySelectorAll('.scroll-reveal-child');
             children.forEach((child, index) => {
@@ -92,6 +95,7 @@ export function useStaggerReveal<T extends HTMLElement = HTMLDivElement>(
               observer.unobserve(entry.target);
             }
           } else if (!once) {
+            entry.target.classList.remove('revealed');
             const children = entry.target.querySelectorAll('.scroll-reveal-child');
             children.forEach((child) => {
               const el = child as HTMLElement;
