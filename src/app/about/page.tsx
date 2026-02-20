@@ -6,8 +6,18 @@ import { FaGlobeAfrica, FaCode, FaCloud, FaHandshake } from 'react-icons/fa';
 import { MdEngineering, MdPayments, MdSecurity, MdTrendingUp } from 'react-icons/md';
 import ServiceFAQ from '@/components/service-pages/ServiceFAQ';
 import { aboutPageFAQs } from '@/components/service-pages/companyFAQData';
+import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 export default function AboutPage() {
+  const heroRef = useScrollReveal<HTMLElement>();
+  const statsRef = useStaggerReveal<HTMLElement>();
+  const storyRef = useScrollReveal<HTMLElement>();
+  const awardsRef = useScrollReveal<HTMLElement>();
+  const servicesRef = useStaggerReveal<HTMLElement>();
+  const founderRef = useScrollReveal<HTMLElement>();
+  const faqRef = useScrollReveal<HTMLElement>();
+
   const stats = [
     { value: '50+', label: 'Active Clients', icon: <FaHandshake className="w-8 h-8" /> },
     { value: '100+', label: 'Projects Deployed', icon: <FaCode className="w-8 h-8" /> },
@@ -61,8 +71,12 @@ export default function AboutPage() {
   return (
     <div className="relative z-10">
       {/* Hero Section */}
-      <section className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div className="max-w-5xl mx-auto">
+      <section
+        ref={heroRef}
+        className="scroll-reveal relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50"
+      >
+        <SectionBackground variant="dots" />
+        <div className="relative max-w-5xl mx-auto">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Empowering Africa&apos;s <span className="text-darkgoldenrod dark:text-yellow-400">Digital Future</span>
           </h1>
@@ -73,12 +87,12 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-white dark:bg-gray-950">
+      <section ref={statsRef} className="scroll-reveal py-20 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 sm:px-8">
           {stats.map((stat, index) => (
             <div
               key={index}
-              className="p-6 text-center bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+              className="scroll-reveal-child p-6 text-center bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="text-3xl text-darkgoldenrod dark:text-yellow-400 mb-4">{stat.icon}</div>
               <div className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-2">{stat.value}</div>
@@ -89,7 +103,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-950">
+      <section ref={storyRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-darkgoldenrod dark:text-yellow-400 mb-12">
             Our African Tech Journey
@@ -149,7 +163,7 @@ export default function AboutPage() {
       </section>
 
       {/* Awards & Recognition */}
-      <section className="py-20 bg-white dark:bg-gray-950">
+      <section ref={awardsRef} className="scroll-reveal py-20 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
             Awards & Recognition
@@ -157,9 +171,9 @@ export default function AboutPage() {
           <div className="flex justify-center">
             <div className="max-w-md text-center">
               <a href="https://hostadvice.com/hosting-company/slyker-tech-web-services-reviews/" target="_blank" rel="noopener noreferrer">
-                <img 
-                  style={{width: '100%', maxWidth: '290px'}} 
-                  src="https://hostadvice.com/awards/2026-top-25-reseller-hosting.png" 
+                <img
+                  style={{ width: '100%', maxWidth: '290px' }}
+                  src="https://hostadvice.com/awards/2026-top-25-reseller-hosting.png"
                   alt="Slyker Tech Web Services review - Top 25 Reseller Hosting 2026"
                   className="mx-auto hover:scale-105 transition-transform duration-300"
                 />
@@ -173,8 +187,9 @@ export default function AboutPage() {
       </section>
 
       {/* Services Showcase */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8">
+      <section ref={servicesRef} className="scroll-reveal relative py-24 bg-white dark:bg-gray-900">
+        <SectionBackground variant="grid" />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
             Our Digital Solutions
           </h2>
@@ -182,7 +197,7 @@ export default function AboutPage() {
             {services.map((service, index) => (
               <div
                 key={index}
-                className="p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:shadow-lg transition-shadow"
+                className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">{service.icon}</div>
                 <h3 className="text-2xl font-semibold text-blue-900 dark:text-blue-300 mb-4">{service.title}</h3>
@@ -201,8 +216,9 @@ export default function AboutPage() {
       </section>
 
       {/* Founder Section */}
-      <section className="py-24 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-blue-950">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8">
+      <section ref={founderRef} className="scroll-reveal relative py-24 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-blue-950">
+        <SectionBackground variant="radial-glow" />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-8">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-xl">
             <div className="grid md:grid-cols-3 gap-12 items-center">
               <div className="relative group">
@@ -244,8 +260,8 @@ export default function AboutPage() {
       </section>
 
       {/* FAQs Section */}
-      <section id="faqs">
-        <ServiceFAQ 
+      <section ref={faqRef} className="scroll-reveal" id="faqs">
+        <ServiceFAQ
           faqs={aboutPageFAQs}
           serviceName="Slyker Tech"
         />

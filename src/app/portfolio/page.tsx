@@ -2,16 +2,26 @@
 'use client';
 import Link from 'next/link';
 import { FiMail, FiMessageSquare, FiGithub, FiCode, FiLayers } from 'react-icons/fi';
+import { useScrollReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 // Metadata is defined in route segment layout.tsx to avoid exporting from a Client Component
 
 export default function Portfolio() {
+  const heroRef = useScrollReveal<HTMLElement>();
+  const contentRef = useScrollReveal<HTMLElement>();
+  const ctaRef = useScrollReveal<HTMLElement>();
+
   return (
     <>
       <main className="min-h-screen">
         {/* Hero Section */}
-        <section className="relative py-20 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 text-white">
-          <div className="container mx-auto px-6 text-center">
+        <section
+          ref={heroRef}
+          className="scroll-reveal relative py-20 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 text-white"
+        >
+          <SectionBackground variant="dots" />
+          <div className="relative container mx-auto px-6 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">Our Portfolio</h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto">
               We&apos;re curating our best work to showcase here
@@ -20,7 +30,7 @@ export default function Portfolio() {
         </section>
 
         {/* Under Development Section */}
-        <section className="py-16 container mx-auto px-6">
+        <section ref={contentRef} className="scroll-reveal py-16 container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center bg-white dark:bg-gray-800 rounded-xl p-8 md:p-12 shadow-lg">
             <div className="text-6xl mb-6">🚧</div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -29,16 +39,16 @@ export default function Portfolio() {
             <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg">
               We&lsquo;re carefully selecting our best projects to showcase here. In the meantime, we&apos;d love to share relevant work samples based on your specific needs.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <FiLayers className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 mx-auto" />
                 <h3 className="font-bold text-lg mb-2">Request Samples</h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   Tell us about your project and we&apos;ll share relevant case studies
                 </p>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <FiCode className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-4 mx-auto" />
                 <h3 className="font-bold text-lg mb-2">GitHub</h3>
                 <p className="text-gray-600 dark:text-gray-300">
@@ -78,8 +88,9 @@ export default function Portfolio() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-gray-100 dark:bg-gray-800">
-          <div className="container mx-auto px-6 text-center">
+        <section ref={ctaRef} className="scroll-reveal relative py-16 bg-gray-100 dark:bg-gray-800">
+          <SectionBackground variant="radial-glow" />
+          <div className="relative container mx-auto px-6 text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">
               Ready to discuss your project?
             </h2>

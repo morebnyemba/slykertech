@@ -2,10 +2,17 @@
 'use client';
 import { FaWhatsapp, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa';
 import { MdAccessTime } from 'react-icons/md';
+import { useScrollReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 // Metadata is defined in route segment layout.tsx to avoid exporting from a Client Component
 
 export default function ContactPage() {
+  const heroRef = useScrollReveal<HTMLElement>();
+  const methodsRef = useScrollReveal<HTMLElement>();
+  const hoursRef = useScrollReveal<HTMLElement>();
+  const mapRef = useScrollReveal<HTMLElement>();
+
   const whatsappMessage = encodeURIComponent(
     "Hi Slyker Tech Web Services! I'd like to get in touch about..."
   );
@@ -13,8 +20,12 @@ export default function ContactPage() {
   return (
     <div className="relative z-10">
       {/* Hero Section */}
-      <section className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div className="max-w-5xl mx-auto">
+      <section
+        ref={heroRef}
+        className="scroll-reveal relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50"
+      >
+        <SectionBackground variant="gradient-accent" />
+        <div className="relative max-w-5xl mx-auto">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Get in <span className="text-darkgoldenrod dark:text-yellow-400">Touch</span>
           </h1>
@@ -25,10 +36,10 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Methods */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+      <section ref={methodsRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Primary WhatsApp Card */}
-          <div className="p-8 border-2 border-green-100 dark:border-green-900 rounded-2xl bg-green-50 dark:bg-green-900/20">
+          <div className="p-8 border-2 border-green-100 dark:border-green-900 rounded-2xl bg-green-50 dark:bg-green-900/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-6">
                 <FaWhatsapp className="text-green-600 dark:text-green-400 w-8 h-8" />
@@ -54,7 +65,7 @@ export default function ContactPage() {
           {/* Alternative Methods */}
           <div className="space-y-8">
             {/* Email */}
-            <div className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl">
+            <div className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-start gap-6">
                 <div className="text-darkgoldenrod dark:text-yellow-400 mt-1">
                   <FaEnvelope className="w-6 h-6" />
@@ -74,7 +85,7 @@ export default function ContactPage() {
             </div>
 
             {/* Harare Office */}
-            <div className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl">
+            <div className="p-8 border border-gray-200 dark:border-gray-700 rounded-2xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-start gap-6">
                 <div className="text-darkgoldenrod dark:text-yellow-400 mt-1">
                   <FaMapMarker className="w-6 h-6" />
@@ -88,7 +99,7 @@ export default function ContactPage() {
                     Budiriro 2<br />
                     Harare, Zimbabwe
                   </p>
-                  <a 
+                  <a
                     href="tel:+263787211325"
                     className="mt-2 inline-block text-gray-600 dark:text-gray-400 hover:text-darkgoldenrod dark:hover:text-yellow-400"
                   >
@@ -103,7 +114,7 @@ export default function ContactPage() {
       </section>
 
       {/* Support Hours */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section ref={hoursRef} className="scroll-reveal py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
           <div className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
             <div className="flex items-center gap-6">
@@ -113,9 +124,9 @@ export default function ContactPage() {
                   Support Hours (CAT)
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Monday - Friday: 7:30AM - 5:30PM<br/>
-                  Saturday: 8:00AM - 12:30PM<br/>
-                  Sunday: Closed<br/>
+                  Monday - Friday: 7:30AM - 5:30PM<br />
+                  Saturday: 8:00AM - 12:30PM<br />
+                  Sunday: Closed<br />
                   Public Holidays: Closed
                 </p>
               </div>
@@ -125,7 +136,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map Section */}
-      <section className="bg-white dark:bg-gray-950 py-24">
+      <section ref={mapRef} className="scroll-reveal bg-white dark:bg-gray-950 py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
           <div className="rounded-2xl overflow-hidden shadow-xl">
             <iframe
