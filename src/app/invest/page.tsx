@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { FaChartLine, FaHandshake, FaGlobeAfrica, FaWhatsapp, FaEnvelope, FaCalculator } from 'react-icons/fa';
 import { MdTrendingUp, MdSecurity, MdCloud } from 'react-icons/md';
 import InvestmentApplicationForm from '@/components/investments/InvestmentApplicationForm';
+import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 interface InvestmentPackage {
   id: number;
@@ -22,11 +24,18 @@ export default function InvestPage() {
   const [selectedPackage, setSelectedPackage] = useState<InvestmentPackage | null>(null);
   const [calculatorAmount, setCalculatorAmount] = useState('10000');
   const [showApplicationForm, setShowApplicationForm] = useState(false);
-  
+
+  const heroRef = useScrollReveal<HTMLElement>();
+  const whyRef = useStaggerReveal<HTMLElement>();
+  const focusRef = useScrollReveal<HTMLElement>();
+  const packagesRef = useStaggerReveal<HTMLElement>();
+  const marketRef = useScrollReveal<HTMLElement>();
+  const ctaRef = useScrollReveal<HTMLElement>();
+
   useEffect(() => {
     fetchPackages();
   }, []);
-  
+
   const fetchPackages = async () => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -39,7 +48,7 @@ export default function InvestPage() {
       setLoading(false);
     }
   };
-  
+
   const calculateReturn = (amount: number, returnRate: number, months: number) => {
     const principal = amount;
     const rate = returnRate / 100;
@@ -51,7 +60,7 @@ export default function InvestPage() {
       monthlyReturn: returns / months
     };
   };
-  
+
   const whatsappMessage = encodeURIComponent(
     "Hi Slyker Tech Web Services! I'm interested in investment opportunities..."
   );
@@ -80,8 +89,12 @@ export default function InvestPage() {
   return (
     <div className="relative z-10">
       {/* Hero Section */}
-      <section className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div className="max-w-5xl mx-auto">
+      <section
+        ref={heroRef}
+        className="scroll-reveal relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50"
+      >
+        <SectionBackground variant="gradient-accent" />
+        <div className="relative max-w-5xl mx-auto">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Invest in <span className="text-darkgoldenrod dark:text-yellow-400">Africa&apos;s Digital Future</span>
           </h1>
@@ -92,13 +105,13 @@ export default function InvestPage() {
       </section>
 
       {/* Why Invest Section */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+      <section ref={whyRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
             Why Invest in Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
                 <FaChartLine className="w-12 h-12" />
               </div>
@@ -110,7 +123,7 @@ export default function InvestPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
                 <FaHandshake className="w-12 h-12" />
               </div>
@@ -122,7 +135,7 @@ export default function InvestPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6">
                 <FaGlobeAfrica className="w-12 h-12" />
               </div>
@@ -138,8 +151,9 @@ export default function InvestPage() {
       </section>
 
       {/* Focus Areas */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto">
+      <section ref={focusRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
+        <SectionBackground variant="waves" />
+        <div className="relative max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-darkgoldenrod dark:text-yellow-400 mb-12">
             Investment Focus Areas
           </h2>
@@ -147,7 +161,7 @@ export default function InvestPage() {
             {focusAreas.map((area, index) => (
               <div
                 key={index}
-                className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
               >
                 <div className="flex flex-col md:flex-row items-start gap-6">
                   <div className="text-darkgoldenrod dark:text-yellow-400">
@@ -174,7 +188,7 @@ export default function InvestPage() {
       </section>
 
       {/* Investment Packages */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+      <section ref={packagesRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-4">
             Investment Packages
@@ -182,7 +196,7 @@ export default function InvestPage() {
           <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
             Choose from our range of investment packages designed to match different investment goals and risk profiles
           </p>
-          
+
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading packages...</p>
@@ -196,7 +210,7 @@ export default function InvestPage() {
               {packages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-darkgoldenrod dark:hover:border-yellow-400"
+                  className="scroll-reveal-child p-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-darkgoldenrod dark:hover:border-yellow-400"
                 >
                   <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300 mb-4">
                     {pkg.name}
@@ -207,7 +221,7 @@ export default function InvestPage() {
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
                     {pkg.description}
                   </p>
-                  
+
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Minimum:</span>
@@ -228,7 +242,7 @@ export default function InvestPage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => {
                       setSelectedPackage(pkg);
@@ -251,7 +265,7 @@ export default function InvestPage() {
               ))}
             </div>
           )}
-          
+
           {/* Calculator */}
           {selectedPackage && !showApplicationForm && (
             <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 shadow-lg">
@@ -261,7 +275,7 @@ export default function InvestPage() {
                   Investment Calculator - {selectedPackage.name}
                 </h3>
               </div>
-              
+
               <div className="mb-6">
                 <label className="block text-gray-700 dark:text-gray-300 mb-2 font-medium">
                   Investment Amount ($)
@@ -275,7 +289,7 @@ export default function InvestPage() {
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-lg font-semibold"
                 />
               </div>
-              
+
               {(() => {
                 const calc = calculateReturn(
                   parseFloat(calculatorAmount) || 0,
@@ -317,8 +331,9 @@ export default function InvestPage() {
       </section>
 
       {/* Market Opportunity */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
-        <div className="max-w-6xl mx-auto">
+      <section ref={marketRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+        <SectionBackground variant="grid" />
+        <div className="relative max-w-6xl mx-auto">
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-blue-900/50 rounded-3xl p-12">
             <h2 className="text-4xl font-bold text-blue-900 dark:text-blue-300 mb-8 text-center">
               The African Tech Opportunity
@@ -368,8 +383,9 @@ export default function InvestPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
-        <div className="max-w-4xl mx-auto text-center">
+      <section ref={ctaRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
+        <SectionBackground variant="radial-glow" />
+        <div className="relative max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Ready to Partner with Us?
           </h2>
@@ -396,7 +412,7 @@ export default function InvestPage() {
           </div>
         </div>
       </section>
-      
+
       {/* Investment Application Form Modal */}
       {showApplicationForm && selectedPackage && (
         <InvestmentApplicationForm

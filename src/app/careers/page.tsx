@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FaUsers, FaHeart, FaRocket, FaWhatsapp, FaEnvelope, FaFilter } from 'react-icons/fa';
 import { MdWork, MdTrendingUp, MdHealthAndSafety } from 'react-icons/md';
+import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 interface JobPosting {
   id: number;
@@ -24,11 +26,18 @@ export default function CareersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  
+
+  const heroRef = useScrollReveal<HTMLElement>();
+  const cultureRef = useStaggerReveal<HTMLElement>();
+  const benefitsRef = useStaggerReveal<HTMLElement>();
+  const positionsRef = useScrollReveal<HTMLElement>();
+  const processRef = useScrollReveal<HTMLElement>();
+  const ctaRef = useScrollReveal<HTMLElement>();
+
   useEffect(() => {
     fetchJobs();
   }, []);
-  
+
   const fetchJobs = async () => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -41,16 +50,16 @@ export default function CareersPage() {
       setLoading(false);
     }
   };
-  
+
   const filteredJobs = jobs.filter(job => {
     const typeMatch = selectedType === 'all' || job.employment_type === selectedType;
     const locationMatch = selectedLocation === 'all' || job.location.toLowerCase().includes(selectedLocation.toLowerCase());
     return typeMatch && locationMatch;
   });
-  
+
   const employmentTypes = Array.from(new Set(jobs.map(j => j.employment_type)));
   const locations = Array.from(new Set(jobs.map(j => j.location)));
-  
+
   const whatsappMessage = encodeURIComponent(
     "Hi Slyker Tech Web Services! I'm interested in career opportunities..."
   );
@@ -81,8 +90,12 @@ export default function CareersPage() {
   return (
     <div className="relative z-10">
       {/* Hero Section */}
-      <section className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div className="max-w-5xl mx-auto">
+      <section
+        ref={heroRef}
+        className="scroll-reveal relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50"
+      >
+        <SectionBackground variant="waves" />
+        <div className="relative max-w-5xl mx-auto">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Build the <span className="text-darkgoldenrod dark:text-yellow-400">Future of Africa</span>
           </h1>
@@ -93,13 +106,13 @@ export default function CareersPage() {
       </section>
 
       {/* Company Culture */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+      <section ref={cultureRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-12">
             Why Work at Slyker Tech Web Services
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow text-center">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
                 <FaUsers className="w-12 h-12" />
               </div>
@@ -111,7 +124,7 @@ export default function CareersPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow text-center">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
                 <FaRocket className="w-12 h-12" />
               </div>
@@ -123,7 +136,7 @@ export default function CareersPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg transition-shadow text-center">
+            <div className="scroll-reveal-child p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center">
               <div className="text-darkgoldenrod dark:text-yellow-400 mb-6 flex justify-center">
                 <FaHeart className="w-12 h-12" />
               </div>
@@ -150,8 +163,9 @@ export default function CareersPage() {
       </section>
 
       {/* Benefits */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto">
+      <section ref={benefitsRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
+        <SectionBackground variant="dots" />
+        <div className="relative max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-darkgoldenrod dark:text-yellow-400 mb-12">
             Benefits & Perks
           </h2>
@@ -159,7 +173,7 @@ export default function CareersPage() {
             {benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                className="scroll-reveal-child p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex items-start gap-6">
                   <div className="text-darkgoldenrod dark:text-yellow-400">
@@ -181,12 +195,12 @@ export default function CareersPage() {
       </section>
 
       {/* Open Positions */}
-      <section className="py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
+      <section ref={positionsRef} className="scroll-reveal py-24 px-4 sm:px-8 bg-white dark:bg-gray-950">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-blue-900 dark:text-blue-300 mb-8">
             Open Positions
           </h2>
-          
+
           {/* Filters */}
           <div className="mb-8 flex flex-wrap gap-4 justify-center">
             <div className="flex items-center gap-2">
@@ -213,7 +227,7 @@ export default function CareersPage() {
               ))}
             </select>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400">Loading positions...</p>
@@ -227,7 +241,7 @@ export default function CareersPage() {
               {filteredJobs.map((position) => (
                 <div
                   key={position.id}
-                  className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                  className="p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     <div className="flex-1">
@@ -273,8 +287,9 @@ export default function CareersPage() {
       </section>
 
       {/* Application Process */}
-      <section className="py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto">
+      <section ref={processRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-gray-50 dark:bg-gray-900">
+        <SectionBackground variant="grid" />
+        <div className="relative max-w-4xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-darkgoldenrod dark:text-yellow-400 mb-12">
             Application Process
           </h2>
@@ -338,8 +353,9 @@ export default function CareersPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
-        <div className="max-w-4xl mx-auto text-center">
+      <section ref={ctaRef} className="scroll-reveal relative py-24 px-4 sm:px-8 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-900 dark:to-purple-900">
+        <SectionBackground variant="radial-glow" />
+        <div className="relative max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Ready to Join Our Team?
           </h2>

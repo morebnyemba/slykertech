@@ -8,6 +8,7 @@ import { MdSupport } from 'react-icons/md';
 import servicesData from './servicesData';
 import { SITE_NAME, BASE_URL } from '@/lib/seo-config';
 import { useScrollReveal, useStaggerReveal } from '@/lib/useScrollReveal';
+import SectionBackground from '@/components/SectionBackground';
 
 export default function ServicesClientView() {
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -70,8 +71,9 @@ export default function ServicesClientView() {
   return (
     <div className="relative z-10">
       {/* Hero Section */}
-      <section aria-labelledby="services-heading" className="py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
-        <div ref={heroRef} className="scroll-reveal max-w-5xl mx-auto">
+      <section aria-labelledby="services-heading" className="relative py-28 px-4 sm:px-8 md:px-16 lg:px-24 text-center bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/50">
+        <SectionBackground variant="waves" />
+        <div ref={heroRef} className="scroll-reveal relative max-w-5xl mx-auto">
           <h1 id="services-heading" className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-blue-900 dark:text-blue-300 leading-tight">
             Our <span className="text-darkgoldenrod dark:text-yellow-400">Digital Services</span>
           </h1>
@@ -217,7 +219,8 @@ export default function ServicesClientView() {
       </section>
 
       {/* CTA Section */}
-      <section aria-label="Service inquiry" className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section aria-label="Service inquiry" className="relative py-16 bg-gray-50 dark:bg-gray-900">
+        <SectionBackground variant="radial-glow" />
         <div className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
           <div ref={ctaRef} className="scroll-reveal p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
             <MdSupport className="text-4xl text-darkgoldenrod dark:text-yellow-400 mx-auto mb-4" aria-hidden="true" />
